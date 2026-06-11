@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAP MSR-Trainer · Prinzipschema</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<style>
+:root{
+  --bg:#0f172a;--card:#1e293b;--card2:#233048;--line:#334155;--line2:#3e4f6b;
+  --acc:#38bdf8;--acc-deep:#0ea5e9;--ok:#22c55e;--no:#ef4444;--warn:#f59e0b;
+  --txt:#e2e8f0;--mut:#94a3b8;--mut2:#64748b;
+  --r:16px;--shadow:0 8px 30px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-color:var(--line) var(--bg);background:var(--bg)}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
+::selection{background:rgba(56,189,248,.35)}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:9px 16px;transition:background .15s,border-color .15s,transform .12s}
+button:hover{background:var(--card2);border-color:var(--line2)}
+button:active{transform:translateY(1px)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.primary{background:var(--acc);border-color:var(--acc);color:#082f49;font-weight:700}
+button.primary:hover{background:#5ecbfa}
+button:disabled{opacity:.45;cursor:default}
+.top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:16px 2px 14px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.06rem;white-space:nowrap}
+.brand small{color:var(--mut);font-weight:500}
+.tabs{display:flex;background:rgba(30,41,59,.75);border:1px solid var(--line);border-radius:99px;padding:4px;gap:2px}
+.tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s}
+.tabs a:hover{color:var(--txt)}
+.tabs a.active{background:var(--acc);color:#082f49}
+.top-actions{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:.85rem}
+.top-actions b{color:var(--txt)}
+main{width:100%;max-width:1480px;display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:minmax(0,8.2fr) minmax(0,3.8fr);gap:18px;align-items:start}
+@media(max-width:1150px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(36,48,70,.5),rgba(30,41,59,.9)),var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.badge{font-size:.72rem;font-weight:600;border-radius:99px;padding:3px 11px;border:1px solid var(--line2);color:var(--mut)}
+.badge.cat{border-color:var(--acc);color:var(--acc)}
+.task-text{font-size:1.08rem;font-weight:600;line-height:1.5;margin-bottom:8px}
+.src-note{color:var(--mut2);font-size:.76rem;margin-bottom:6px}
+
+/* Schema */
+#schemaWrap{position:relative}
+svg{width:100%;height:auto;display:block;user-select:none}
+.duct{fill:#16213a;stroke:#475569;stroke-width:1.4}
+.tint-aul{fill:rgba(34,197,94,.10)} .tint-zul{fill:rgba(239,68,68,.10)} .tint-abl{fill:rgba(59,130,246,.12)} .tint-fol{fill:rgba(148,163,184,.10)}
+.comp{fill:#1c2940;stroke:#94a3b8;stroke-width:1.5}
+.comp-line{stroke:#94a3b8;stroke-width:1.4;fill:none}
+.lbl{fill:#94a3b8;font-size:13px;font-weight:600}
+.lbl-sm{fill:#64748b;font-size:11px}
+.flow{stroke:#38bdf8;stroke-width:1.6;marker-end:url(#arr)}
+.zone-dot{fill:#475569}
+.zone-c{fill:rgba(56,189,248,.07);stroke:#38bdf8;stroke-width:1.4;stroke-dasharray:5 4;opacity:0;transition:opacity .2s}
+.zone-lbl{fill:#7dd3fc;font-size:11px;font-weight:600;opacity:0;transition:opacity .2s}
+svg.dragging .zone-c{opacity:.75}
+svg.dragging .zone-lbl{opacity:.9}
+.zone-c.near{opacity:1;fill:rgba(56,189,248,.22);stroke-width:2.4;stroke-dasharray:none}
+.zone-c.target-pulse{opacity:1;stroke:var(--warn);animation:zpulse 1s infinite}
+@keyframes zpulse{50%{stroke-width:4;fill:rgba(245,158,11,.2)}}
+.placed-g circle{fill:#082f49;stroke:var(--ok);stroke-width:2}
+.placed-g text{fill:#7dd3fc;font-size:11px;font-weight:800;text-anchor:middle;dominant-baseline:central}
+.placed-g.revealed circle{stroke:var(--warn)}
+
+/* Geräte-Ablage */
+.tray{display:flex;flex-direction:column;gap:8px;margin:12px 0 4px}
+.chip-dev{display:flex;align-items:center;gap:10px;background:rgba(15,23,42,.55);border:1px solid var(--line2);border-radius:12px;padding:9px 12px;cursor:grab;transition:border-color .15s,opacity .2s,transform .15s;touch-action:none}
+.chip-dev:hover{border-color:var(--acc)}
+.chip-dev.done{opacity:.55;cursor:default;border-color:var(--ok)}
+.chip-dev.done:hover{border-color:var(--ok)}
+.chip-dev.dragging{opacity:.35;cursor:grabbing}
+.chip-dev .sym{flex:0 0 34px;height:34px;border-radius:50%;background:rgba(56,189,248,.12);border:1.6px solid var(--acc);color:#7dd3fc;font-weight:800;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+.chip-dev.done .sym{border-color:var(--ok);color:#86efac;background:rgba(34,197,94,.1)}
+.chip-dev .nm{font-size:.9rem;font-weight:600;line-height:1.25}
+.chip-dev .nm small{display:block;color:var(--mut2);font-weight:500;font-size:.74rem}
+.chip-dev .st{margin-left:auto;font-size:1rem}
+#ghost{position:fixed;z-index:50;pointer-events:none;width:40px;height:40px;border-radius:50%;background:#082f49;border:2px solid var(--acc);color:#7dd3fc;font-weight:800;font-size:.8rem;display:none;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(56,189,248,.35);transform:translate(-50%,-50%)}
+
+.feedback{border-radius:12px;padding:12px 14px;font-size:.92rem;line-height:1.55;margin-top:10px;display:none;animation:fIn .25s}
+@keyframes fIn{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.feedback.show{display:block}
+.fb-ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.45);color:#bbf7d0}
+.fb-no{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.4);color:#fecaca}
+.fb-info{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.35);color:#bae6fd}
+.actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.kbd-hint{color:var(--mut2);font-size:.75rem;margin-top:12px}
+.kbd-hint kbd,footer kbd{background:var(--card2);border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-family:inherit;font-size:.72rem}
+.progress-dots{display:flex;gap:6px;margin-top:10px}
+.pdot{width:10px;height:10px;border-radius:50%;background:var(--line);transition:background .2s}
+.pdot.ok{background:var(--ok)} .pdot.no{background:var(--no)} .pdot.rev{background:var(--warn)}
+
+/* Sequenz */
+.seq-list{display:flex;flex-direction:column;gap:8px;margin:12px 0;position:relative}
+.seq-item{display:flex;align-items:center;gap:10px;background:rgba(15,23,42,.55);border:1px solid var(--line2);border-radius:12px;padding:11px 13px;cursor:grab;font-size:.92rem;line-height:1.35;transition:border-color .15s,transform .12s;touch-action:none}
+.seq-item:hover{border-color:var(--acc)}
+.seq-item .no{flex:0 0 24px;height:24px;border-radius:50%;background:rgba(56,189,248,.12);border:1.4px solid var(--acc);color:#7dd3fc;font-size:.74rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.seq-item.right{border-color:var(--ok)} .seq-item.right .no{border-color:var(--ok);color:#86efac}
+.seq-item.wrong{border-color:var(--no)} .seq-item.wrong .no{border-color:var(--no);color:#fca5a5}
+.seq-item.lift{opacity:.92;cursor:grabbing;border-color:var(--acc);box-shadow:0 10px 26px rgba(0,0,0,.5);position:relative;z-index:5}
+.done-summary{text-align:center;padding:8px 0 2px}
+.done-summary b{font-size:1.5rem}
+footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-align:center;line-height:1.8}
+</style></head><body>
+
+<header class="top">
+  <div class="brand">🎓 LAP Trainer <small>· Lüftung EFZ</small></div>
+  <nav class="tabs">
+    <a href="index.html">Fragen</a>
+    <a href="rechnen.html">Rechnen</a>
+    <a class="active" href="msr.html" onclick="return false">MSR</a>
+  </nav>
+  <div class="top-actions">
+    <span id="statLine"></span>
+    <button id="btnReset" title="MSR-Statistik zurücksetzen">↺</button>
+  </div>
+</header>
+
+<main>
+  <section class="grid">
+    <article class="card" id="schemaCard">
+      <div class="badges"><span class="badge cat">Prinzipschema</span><span class="badge">Zu-/Abluftanlage mit WRG, Erhitzer, Kühler, Dampfbefeuchter</span></div>
+      <div id="schemaWrap">
+        <svg id="schema" viewBox="0 0 1320 600" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#38bdf8"/></marker>
+          </defs>
+          <!-- Kanäle -->
+          <rect class="duct" x="60" y="162" width="960" height="36"/>
+          <rect class="duct" x="60" y="362" width="960" height="36"/>
+          <!-- Farbcodierung Luftarten -->
+          <rect class="tint-aul" x="61" y="363" width="239" height="34"/>
+          <rect class="tint-zul" x="420" y="363" width="599" height="34"/>
+          <rect class="tint-abl" x="420" y="163" width="599" height="34"/>
+          <rect class="tint-fol" x="61" y="163" width="239" height="34"/>
+          <!-- Strömungspfeile -->
+          <line class="flow" x1="248" y1="380" x2="284" y2="380"/>
+          <line class="flow" x1="806" y1="380" x2="846" y2="380"/>
+          <line class="flow" x1="660" y1="180" x2="620" y2="180"/>
+          <line class="flow" x1="160" y1="180" x2="120" y2="180"/>
+          <!-- Beschriftungen Luftarten -->
+          <text class="lbl" x="36" y="358" >AUL ▷</text>
+          <text class="lbl" x="966" y="424">ZUL</text>
+          <text class="lbl" x="966" y="152">ABL</text>
+          <text class="lbl" x="30" y="152">◁ FOL</text>
+          <!-- AUL-Klappe -->
+          <g>
+            <rect class="comp" x="124" y="362" width="28" height="36"/>
+            <line class="comp-line" x1="128" y1="394" x2="148" y2="366"/>
+            <line class="comp-line" x1="138" y1="398" x2="138" y2="430"/>
+            <rect class="comp" x="128" y="430" width="20" height="16" rx="3"/>
+            <text class="lbl-sm" x="118" y="462">Klappe</text>
+          </g>
+          <!-- Filter ZUL -->
+          <g>
+            <rect class="comp" x="192" y="354" width="40" height="52"/>
+            <path class="comp-line" d="M198 360 L226 366 L198 374 L226 380 L198 388 L226 394 L198 400"/>
+            <text class="lbl-sm" x="198" y="348">F7</text>
+          </g>
+          <!-- WRG -->
+          <g>
+            <rect class="comp" x="300" y="130" width="120" height="300"/>
+            <line class="comp-line" x1="300" y1="130" x2="420" y2="430"/>
+            <line class="comp-line" x1="420" y1="130" x2="300" y2="430"/>
+            <text class="lbl" x="338" y="296">WRG</text>
+          </g>
+          <!-- Erhitzer -->
+          <g>
+            <rect class="comp" x="450" y="352" width="44" height="56" style="fill:rgba(239,68,68,.08)"/>
+            <text class="lbl" x="465" y="386" style="fill:#fca5a5;font-size:18px">+</text>
+            <line class="comp-line" x1="462" y1="408" x2="462" y2="452"/>
+            <line class="comp-line" x1="482" y1="408" x2="482" y2="468"/>
+            <path class="comp-line" d="M455 459 L469 452 L469 466 Z M469 459 L483 452 L483 466"/>
+            <circle class="comp" cx="462" cy="498" r="9"/>
+            <path class="comp-line" d="M457 493 L469 498 L457 503"/>
+            <text class="lbl-sm" x="438" y="528">Ventil + Pumpe</text>
+          </g>
+          <!-- Kühler -->
+          <g>
+            <rect class="comp" x="588" y="352" width="44" height="56" style="fill:rgba(56,189,248,.07)"/>
+            <text class="lbl" x="603" y="387" style="fill:#7dd3fc;font-size:18px">−</text>
+            <path class="comp-line" d="M592 412 h36 v8 q0 6 -6 6 q-6 0 -6 -6 v-3"/>
+            <text class="lbl-sm" x="585" y="444">Siphon</text>
+          </g>
+          <!-- Dampfbefeuchter -->
+          <g>
+            <rect class="comp" x="672" y="348" width="52" height="64"/>
+            <line class="comp-line" x1="684" y1="404" x2="684" y2="358"/>
+            <line class="comp-line" x1="698" y1="404" x2="698" y2="358"/>
+            <line class="comp-line" x1="712" y1="404" x2="712" y2="358"/>
+            <circle class="zone-dot" cx="684" cy="364" r="1.6"/><circle class="zone-dot" cx="698" cy="364" r="1.6"/><circle class="zone-dot" cx="712" cy="364" r="1.6"/>
+            <text class="lbl-sm" x="676" y="342">Dampf</text>
+          </g>
+          <!-- Ventilator ZUL -->
+          <g>
+            <circle class="comp" cx="770" cy="380" r="26"/>
+            <path class="comp-line" d="M770 380 L788 366 M770 380 L752 366 M770 380 L770 404"/>
+            <text class="lbl-sm" x="758" y="424">VZUL</text>
+          </g>
+          <!-- Filter ABL -->
+          <g>
+            <rect class="comp" x="888" y="154" width="40" height="52"/>
+            <path class="comp-line" d="M894 160 L922 166 L894 174 L922 180 L894 188 L922 194 L894 200"/>
+            <text class="lbl-sm" x="894" y="148">F5</text>
+          </g>
+          <!-- Ventilator ABL -->
+          <g>
+            <circle class="comp" cx="212" cy="180" r="26"/>
+            <path class="comp-line" d="M212 180 L230 166 M212 180 L194 166 M212 180 L212 204"/>
+            <text class="lbl-sm" x="198" y="224">VABL</text>
+          </g>
+          <!-- Raum -->
+          <g>
+            <rect class="comp" x="1020" y="120" width="270" height="350" rx="10" style="fill:rgba(30,41,59,.55)"/>
+            <path class="comp-line" d="M1046 380 L1078 380 M1062 372 L1078 380 L1062 388"/>
+            <path class="comp-line" d="M1078 180 L1046 180 M1062 172 L1046 180 L1062 188"/>
+            <circle class="comp-line" cx="1230" cy="398" r="9" style="fill:none"/>
+            <path class="comp-line" d="M1230 407 V434 M1230 415 L1216 425 M1230 415 L1244 425 M1230 434 L1218 452 M1230 434 L1242 452"/>
+            <text class="lbl" x="1100" y="448">Raum / Zone</text>
+          </g>
+          <!-- Zielzonen + platzierte Geräte (per JS) -->
+          <g id="gZones"></g>
+          <g id="gPlaced"></g>
+        </svg>
+      </div>
+    </article>
+
+    <article class="card" id="taskCard">
+      <div class="badges"><span class="badge cat" id="modeBadge"></span><span class="badge" id="roundBadge"></span></div>
+      <div class="src-note">Aufgabentyp aus QV-Checkliste MSR / PA13 Prinzipschema</div>
+      <div class="task-text" id="taskText"></div>
+
+      <!-- Platzieren -->
+      <div id="placeBox" style="display:none">
+        <div class="tray" id="tray"></div>
+        <div class="progress-dots" id="pdots"></div>
+      </div>
+
+      <!-- Reihenfolge -->
+      <div id="seqBox" style="display:none">
+        <div class="seq-list" id="seqList"></div>
+        <div class="actions"><button class="primary" id="btnSeqCheck">Prüfen ⏎</button></div>
+      </div>
+
+      <div class="feedback" id="fb"></div>
+      <div class="actions">
+        <button id="btnReveal">💡 Lösung zeigen (L)</button>
+        <button id="btnNext">Nächste Runde (N) →</button>
+      </div>
+      <div class="kbd-hint">Gerät mit der <b>Maus</b> aufs Schema ziehen · <kbd>L</kbd> Lösung · <kbd>N</kbd> nächste Runde<span id="seqHintKbd" style="display:none"> · <kbd>⏎</kbd> Reihenfolge prüfen · Einträge mit der Maus sortieren</span></div>
+    </article>
+  </section>
+</main>
+
+<div id="ghost"></div>
+
+<footer>
+  Drag &amp; Drop mit der Maus · <kbd>L</kbd> Lösung · <kbd>N</kbd> nächste Runde<br>
+  Manoa Verner · GPL22c · 2026
+</footer>
+
+<script>
+/* ===== MSR-CORE-START ===== */
+'use strict';
+/* ---------- Zufall (deterministisch je Seed) ---------- */
+function makeRng(seed){ let s = seed >>> 0; return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = {
+  int(rng, a, b){ return a + Math.floor(rng() * (b - a + 1)); },
+  pick(rng, arr){ return arr[Math.floor(rng() * arr.length)]; },
+  shuffle(rng, arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+};
+
+/* ---------- Zielzonen im Prinzipschema (viewBox 0 0 1320 600) ---------- */
+const ZONE_R = 34; // Fangradius
+const ZONES = [
+  { id: 'z_aul',           x: 92,   y: 380, label: 'AUL-Ansaug (vor der Klappe)' },
+  { id: 'z_klappe_m',      x: 138,  y: 448, label: 'an der Aussenluftklappe' },
+  { id: 'z_dp_filter_zul', x: 212,  y: 312, label: 'über dem AUL-Filter' },
+  { id: 'z_nach_filter',   x: 260,  y: 380, label: 'zwischen Filter und WRG' },
+  { id: 'z_wrg',           x: 360,  y: 282, label: 'an der WRG (Stellsignal)' },
+  { id: 'z_nach_wrg',      x: 440,  y: 380, label: 'nach WRG / vor Erhitzer' },
+  { id: 'z_nach_erhitzer', x: 522,  y: 380, label: 'direkt nach dem Erhitzer' },
+  { id: 'z_erhitzer_ventil', x: 478, y: 478, label: 'am Erhitzer-Ventil (Wasserseite)' },
+  { id: 'z_nach_kuehler',  x: 610,  y: 380, label: 'nach dem Kühler' },
+  { id: 'z_nach_befeuchter', x: 706, y: 380, label: 'nach dem Befeuchter' },
+  { id: 'z_dp_vent_zul',   x: 770,  y: 312, label: 'über dem ZUL-Ventilator' },
+  { id: 'z_zul_kanal',     x: 900,  y: 380, label: 'im ZUL-Kanal nach dem Ventilator' },
+  { id: 'z_raum',          x: 1155, y: 300, label: 'im Raum (Aufenthaltszone)' },
+  { id: 'z_abl_kanal',     x: 968,  y: 180, label: 'im ABL-Kanal (vor dem Filter)' },
+  { id: 'z_dp_filter_abl', x: 908,  y: 112, label: 'über dem ABL-Filter' },
+  { id: 'z_dp_vent_abl',   x: 212,  y: 112, label: 'über dem ABL-Ventilator' },
+  { id: 'z_fol',           x: 92,   y: 180, label: 'FOL-Austritt' }
+];
+const ZONE_BY_ID = {}; ZONES.forEach(z => ZONE_BY_ID[z.id] = z);
+
+/* ---------- Geräte mit erlaubten Zonen + Begründung ---------- */
+const DEVICES = [
+  { id: 'd_t_aul', sym: 'T', kind: 'Fühler', name: 'Aussentemperaturfühler',
+    zones: ['z_aul'],
+    why: 'An der Ansaugung misst er die unbeeinflusste Aussentemperatur – Basis für witterungsgeführte Sollwerte, Frostschutz-Freigaben und die WRG-Strategie.',
+    hint: 'Wo ist die Luft noch komplett unbehandelt?' },
+  { id: 'd_t_zul', sym: 'T', kind: 'Fühler', name: 'Zulufttemperaturfühler',
+    zones: ['z_zul_kanal'],
+    why: 'Erst nach dem Ventilator sind ALLE Behandlungsstufen passiert und die Luft ist durchmischt – hier stimmt der Messwert für die Zuluft-Regelung (inkl. Ventilator-Erwärmung ~1 K).',
+    hint: 'Der Fühler muss ALLE Behandlungsstufen hinter sich haben – und durchmischte Luft sehen.' },
+  { id: 'd_t_abl', sym: 'T', kind: 'Fühler', name: 'Ablufttemperaturfühler',
+    zones: ['z_abl_kanal'],
+    why: 'Die Abluft ist die «Mischprobe» des Raums: Im ABL-Kanal (vor Filter/WRG) liefert der Fühler die repräsentative Raumtemperatur als Führungsgrösse der Kaskade.',
+    hint: 'Welche Luft repräsentiert den Raum, ohne einen Raumfühler zu brauchen?' },
+  { id: 'd_t_raum', sym: 'T', kind: 'Fühler', name: 'Raumtemperaturfühler',
+    zones: ['z_raum'],
+    why: 'Für die Einzelraumregelung sitzt der Fühler in der Aufenthaltszone – nicht über Wärmequellen, nicht an der Aussenwand, nicht im ZUL-Strahl.',
+    hint: 'Einzelraumregelung – gemessen wird dort, wo sich die Personen aufhalten.' },
+  { id: 'd_frost', sym: 'T❄', kind: 'Wächter', name: 'Frostschutzthermostat',
+    zones: ['z_nach_erhitzer'],
+    why: 'Direkt NACH dem Lufterhitzer (luftseitig, Kapillarrohr über die Registerfläche): Dort friert das wassergefüllte Register zuerst ein. Auslösung < ~5 °C → Anlage aus, Klappen zu, Ventil 100 %, Pumpe ein, Alarm.',
+    hint: 'Geschützt wird das WASSERGEFÜLLTE Register – gemessen wird an seiner kältesten Luftseite.' },
+  { id: 'd_co2', sym: 'Q', kind: 'Fühler', name: 'CO₂-Fühler (Luftqualität)',
+    zones: ['z_raum', 'z_abl_kanal'],
+    why: 'Im Raum (oder ersatzweise im ABL-Kanal) misst er die Luftqualität der Nutzungszone – Führungsgrösse für die bedarfsgeführte Volumenstromregelung (VAV).',
+    hint: 'Gemessen wird die Qualität der RAUMLUFT – wo kommt die hin?' },
+  { id: 'd_dp_filter', sym: 'ΔP', kind: 'Wächter', name: 'Differenzdruckwächter Filter',
+    zones: ['z_dp_filter_zul', 'z_dp_filter_abl'],
+    why: 'Er misst ÜBER dem Filter (vorher/nachher): Steigender Differenzdruck = Filter verschmutzt → Wartungsmeldung bei Enddruckdifferenz.',
+    hint: 'Verschmutzung erkennt man am Druckabfall ÜBER dem Bauteil.' },
+  { id: 'd_dp_vent', sym: 'ΔP', kind: 'Wächter', name: 'Differenzdruckwächter Ventilator',
+    zones: ['z_dp_vent_zul', 'z_dp_vent_abl'],
+    why: 'Über dem Ventilator: Baut er trotz Freigabe keinen Differenzdruck auf (Riemenriss, Motorschaden), geht eine Störmeldung raus – Betriebsüberwachung.',
+    hint: 'Läuft der Ventilator wirklich? Das verrät sein eigener Druckaufbau.' },
+  { id: 'd_p_kanal', sym: 'P', kind: 'Fühler', name: 'Kanaldruckfühler (Drehzahlregelung)',
+    zones: ['z_zul_kanal'],
+    why: 'Im ZUL-Kanal nach dem Ventilator (repräsentative Netzstelle): Der Regler hält den Kanaldruck konstant, der Frequenzumformer passt die Drehzahl dem VAV-Bedarf an (Konstant-Druckregelung).',
+    hint: 'Konstant-Druckregelung: konstant gehalten wird der Druck im KANALNETZ.' },
+  { id: 'd_h_max', sym: 'H', kind: 'Wächter', name: 'Hygrostat max. (Begrenzer)',
+    zones: ['z_nach_befeuchter'],
+    why: 'Direkt nach dem Befeuchter: Der Maximal-Hygrostat begrenzt die Zuluftfeuchte und schliesst bei zu hoher Feuchte das Befeuchterventil – Schutz vor Kondensat im Kanal.',
+    hint: 'Der Begrenzer schützt den Kanal direkt nach der Feuchte-QUELLE.' },
+  { id: 'd_h_abl', sym: 'H', kind: 'Fühler', name: 'Feuchtefühler (Regelung)',
+    zones: ['z_abl_kanal', 'z_raum'],
+    why: 'Geregelt wird auf die Raum-/Abluftfeuchte: Der Regler vergleicht den Ist-Wert mit dem Sollwert und führt das Befeuchterventil (begrenzt durch den Max-Hygrostat).',
+    hint: 'Die REGELGRÖSSE ist die Feuchte im Raum – nicht direkt am Befeuchter.' },
+  { id: 'd_rm', sym: 'RM', kind: 'Wächter', name: 'Kanalrauchmelder',
+    zones: ['z_zul_kanal', 'z_abl_kanal'],
+    why: 'Im ZUL- und/oder ABL-Kanal: Bei Rauchdetektion schaltet die Anlage ab und die Brandschutzklappen schliessen – automatische Abschaltung im Brandfall (BMA-Aufschaltung).',
+    hint: 'Rauch soll erkannt werden, BEVOR er über die Kanäle verteilt wird.' },
+  { id: 'd_m_klappe', sym: 'M', kind: 'Antrieb', name: 'Stellantrieb Aussenluftklappe',
+    zones: ['z_klappe_m'],
+    why: 'Motorisierte AUL-Klappe mit Federrücklauf: schliesst bei Anlagenstillstand, Frostalarm und im Brandfall dicht ab – kein kalter Naturzug aufs Register.',
+    hint: 'Der Antrieb sitzt am Bauteil, das er bewegt.' },
+  { id: 'd_m_ventil', sym: 'M', kind: 'Antrieb', name: 'Stellantrieb Erhitzerventil',
+    zones: ['z_erhitzer_ventil'],
+    why: 'Am Regelventil des Heizregisters (Wasserseite): stellt stetig die Heizleistung für die geforderte Zulufttemperatur ein – zweite Stufe der Sequenz nach der WRG.',
+    hint: 'Die Heizleistung wird WASSERSEITIG gestellt.' },
+  { id: 'd_m_wrg', sym: 'M', kind: 'Antrieb', name: 'WRG-Stellsignal (Drehzahl/Bypass)',
+    zones: ['z_wrg'],
+    why: 'An der WRG: Rotordrehzahl bzw. Bypassklappe regeln die Rückwärmung stufenlos – die WRG ist immer die ERSTE Stufe der Temperatursequenz (Gratisenergie zuerst).',
+    hint: 'Erste Stufe der Temperatursequenz – Gratisenergie wird gestellt, nicht nur geschaltet.' }
+];
+const DEVICE_BY_ID = {}; DEVICES.forEach(d => DEVICE_BY_ID[d.id] = d);
+
+/* ---------- Prüfungs-Szenarien (aus QV-Checkliste MSR / PA13) ---------- */
+const SCENARIOS = [
+  { id: 'sc_frost', title: 'Frostschutz', devices: ['d_frost', 'd_m_ventil', 'd_m_klappe'],
+    text: 'Der Lufterhitzer muss vor dem Einfrieren geschützt werden. Platzieren Sie die nötigen Geräte.' },
+  { id: 'sc_sicherheit', title: 'Sicherheit & Überwachung', devices: ['d_dp_filter', 'd_dp_vent'],
+    text: 'Ergänzen Sie die Druckwächter, die für Sicherheit und Kontrolle der Anlage angebracht werden müssen.' },
+  { id: 'sc_drehzahl', title: 'Ventilator-Drehzahlregelung', devices: ['d_p_kanal', 'd_dp_vent'],
+    text: 'Die Ventilator-Drehzahl soll über eine Konstant-Druckregelung geführt und der Betrieb überwacht werden.' },
+  { id: 'sc_befeuchtung', title: 'Befeuchtungsregelung Winter', devices: ['d_h_abl', 'd_h_max'],
+    text: 'Die Befeuchtung der Büros soll im Winter geregelt und gegen Überfeuchtung gesichert werden.' },
+  { id: 'sc_raum', title: 'Raumtemperatur & Luftqualität', devices: ['d_t_raum', 'd_co2', 'd_t_zul'],
+    text: 'Für den Seminarraum sollen Raumtemperatur und Luftqualität geregelt werden (VAV). Platzieren Sie die Fühler.' },
+  { id: 'sc_kaskade', title: 'Temperaturregelung (Kaskade)', devices: ['d_t_abl', 'd_t_zul', 'd_m_wrg', 'd_m_ventil'],
+    text: 'Die Zulufttemperatur wird in Kaskade nach der Raum-/Ablufttemperatur geführt. Platzieren Sie Fühler und Stellglieder der Sequenz.' },
+  { id: 'sc_brand', title: 'Brandfall', devices: ['d_rm', 'd_m_klappe'],
+    text: 'Die Anlage soll im Brandfall automatisch abschalten. Platzieren Sie die nötigen Komponenten.' },
+  { id: 'sc_witterung', title: 'Witterungsführung', devices: ['d_t_aul', 'd_t_zul'],
+    text: 'Der Zuluft-Sollwert soll witterungsgeführt verschoben werden. Platzieren Sie die nötigen Fühler.' }
+];
+
+/* ---------- Reihenfolge-Aufgaben ---------- */
+const SEQUENCES = [
+  { id: 'seq_frost', title: 'Reaktionskette Frostalarm',
+    intro: 'Der Frostschutzthermostat hat ausgelöst. Bringen Sie die Reaktionen in die richtige Reihenfolge.',
+    items: [
+      'Ventilatoren ZUL und ABL sofort ausschalten',
+      'Aussenluft- und Fortluftklappe schliessen',
+      'Heizventil des Erhitzers 100 % öffnen',
+      'Umwälzpumpe des Erhitzers einschalten',
+      'Störmeldung absetzen – Wiederanlauf erst nach Quittierung'
+    ],
+    explain: 'Zuerst die kalte Luft stoppen (Ventilatoren aus, Klappen zu), dann Wärme ins Register (Ventil 100 %, Pumpe ein), zuletzt melden. Pumpe/Ventil und Meldung laufen praktisch gleichzeitig – aber die Luftseite kommt immer zuerst.' },
+  { id: 'seq_sequenz', title: 'Regelsequenz Zulufttemperatur',
+    intro: 'Bei steigendem Wärmebedarf (Winter → Sommer gedacht): In welcher Reihenfolge greifen die Stufen der Temperatursequenz?',
+    items: [
+      'WRG auf 100 % Rückwärmung fahren',
+      'Heizventil Lufterhitzer stetig öffnen',
+      'WRG zurückfahren / Bypass öffnen (bei Kühlbedarf)',
+      'Kühlventil Luftkühler stetig öffnen'
+    ],
+    explain: 'Energie-Reihenfolge: zuerst Gratisenergie der WRG, erst dann der Erhitzer. Beim Kühlen umgekehrt: zuerst WRG reduzieren, mechanische Kälte als letzte Stufe.' }
+];
+const SEQ_BY_ID = {}; SEQUENCES.forEach(s => SEQ_BY_ID[s.id] = s);
+
+/* ---------- Logik ---------- */
+function nearestZone(x, y, maxR){
+  let best = null, bd = (maxR || ZONE_R) + 1e-9;
+  for (const z of ZONES){
+    const d = Math.hypot(z.x - x, z.y - y);
+    if (d <= bd){ bd = d; best = z; }
+  }
+  return best;
+}
+function checkPlacement(devId, zoneId){
+  const d = DEVICE_BY_ID[devId];
+  if (!d) return { ok: false };
+  const ok = d.zones.includes(zoneId);
+  return { ok, why: d.why, hint: d.hint, bestZone: d.zones[0], altZones: d.zones.slice(1) };
+}
+function genRound(seed){
+  const rng = makeRng(seed);
+  const mode = rng() < 0.7 ? 'place' : 'seq';
+  if (mode === 'place'){
+    const sc = R.pick(rng, SCENARIOS);
+    return { mode, seed, scenario: sc, devices: R.shuffle(rng, sc.devices) };
+  }
+  const sq = R.pick(rng, SEQUENCES);
+  let shuffled = R.shuffle(rng, sq.items);
+  let guard = 0;
+  while (shuffled.every((v, i) => v === sq.items[i]) && guard++ < 10) shuffled = R.shuffle(rng, sq.items);
+  return { mode, seed, sequence: sq, shuffled };
+}
+function checkSequence(seqId, order){
+  const sq = SEQ_BY_ID[seqId];
+  const flags = order.map((item, i) => item === sq.items[i]);
+  return { ok: flags.every(Boolean), flags, correct: sq.items, explain: sq.explain };
+}
+/* ===== MSR-CORE-END ===== */
+
+</script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const KEY = 'lapmsr_v1';
+let store = (function(){ try { return Object.assign({ stats: {} }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){ return { stats: {} }; } })();
+function save(){ localStorage.setItem(KEY, JSON.stringify(store)); }
+function recordAttempt(id, ok, sec){
+  const s = store.stats[id] || (store.stats[id] = { n: 0, ok: 0, time: 0 });
+  s.n++; if (ok) s.ok++; s.time += Math.min(sec || 0, 600);
+  save(); statLine();
+}
+function statLine(){
+  let n = 0, ok = 0;
+  for (const k in store.stats){ n += store.stats[k].n; ok += store.stats[k].ok; }
+  $('statLine').innerHTML = n ? `<b>${Math.round(100 * ok / n)} %</b> richtig · ${n} Platzierungen` : 'noch keine Versuche';
+}
+
+/* ---------- Zonen ins SVG ---------- */
+const svg = $('schema');
+const gZones = $('gZones'), gPlaced = $('gPlaced');
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+let lowerIdx = 0;
+ZONES.forEach(z => {
+  gZones.appendChild(svgEl('circle', { class: 'zone-dot', cx: z.x, cy: z.y, r: 2.6 }));
+  const c = svgEl('circle', { class: 'zone-c', cx: z.x, cy: z.y, r: ZONE_R, id: 'zc_' + z.id });
+  gZones.appendChild(c);
+  // Labels am unteren Kanal in zwei Reihen staffeln, damit nichts überlappt
+  let anchor;
+  if (z.y < 320) anchor = z.y - ZONE_R - 7;
+  else if (z.y > 430) anchor = z.y + ZONE_R + 32;          // tiefe Zonen (Klappe, Ventil): unter den Bauteil-Labels
+  else { anchor = z.y + ZONE_R + (lowerIdx % 2 ? 32 : 16); lowerIdx++; }
+  const t = svgEl('text', { class: 'zone-lbl', x: z.x, y: anchor, 'text-anchor': 'middle', id: 'zl_' + z.id });
+  t.textContent = z.label;
+  gZones.appendChild(t);
+});
+
+/* ---------- Runden-Logik ---------- */
+let round = null;     // {mode, scenario|sequence, ...}
+let prog = null;      // place: {status:{devId:'open'|'ok'|'no-pending'|'rev'}, firstTry:{}, t0:{}}
+let seqChecked = false, seqDone = false, seqCounted = false, seqT0 = 0;
+
+function newRound(){
+  const seed = Math.floor(Math.random() * 4294967296);
+  round = genRound(seed);
+  $('fb').className = 'feedback'; $('fb').innerHTML = '';
+  gPlaced.innerHTML = '';
+  document.querySelectorAll('.zone-c').forEach(c => c.classList.remove('target-pulse'));
+  $('btnReveal').disabled = false;
+  if (round.mode === 'place'){
+    $('modeBadge').textContent = '🧲 Platzieren';
+    $('roundBadge').textContent = round.scenario.title;
+    $('taskText').textContent = round.scenario.text;
+    $('placeBox').style.display = 'block'; $('seqBox').style.display = 'none';
+    $('seqHintKbd').style.display = 'none';
+    prog = { firstDone: {}, status: {}, t0: {} };
+    round.devices.forEach(d => prog.status[d] = 'open');
+    renderTray(); renderDots();
+  } else {
+    $('modeBadge').textContent = '🔢 Reihenfolge';
+    $('roundBadge').textContent = round.sequence.title;
+    $('taskText').textContent = round.sequence.intro;
+    $('placeBox').style.display = 'none'; $('seqBox').style.display = 'block';
+    $('seqHintKbd').style.display = 'inline';
+    seqChecked = false; seqDone = false; seqCounted = false; seqT0 = Date.now();
+    renderSeq(round.shuffled);
+  }
+}
+function renderTray(){
+  const tray = $('tray'); tray.innerHTML = '';
+  round.devices.forEach(id => {
+    const d = DEVICE_BY_ID[id];
+    const st = prog.status[id];
+    const el = document.createElement('div');
+    el.className = 'chip-dev' + (st === 'ok' || st === 'rev' ? ' done' : '');
+    el.dataset.dev = id;
+    el.innerHTML = `<div class="sym">${d.sym}</div><div class="nm">${d.name}<small>${d.kind}</small></div><div class="st">${st === 'ok' ? '✓' : st === 'rev' ? '💡' : ''}</div>`;
+    tray.appendChild(el);
+    if (st === 'open' || st === 'no') el.addEventListener('pointerdown', e => startDrag(e, id, el));
+  });
+}
+function renderDots(){
+  $('pdots').innerHTML = '';
+  round.devices.forEach(id => {
+    const st = prog.status[id];
+    const d = document.createElement('div');
+    d.className = 'pdot' + (st === 'ok' ? (prog.firstDone[id] === false ? ' no' : ' ok') : st === 'rev' ? ' rev' : '');
+    $('pdots').appendChild(d);
+  });
+}
+
+/* ---------- Drag & Drop (Platzieren) ---------- */
+const ghost = $('ghost');
+let drag = null; // {dev, chipEl}
+function svgPoint(clientX, clientY){
+  const pt = new DOMPoint(clientX, clientY);
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+function startDrag(e, devId, chipEl){
+  if (round.mode !== 'place') return;
+  e.preventDefault();
+  drag = { dev: devId, chipEl };
+  if (!prog.t0[devId]) prog.t0[devId] = Date.now();
+  chipEl.classList.add('dragging');
+  ghost.style.display = 'flex';
+  ghost.textContent = DEVICE_BY_ID[devId].sym;
+  moveGhost(e.clientX, e.clientY);
+  svg.classList.add('dragging');
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp, { once: true });
+}
+function moveGhost(x, y){ ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; }
+let nearZoneEl = null;
+function onMove(e){
+  moveGhost(e.clientX, e.clientY);
+  const p = svgPoint(e.clientX, e.clientY);
+  const z = nearestZone(p.x, p.y);
+  if (nearZoneEl) nearZoneEl.classList.remove('near');
+  nearZoneEl = z ? $('zc_' + z.id) : null;
+  if (nearZoneEl) nearZoneEl.classList.add('near');
+}
+function onUp(e){
+  window.removeEventListener('pointermove', onMove);
+  svg.classList.remove('dragging');
+  ghost.style.display = 'none';
+  if (nearZoneEl) nearZoneEl.classList.remove('near');
+  const chip = drag.chipEl; chip.classList.remove('dragging');
+  const p = svgPoint(e.clientX, e.clientY);
+  const z = nearestZone(p.x, p.y);
+  const devId = drag.dev; drag = null;
+  if (!z) return; // daneben: einfach zurück
+  handleDrop(devId, z.id);
+}
+function handleDrop(devId, zoneId){
+  const res = checkPlacement(devId, zoneId);
+  const d = DEVICE_BY_ID[devId];
+  const fb = $('fb');
+  const firstAttempt = prog.firstDone[devId] === undefined;
+  if (res.ok){
+    if (firstAttempt){ prog.firstDone[devId] = true; recordAttempt(devId, true, (Date.now() - prog.t0[devId]) / 1000); }
+    prog.status[devId] = prog.status[devId] === 'rev' ? 'rev' : 'ok';
+    placeMarker(devId, zoneId, prog.status[devId] === 'rev');
+    const pulse = document.querySelector('.zone-c.target-pulse'); if (pulse) pulse.classList.remove('target-pulse');
+    fb.className = 'feedback show fb-ok';
+    fb.innerHTML = `✓ <b>${d.name}</b> – ${ZONE_BY_ID[zoneId].label}.<br>${res.why}` + (res.altZones.length ? `<br><span style="color:var(--mut);font-size:.84rem">Auch zulässig: ${res.altZones.map(z => ZONE_BY_ID[z].label).join(' · ')}</span>` : '');
+    renderTray(); renderDots(); checkRoundDone();
+  } else {
+    const wasFirst = firstAttempt;
+    if (firstAttempt){ prog.firstDone[devId] = false; recordAttempt(devId, false, (Date.now() - prog.t0[devId]) / 1000); }
+    prog.status[devId] = 'no';
+    fb.className = 'feedback show fb-no';
+    if (wasFirst){
+      fb.innerHTML = `✗ <b>${d.name}</b> gehört nicht ${ZONE_BY_ID[zoneId].label ? 'dorthin (' + ZONE_BY_ID[zoneId].label + ')' : 'dorthin'}.<br>💡 ${res.hint}`;
+    } else {
+      $('zc_' + res.bestZone).classList.add('target-pulse');
+      fb.innerHTML = `✗ Immer noch nicht. Die richtige Zone blinkt jetzt.<br>${res.why}`;
+    }
+    renderTray(); renderDots();
+  }
+}
+function placeMarker(devId, zoneId, revealed){
+  const z = ZONE_BY_ID[zoneId], d = DEVICE_BY_ID[devId];
+  const g = svgEl('g', { class: 'placed-g' + (revealed ? ' revealed' : '') });
+  g.appendChild(svgEl('circle', { cx: z.x, cy: z.y, r: 15 }));
+  const t = svgEl('text', { x: z.x, y: z.y });
+  t.textContent = d.sym;
+  g.appendChild(t);
+  gPlaced.appendChild(g);
+}
+function checkRoundDone(){
+  if (round.mode !== 'place') return;
+  const all = round.devices.every(d => prog.status[d] === 'ok' || prog.status[d] === 'rev');
+  if (!all) return;
+  const okN = round.devices.filter(d => prog.firstDone[d] === true).length;
+  const fb = $('fb');
+  fb.className = 'feedback show ' + (okN === round.devices.length ? 'fb-ok' : 'fb-info');
+  fb.innerHTML = `<div class="done-summary"><b>${okN}/${round.devices.length}</b> im ersten Versuch richtig platziert.<br><span style="color:var(--mut)">N für die nächste Runde.</span></div>`;
+  $('btnReveal').disabled = true;
+}
+function revealPlace(){
+  round.devices.forEach(devId => {
+    if (prog.status[devId] === 'ok' || prog.status[devId] === 'rev') return;
+    if (prog.firstDone[devId] === undefined){ prog.firstDone[devId] = false; recordAttempt(devId, false, 5); }
+    prog.status[devId] = 'rev';
+    placeMarker(devId, DEVICE_BY_ID[devId].zones[0], true);
+  });
+  const fb = $('fb');
+  fb.className = 'feedback show fb-info';
+  fb.innerHTML = '💡 Lösung eingeblendet (orange Marker). Begründungen:<br>' + round.devices.map(id => { const d = DEVICE_BY_ID[id]; return `<b>${d.sym} ${d.name}</b> → ${ZONE_BY_ID[d.zones[0]].label}.`; }).join('<br>');
+  renderTray(); renderDots(); checkRoundDone();
+}
+
+/* ---------- Reihenfolge (Sortieren) ---------- */
+let seqOrder = [];
+function renderSeq(items){
+  seqOrder = items.slice();
+  const list = $('seqList'); list.innerHTML = '';
+  items.forEach((txt, i) => {
+    const el = document.createElement('div');
+    el.className = 'seq-item'; el.dataset.idx = i;
+    el.innerHTML = `<div class="no">${i + 1}</div><div>${txt}</div>`;
+    list.appendChild(el);
+    el.addEventListener('pointerdown', e => seqDrag(e, el));
+  });
+}
+function seqDrag(e, el){
+  if (seqDone) return;
+  e.preventDefault();
+  const list = $('seqList');
+  const items = () => [...list.children];
+  el.classList.add('lift');
+  const startY = e.clientY;
+  let moved = false;
+  function mm(ev){
+    moved = true;
+    const y = ev.clientY;
+    el.style.transform = `translateY(${y - startY}px)`;
+    const others = items().filter(x => x !== el);
+    const before = others.find(o => { const r = o.getBoundingClientRect(); return y < r.top + r.height / 2; });
+    if (before){ if (el.nextSibling !== before){ /* keep transform basis stable: */ } list.insertBefore(el, before); }
+    else list.appendChild(el);
+  }
+  function mu(){
+    window.removeEventListener('pointermove', mm);
+    el.classList.remove('lift'); el.style.transform = '';
+    items().forEach((x, i) => { x.querySelector('.no').textContent = i + 1; x.classList.remove('right', 'wrong'); });
+    seqOrder = items().map(x => x.children[1].textContent);
+    seqChecked = false;
+  }
+  window.addEventListener('pointermove', mm);
+  window.addEventListener('pointerup', mu, { once: true });
+}
+function seqCheck(){
+  if (round.mode !== 'seq' || seqDone) return;
+  const res = checkSequence(round.sequence.id, seqOrder);
+  if (!seqCounted){ seqCounted = true; recordAttempt(round.sequence.id, res.ok, (Date.now() - seqT0) / 1000); }
+  [...$('seqList').children].forEach((el, i) => {
+    el.classList.toggle('right', res.flags[i]);
+    el.classList.toggle('wrong', !res.flags[i]);
+  });
+  const fb = $('fb');
+  if (res.ok){
+    seqDone = true;
+    fb.className = 'feedback show fb-ok';
+    fb.innerHTML = `✓ <b>Richtige Reihenfolge!</b><br>${res.explain}`;
+    $('btnReveal').disabled = true;
+  } else {
+    fb.className = 'feedback show fb-no';
+    fb.innerHTML = `✗ Noch nicht: <b>${res.flags.filter(Boolean).length}/${res.flags.length}</b> an der richtigen Position (grün markiert). Sortiere weiter und prüfe nochmals.`;
+  }
+}
+function revealSeq(){
+  if (!seqCounted){ seqCounted = true; recordAttempt(round.sequence.id, false, (Date.now() - seqT0) / 1000); }
+  seqDone = true;
+  renderSeq(round.sequence.items.slice());
+  [...$('seqList').children].forEach(el => el.classList.add('right'));
+  const fb = $('fb');
+  fb.className = 'feedback show fb-info';
+  fb.innerHTML = `💡 Richtige Reihenfolge eingeblendet.<br>${round.sequence.explain}`;
+}
+
+/* ---------- Steuerung ---------- */
+$('btnNext').onclick = newRound;
+$('btnReveal').onclick = () => round.mode === 'place' ? revealPlace() : revealSeq();
+$('btnSeqCheck').onclick = seqCheck;
+$('btnReset').onclick = () => { if (confirm('MSR-Statistik zurücksetzen?')){ store = { stats: {} }; save(); statLine(); } };
+document.addEventListener('keydown', e => {
+  if (e.key === 'n' || e.key === 'N'){ e.preventDefault(); newRound(); }
+  else if (e.key === 'l' || e.key === 'L'){ e.preventDefault(); if (!$('btnReveal').disabled) $('btnReveal').onclick(); }
+  else if (e.key === 'Enter' && round && round.mode === 'seq'){ e.preventDefault(); seqCheck(); }
+});
+
+statLine();
+newRound();
+</script>
+</body></html>
