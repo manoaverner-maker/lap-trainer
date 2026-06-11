@@ -11,26 +11,39 @@
   --bg:#0f172a;--card:#1e293b;--card2:#233048;--line:#334155;--line2:#3e4f6b;
   --acc:#38bdf8;--acc-deep:#0ea5e9;--ok:#22c55e;--no:#ef4444;--warn:#f59e0b;
   --txt:#e2e8f0;--mut:#94a3b8;--mut2:#64748b;
-  --r:16px;--shadow:0 8px 30px rgba(0,0,0,.4);--shadow-soft:0 4px 18px rgba(0,0,0,.3);
+  --r:20px;--shadow:0 8px 32px rgba(0,0,0,.4);--shadow-soft:0 4px 18px rgba(0,0,0,.3);
+  --glass:rgba(255,255,255,.06);--glass-line:rgba(255,255,255,.12);--glass-top:rgba(255,255,255,.22);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scrollbar-color:var(--line) var(--bg);background:var(--bg)}
-body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
+html{scrollbar-color:var(--line) var(--bg);background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg)}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:transparent;color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
+/* ---------- Liquid Glass + Aurora: Hintergrund-Schichten ---------- */
+#bgPhoto{position:fixed;inset:-24px;z-index:-3;background:url("https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80") center/cover no-repeat;will-change:transform;transition:transform .12s ease-out;pointer-events:none}
+#bgOverlay{position:fixed;inset:0;z-index:-2;background:rgba(5,12,28,.68);pointer-events:none}
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.bwrap{position:absolute;inset:0;will-change:transform;transition:transform .8s ease-out}
+.blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.18;will-change:transform}
+.blob-a{width:48vw;height:48vw;background:#0ea5e9;top:-14vw;left:-10vw;animation:blobA 11s ease-in-out infinite}
+.blob-b{width:52vw;height:52vw;background:#6366f1;bottom:-18vw;right:-12vw;animation:blobB 12s ease-in-out infinite}
+.blob-c{width:32vw;height:32vw;background:#14b8a6;top:40%;right:4vw;animation:blobC 9s ease-in-out infinite}
+@keyframes blobA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(34px,46px) scale(1.12)}}
+@keyframes blobB{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-40px,-30px) scale(.96)}}
+@keyframes blobC{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,32px) scale(1.15)}}
 ::selection{background:rgba(56,189,248,.35)}
 button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:9px 16px;transition:background .15s,border-color .15s,transform .12s,box-shadow .15s}
 button:hover{background:var(--card2);border-color:var(--line2)}
 button:active{transform:translateY(1px)}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 button.primary{background:var(--acc);border-color:var(--acc);color:#082f49;font-weight:700}
-button.primary:hover{background:#5ecbfa;box-shadow:0 4px 16px rgba(56,189,248,.25)}
+button.primary:hover{background:#5ecbfa;box-shadow:0 0 20px rgba(56,189,248,.35)}
 button.ghost{background:transparent}
 button:disabled{opacity:.45;cursor:default;transform:none}
 
 /* ---------- Topbar ---------- */
-.top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:16px 2px 14px;flex-wrap:wrap}
+.top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:12px 18px;flex-wrap:wrap;margin:14px 0;background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)}
 .brand{font-weight:800;font-size:1.06rem;letter-spacing:.01em;white-space:nowrap}
 .brand small{color:var(--mut);font-weight:500}
-.tabs{display:flex;background:rgba(30,41,59,.75);border:1px solid var(--line);border-radius:99px;padding:4px;gap:2px}
+.tabs{display:flex;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);border-radius:99px;padding:4px;gap:2px}
 .tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s}
 .tabs a:hover{color:var(--txt)}
 .tabs a.active{background:var(--acc);color:#082f49}
@@ -62,7 +75,8 @@ main.show{display:flex}
 .pool-info{font-size:.8rem;color:var(--mut2)}
 .grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:18px;align-items:start}
 @media(max-width:1080px){.grid{grid-template-columns:1fr}}
-.card{background:linear-gradient(180deg,rgba(36,48,70,.5),rgba(30,41,59,.9)),var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
+.card{background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);padding:24px;transition:transform .2s ease,border-color .2s ease}
+.card:not(.swap-out):hover{transform:translateY(-2px);border-color:var(--glass-top)}
 .swap-out{opacity:0;transform:translateY(-8px);transition:opacity .16s ease,transform .16s ease}
 .swap-in{animation:cardIn .28s cubic-bezier(.2,.7,.3,1)}
 @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -86,7 +100,7 @@ main.show{display:flex}
 .ask-line b{color:var(--txt)}
 .input-row{display:flex;gap:10px;align-items:stretch;margin-bottom:6px}
 .input-wrap{position:relative;flex:1;display:flex}
-#answer,.exam-input{flex:1;width:100%;font:inherit;font-size:1.35rem;font-variant-numeric:tabular-nums;background:#0b1426;border:1px solid var(--line2);border-radius:12px;color:var(--txt);padding:12px 86px 12px 16px;transition:border-color .15s,box-shadow .15s}
+#answer,.exam-input{flex:1;width:100%;font:inherit;font-size:1.35rem;font-variant-numeric:tabular-nums;background:rgba(0,0,0,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--glass-line);border-radius:12px;color:var(--txt);padding:12px 86px 12px 16px;transition:border-color .15s,box-shadow .15s}
 #answer:focus,.exam-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(56,189,248,.18)}
 .unit-tag{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:1rem;pointer-events:none}
 .shake{animation:shake .3s}
@@ -158,7 +172,7 @@ main.show{display:flex}
 
 /* ---------- Statistik ---------- */
 .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
-.stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow-soft)}
+.stat-card{background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)}
 .stat-card b{display:block;font-size:1.7rem;font-variant-numeric:tabular-nums}
 .stat-card span{font-size:.8rem;color:var(--mut)}
 .bars{display:flex;flex-direction:column;gap:14px}
@@ -170,7 +184,7 @@ main.show{display:flex}
 .bar i{display:block;height:100%;border-radius:99px;background:var(--acc);width:0;transition:width .8s cubic-bezier(.2,.7,.3,1)}
 .bar i.g{background:var(--ok)}.bar i.y{background:var(--warn)}.bar i.r{background:var(--no)}
 .bar-row .meta{font-size:.8rem;color:var(--mut);text-align:right;font-variant-numeric:tabular-nums}
-.reco{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid rgba(56,189,248,.45);background:rgba(56,189,248,.07);border-radius:var(--r);padding:18px 22px}
+.reco{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid rgba(56,189,248,.45);background:rgba(56,189,248,.07);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-radius:var(--r);padding:18px 22px}
 .reco .txt{flex:1;min-width:220px}
 .reco b{color:var(--acc)}
 .empty{text-align:center;color:var(--mut);padding:40px 20px;line-height:1.7}
@@ -192,7 +206,25 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 /* ---------- Konfetti ---------- */
 .cfx{position:fixed;top:-14px;border-radius:3px;pointer-events:none;z-index:99;animation:cfall linear forwards}
 @keyframes cfall{to{transform:translateY(108vh) rotate(660deg);opacity:.7}}
+
+/* ---------- Mobile: kein Glas-Blur, kein Parallax, Blobs statisch ---------- */
+@media(max-width:768px){
+  .card,.top,.stat-card,.reco{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}
+  .reco{background:rgba(15,25,50,.92);border-color:rgba(56,189,248,.45)}
+  #answer,.exam-input{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,0,0,.45)}
+  .blob{animation:none}
+  .card:not(.swap-out):hover{transform:none}
+}
 </style></head><body>
+
+<!-- Liquid Glass + Aurora: Hintergrund-Schichten (Foto → Overlay → Blobs) -->
+<div id="bgPhoto"></div>
+<div id="bgOverlay"></div>
+<div class="aurora" aria-hidden="true">
+  <div class="bwrap"><div class="blob blob-a"></div></div>
+  <div class="bwrap"><div class="blob blob-b"></div></div>
+  <div class="bwrap"><div class="blob blob-c"></div></div>
+</div>
 
 <header class="top">
   <div class="brand">🎓 LAP Trainer <small>· Lüftung EFZ</small></div>
@@ -2099,6 +2131,25 @@ document.addEventListener('keydown', e => {
   }
 });
 $('exAnswer').addEventListener('input', renderExamDots);
+
+/* ================= Maus-Parallax (Foto entgegen ±18px, Blobs mit ±8px) ================= */
+(function(){
+  const fine = window.matchMedia('(pointer: fine)').matches;
+  if (!fine || window.innerWidth <= 768) return;   // Touch/Mobile: deaktiviert
+  const photo = $('bgPhoto');
+  const wraps = document.querySelectorAll('.bwrap');
+  let mx = 0, my = 0, raf = null;
+  function apply(){
+    raf = null;
+    photo.style.transform = `translate(${(-mx * 36).toFixed(1)}px, ${(-my * 36).toFixed(1)}px)`;
+    wraps.forEach(w => { w.style.transform = `translate(${(mx * 16).toFixed(1)}px, ${(my * 16).toFixed(1)}px)`; });
+  }
+  window.addEventListener('mousemove', e => {
+    mx = e.clientX / window.innerWidth - 0.5;
+    my = e.clientY / window.innerHeight - 0.5;
+    if (!raf) raf = requestAnimationFrame(apply);
+  }, { passive: true });
+})();
 
 /* ================= Start ================= */
 buildChips();
