@@ -48,6 +48,15 @@ main.show{display:flex}
 .chip.due{border-color:rgba(239,68,68,.55);color:#fca5a5}
 .chip.due.on{background:rgba(239,68,68,.14);border-color:var(--no);color:#fecaca;font-weight:600}
 .dueb{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:99px;background:var(--no);color:#fff;font-size:.66rem;font-weight:800;padding:0 5px;margin-left:7px;vertical-align:1px}
+.daily{font-size:.85rem;color:var(--mut);background:rgba(30,41,59,.6);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.daily b{color:var(--txt)}
+.daily.hit{border-color:rgba(245,158,11,.6);color:#fde68a}
+.fwrap{columns:2 400px;column-gap:18px}
+.fcard{break-inside:avoid;background:rgba(15,23,42,.55);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.fcard h3{font-size:.9rem;color:var(--acc);margin-bottom:10px;letter-spacing:.02em}
+.fcard ul{list-style:none;display:flex;flex-direction:column;gap:7px;font-size:.92rem;line-height:1.55}
+.fcard .key{color:#fbbf24;font-weight:800}
+.fcard .nt{color:var(--mut2);font-size:.82rem}
 .switch{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--mut);cursor:pointer;user-select:none}
 .switch input{accent-color:var(--acc);width:16px;height:16px;cursor:pointer}
 .pool-info{font-size:.8rem;color:var(--mut2)}
@@ -193,6 +202,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <a href="msr.html" id="tabMsr">MSR</a>
   </nav>
   <div class="top-actions">
+    <span class="daily" id="dailyChip" title="Tagesziel & Streak – Ziel einstellbar in der Statistik"></span>
+    <button id="btnFormeln">📖 Formeln</button>
     <button id="btnHx">📈 h,x-Diagramm</button>
     <button id="btnStats">📊 Statistik</button>
     <button id="btnExam" class="primary">⏱ Prüfungsmodus</button>
@@ -315,8 +326,21 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   <div class="card sw-grid">
     <div class="sw-box"><h3>Letzte Prüfungen</h3><ul class="exam-history" id="examHistory"></ul></div>
     <div class="sw-box"><h3>Verwaltung</h3>
-      <p style="color:var(--mut);font-size:.9rem;line-height:1.6;margin-bottom:14px">Fortschritt, Statistik und Fehlerliste liegen lokal im Browser (localStorage).</p>
-      <button id="btnReset">↺ Statistik zurücksetzen</button>
+      <p style="color:var(--mut);font-size:.9rem;line-height:1.6;margin-bottom:14px">Fortschritt, Statistik, Leitner und Fehlerliste liegen lokal im Browser (localStorage).</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="color:var(--mut);font-size:.9rem">Tagesziel:</span>
+        <select id="goalSelect" style="font:inherit;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:7px 10px">
+          <option value="5">5 Aufgaben</option><option value="10">10 Aufgaben</option>
+          <option value="15">15 Aufgaben</option><option value="20">20 Aufgaben</option>
+          <option value="30">30 Aufgaben</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="btnExport">⬇ Fortschritt exportieren</button>
+        <button id="btnImport">⬆ Importieren</button>
+        <button id="btnReset">↺ Zurücksetzen</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     </div>
   </div>
 </main>
@@ -344,6 +368,83 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
       <div class="kbd-hint">Klicken / vom Startpunkt ziehen · <kbd>⏎</kbd> prüfen · <kbd>L</kbd> Lösung · <kbd>N</kbd> nächste · Toleranz ±1 K / ±0.5 g/kg</div>
     </article>
   </section>
+</main>
+
+<!-- ================= Formel-Spickzettel ================= -->
+<main id="view-formeln">
+  <div class="card" style="padding:24px 28px">
+    <h2 class="sec" style="font-size:1.2rem">📖 Formel-Spickzettel Lüftungstechnik</h2>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 18px">Einheiten immer mitdenken! Praktische Faustwerte <span class="key">gold</span> markiert. (Inhalt: eigene Formel-Lernhilfe LAP)</p>
+    <div class="fwrap">
+      <div class="fcard"><h3>Konstanten / Faustwerte (auswendig)</h3><ul>
+        <li>Luftdichte <b>ρ ≈ <span class="key">1.2 kg/m³</span></b> (20 °C)</li>
+        <li>spez. Wärmekapazität Luft <b>c<sub>p</sub> ≈ <span class="key">1.0 kJ/(kg·K)</span></b> = 1005 J/(kg·K)</li>
+        <li>Wärmekapazität Wasser c<sub>W</sub> ≈ 4.19 kJ/(kg·K)</li>
+        <li>Verdampfungswärme Wasser r ≈ <span class="key">2500 kJ/kg</span></li>
+        <li>kin. Viskosität Luft ν ≈ 15·10⁻⁶ m²/s (20 °C)</li>
+        <li>Volumen-Wärmekapazität <b>ρ·c<sub>p</sub> ≈ <span class="key">0.34 Wh/(m³·K)</span></b> ← Schlüsselzahl!</li>
+        <li class="nt">Richtgeschwindigkeiten: Hauptkanal 4–6 m/s · Nebenkanal 2–4 m/s · Auslass 1–3 m/s</li>
+      </ul></div>
+      <div class="fcard"><h3>1 · Volumenstrom &amp; Luftwechsel</h3><ul>
+        <li>Kontinuität: <b>V̇ = A · w</b> [m³/s] → V̇[m³/h] = 3600·A·w</li>
+        <li>Luftwechsel: <b>n = V̇ / V<sub>Raum</sub></b> [1/h] → V̇ = n · V<sub>Raum</sub></li>
+        <li>personenbezogen: V̇ = n<sub>Pers</sub> · v̇<sub>Pers</sub> (SIA 2024)</li>
+        <li>flächenbezogen: V̇ = A<sub>Raum</sub> · v̇<sub>Fläche</sub> <span class="nt">→ massgebend = MAX</span></li>
+      </ul></div>
+      <div class="fcard"><h3>2 · Luftmenge über CO₂</h3><ul>
+        <li><b>V̇<sub>AU</sub> = V̇<sub>CO₂</sub> / (c<sub>i</sub> − c<sub>a</sub>)</b></li>
+        <li>v̇<sub>CO₂</sub> ≈ <span class="key">20 l/h</span> pro Person (sitzend) · c<sub>a</sub> ≈ 400 ppm · c<sub>i</sub> z. B. 1000 ppm</li>
+        <li class="nt">Einheiten konsistent: l/h und ppm = ml/m³ = 10⁻⁶</li>
+      </ul></div>
+      <div class="fcard"><h3>3 · Sensible Leistung (Heizen/Kühlen)</h3><ul>
+        <li><b>Q̇ = V̇ · ρ · c<sub>p</sub> · Δϑ</b></li>
+        <li>Praktisch: <b>Q̇ [W] = V̇ [m³/h] · <span class="key">0.34</span> · Δϑ [K]</b></li>
+        <li>Mischluft: ϑ<sub>m</sub> = (V̇₁·ϑ₁ + V̇₂·ϑ₂)/(V̇₁+V̇₂)</li>
+      </ul></div>
+      <div class="fcard"><h3>4 · Latente Leistung / Befeuchtung</h3><ul>
+        <li>Wassermenge: <b>ṁ<sub>W</sub> = V̇ · ρ · Δx</b> (x in kg/kg tr. Luft)</li>
+        <li>Befeuchtungsleistung: Q̇<sub>lat</sub> = ṁ<sub>W</sub> · r</li>
+        <li>Gesamt (sensibel+latent): <b>Q̇ = ṁ<sub>L</sub> · Δh</b> (Δh aus h,x-Diagramm)</li>
+        <li>Enthalpie: h = 1.006·ϑ + x·(2500 + 1.86·ϑ) [kJ/kg]</li>
+      </ul></div>
+      <div class="fcard"><h3>5 · Druckverlust</h3><ul>
+        <li>dynamischer Druck: <b>p<sub>dyn</sub> = (ρ/2)·w²</b></li>
+        <li>Reibung: Δp<sub>R</sub> = λ · (l/d) · (ρ/2)·w²</li>
+        <li>Einzelwiderstand: <b>Δp<sub>E</sub> = ζ · (ρ/2)·w²</b></li>
+        <li>Gesamt: Δp<sub>ges</sub> = ΣΔp<sub>R</sub> + ΣΔp<sub>E</sub></li>
+        <li>hydraulischer Durchmesser: d<sub>h</sub> = 2ab/(a+b)</li>
+        <li>Reynolds: Re = w·d/ν <span class="nt">(turbulent ab ~2300)</span></li>
+      </ul></div>
+      <div class="fcard"><h3>6 · Ventilator</h3><ul>
+        <li><b>P = V̇ · Δp<sub>t</sub> / η</b> [W] <span class="nt">(V̇ in m³/s – bei m³/h: ÷3600!)</span></li>
+        <li>SFP = P<sub>el</sub> / V̇ → SIA 382/1 Kategorien SFP 1…7</li>
+        <li>Ähnlichkeitsgesetze: <b>V̇ ∝ n · Δp ∝ n² · P ∝ n³</b></li>
+      </ul></div>
+      <div class="fcard"><h3>7 · Wärmerückgewinnung (WRG)</h3><ul>
+        <li>Rückwärmzahl: <b>Φ = (ϑ<sub>Zu</sub> − ϑ<sub>Au</sub>) / (ϑ<sub>Ab</sub> − ϑ<sub>Au</sub>)</b></li>
+        <li>WRG-Leistung: Q̇<sub>WRG</sub> = V̇ · ρ · c<sub>p</sub> · (ϑ<sub>Zu,nach</sub> − ϑ<sub>Au</sub>)</li>
+      </ul></div>
+      <div class="fcard"><h3>8 · Wasserseitige Register (Hydraulik)</h3><ul>
+        <li><b>Q̇ = ṁ<sub>W</sub> · c<sub>W</sub> · Δϑ<sub>W</sub></b> → ṁ<sub>W</sub> = Q̇/(c<sub>W</sub>·Δϑ<sub>W</sub>)</li>
+        <li class="nt">Spreizung typ. Heizregister 70/50 · Kühlregister 6/12 °C (objektabhängig)</li>
+      </ul></div>
+      <div class="fcard"><h3>9 · Schall</h3><ul>
+        <li>energetische Addition: <b>L<sub>ges</sub> = 10·log₁₀(Σ 10^(L<sub>i</sub>/10))</b></li>
+        <li>n gleiche Quellen: L<sub>ges</sub> = L + 10·log₁₀(n) → 2 gleiche = <span class="key">+3 dB</span>, 10 gleiche = +10 dB</li>
+        <li>Schalldämpfer: Einfügungsdämpfung <b>De = L<sub>vor</sub> − L<sub>nach</sub></b></li>
+      </ul></div>
+      <div class="fcard"><h3>10 · h,x-Prozesse (Kurzmerker)</h3><ul>
+        <li>Erwärmen: x konst., ϑ↑, φ↓ (senkrecht hoch)</li>
+        <li>Kühlen ohne Entfeuchten: bis Taupunkt · mit Entfeuchten: x↓ (unter Taupunkt)</li>
+        <li>Befeuchten Dampf: ϑ ≈ konst., x↑ · adiabat (Wasser): h ≈ konst., ϑ↓, x↑</li>
+        <li>Mischen: auf der Verbindungslinie (Verhältnis der Massenströme)</li>
+      </ul></div>
+      <div class="fcard" style="border-color:rgba(245,158,11,.5)"><h3 style="color:#fbbf24">Lern-Tipp</h3><ul>
+        <li>Die <span class="key">0.34</span>-Zahl und <b>Q̇ = V̇·ρ·c<sub>p</sub>·Δϑ</b> sind die meistgebrauchten – die musst du blind können.</li>
+        <li class="nt">Decke die rechte Seite ab und rechne die Beispiele aus 02_Berechnungen nach – oder direkt hier im Übungsmodus.</li>
+      </ul></div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -1201,6 +1302,41 @@ function leitCounts(now){
     total: due.length
   };
 }
+/* ---------- Tagesziel + Streak (gemeinsam fuer beide Seiten) ---------- */
+const DAILY_KEY = 'lapdaily_v1';
+function ymd(ts){ const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function dailyLoad(){
+  try { const d = JSON.parse(localStorage.getItem(DAILY_KEY) || '{}'); return { goal: d.goal || 15, days: d.days || {} }; }
+  catch(e){ return { goal: 15, days: {} }; }
+}
+function dailySave(d){ localStorage.setItem(DAILY_KEY, JSON.stringify(d)); }
+function dailyBump(now){
+  const d = dailyLoad(); const k = ymd(now || Date.now());
+  d.days[k] = (d.days[k] || 0) + 1;
+  dailySave(d); return d.days[k];
+}
+function dailyToday(now){ const d = dailyLoad(); return { count: d.days[ymd(now || Date.now())] || 0, goal: d.goal }; }
+function dailyStreak(now){
+  const d = dailyLoad(); const DAY = 86400000; now = now || Date.now();
+  let streak = 0, t = now;
+  if ((d.days[ymd(t)] || 0) >= d.goal) streak = 1;   // heute schon erreicht
+  t -= DAY;
+  while ((d.days[ymd(t)] || 0) >= d.goal){ streak++; t -= DAY; }
+  return streak;
+}
+/* ---------- Fortschritt Export / Import ---------- */
+const EXPORT_KEYS = ['lapcalc_v1', 'lapmsr_v1', 'lapleitner_v1', 'lapdaily_v1', 'lapquiz_v1'];
+function exportData(){
+  const data = { app: 'lap-trainer', version: 1, exported: new Date().toISOString(), keys: {} };
+  EXPORT_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null){ try { data.keys[k] = JSON.parse(v); } catch(e){} } });
+  return data;
+}
+function importData(data){
+  if (!data || typeof data !== 'object' || !data.keys || data.app !== 'lap-trainer') throw new Error('Kein gültiger LAP-Trainer-Export');
+  let n = 0;
+  EXPORT_KEYS.forEach(k => { if (data.keys[k] !== undefined){ localStorage.setItem(k, JSON.stringify(data.keys[k])); n++; } });
+  return n;
+}
 /* ===== CORE-END ===== */
 
 </script>
@@ -1218,6 +1354,15 @@ function recordAttempt(sub, ok, sec){
   s.n++; if (ok) s.ok++;
   s.time += Math.min(sec, 600);
   save();
+  dailyBump();
+  renderDaily();
+}
+function renderDaily(){
+  const t = dailyToday(), streak = dailyStreak();
+  const hit = t.count >= t.goal;
+  const chip = $('dailyChip');
+  chip.className = 'daily' + (hit ? ' hit' : '');
+  chip.innerHTML = `🔥 <b>${streak}</b> · heute <b>${t.count}</b>/${t.goal}${hit ? ' ✓' : ''}`;
 }
 function addWrong(sub, seed){
   if (!store.wrong.some(w => w.sub === sub && w.seed === seed)){
@@ -1262,13 +1407,14 @@ function swap(cardEl, fill){
 }
 
 /* ================= Views ================= */
-const VIEWS = ['practice', 'examsetup', 'exam', 'result', 'stats', 'hx'];
+const VIEWS = ['practice', 'examsetup', 'exam', 'result', 'stats', 'hx', 'formeln'];
 let view = 'practice';
 function setView(v){
   view = v;
   VIEWS.forEach(x => $('view-' + x).classList.toggle('show', x === v));
   $('btnStats').classList.toggle('on', v === 'stats');
   $('btnHx').classList.toggle('on', v === 'hx');
+  $('btnFormeln').classList.toggle('on', v === 'formeln');
   if (v === 'stats') renderStats();
   if (v === 'hx') HXUI.open();
   window.scrollTo({ top: 0 });
@@ -1635,6 +1781,33 @@ function renderStats(){
 }
 $('btnStats').onclick = () => setView(view === 'stats' ? 'practice' : 'stats');
 $('btnHx').onclick = () => setView(view === 'hx' ? 'practice' : 'hx');
+$('btnFormeln').onclick = () => setView(view === 'formeln' ? 'practice' : 'formeln');
+$('goalSelect').onchange = function(){
+  const d = dailyLoad(); d.goal = parseInt(this.value, 10) || 15; dailySave(d);
+  renderDaily();
+};
+$('btnExport').onclick = () => {
+  const blob = new Blob([JSON.stringify(exportData(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lap-trainer-fortschritt-' + ymd(Date.now()) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$('btnImport').onclick = () => $('importFile').click();
+$('importFile').onchange = function(){
+  const f = this.files[0]; this.value = '';
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const n = importData(JSON.parse(r.result));
+      alert('Fortschritt importiert (' + n + ' Bereiche) – die Seite wird neu geladen.');
+      location.reload();
+    } catch(err){ alert('Import fehlgeschlagen: ' + err.message); }
+  };
+  r.readAsText(f);
+};
 $('btnReset').onclick = () => {
   if (confirm('Statistik, Fehlerliste und Prüfungshistorie wirklich löschen?')){
     store = { stats: {}, wrong: [], exams: [] }; save();
@@ -1892,7 +2065,7 @@ const HXUI = (function(){
 /* ================= Tastatur ================= */
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape'){
-    if (view === 'stats' || view === 'examsetup' || view === 'hx') setView('practice');
+    if (view === 'stats' || view === 'examsetup' || view === 'hx' || view === 'formeln') setView('practice');
     return;
   }
   if (view === 'hx'){
@@ -1931,10 +2104,12 @@ $('exAnswer').addEventListener('input', renderExamDots);
 buildChips();
 newTask();
 updateDueBadges();
-/* Deep-Link: rechnen.html#hx oder #stats */
+renderDaily();
+$('goalSelect').value = String(dailyLoad().goal);
+/* Deep-Link: rechnen.html#hx, #stats oder #formeln */
 (function(){
   const h = location.hash.replace('#', '');
-  if ((h === 'hx' || h === 'stats') && VIEWS.includes(h)) setView(h);
+  if ((h === 'hx' || h === 'stats' || h === 'formeln') && VIEWS.includes(h)) setView(h);
 })();
 </script>
 </body></html>

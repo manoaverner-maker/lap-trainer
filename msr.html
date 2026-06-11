@@ -32,6 +32,9 @@ button:disabled{opacity:.45;cursor:default}
 .tabs a:hover{color:var(--txt)}
 .tabs a.active{background:var(--acc);color:#082f49}
 .dueb{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:99px;background:var(--no);color:#fff;font-size:.66rem;font-weight:800;padding:0 5px;margin-left:7px;vertical-align:1px}
+.daily{font-size:.85rem;color:var(--mut);background:rgba(30,41,59,.6);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.daily b{color:var(--txt)}
+.daily.hit{border-color:rgba(245,158,11,.6);color:#fde68a}
 .top-actions{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:.85rem}
 .top-actions b{color:var(--txt)}
 main{width:100%;max-width:1480px;display:flex;flex-direction:column;gap:16px}
@@ -114,6 +117,7 @@ footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-
     <a class="active" href="msr.html" onclick="return false">MSR</a>
   </nav>
   <div class="top-actions">
+    <span class="daily" id="dailyChip" title="Tagesziel & Streak (Ziel im Rechnen-Tab einstellbar)"></span>
     <span id="statLine"></span>
     <button id="btnReset" title="MSR-Statistik zurücksetzen">↺</button>
   </div>
@@ -473,6 +477,28 @@ function leitCounts(now){
     total: due.length
   };
 }
+/* ---------- Tagesziel + Streak (identisch zu rechnen.html) ---------- */
+const DAILY_KEY = 'lapdaily_v1';
+function ymd(ts){ const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function dailyLoad(){
+  try { const d = JSON.parse(localStorage.getItem(DAILY_KEY) || '{}'); return { goal: d.goal || 15, days: d.days || {} }; }
+  catch(e){ return { goal: 15, days: {} }; }
+}
+function dailySave(d){ localStorage.setItem(DAILY_KEY, JSON.stringify(d)); }
+function dailyBump(now){
+  const d = dailyLoad(); const k = ymd(now || Date.now());
+  d.days[k] = (d.days[k] || 0) + 1;
+  dailySave(d); return d.days[k];
+}
+function dailyToday(now){ const d = dailyLoad(); return { count: d.days[ymd(now || Date.now())] || 0, goal: d.goal }; }
+function dailyStreak(now){
+  const d = dailyLoad(); const DAY = 86400000; now = now || Date.now();
+  let streak = 0, t = now;
+  if ((d.days[ymd(t)] || 0) >= d.goal) streak = 1;
+  t -= DAY;
+  while ((d.days[ymd(t)] || 0) >= d.goal){ streak++; t -= DAY; }
+  return streak;
+}
 /* ===== MSR-CORE-END ===== */
 
 </script>
@@ -488,6 +514,15 @@ function recordAttempt(id, ok, sec){
   save(); statLine();
   leitOnAnswer(id, ok);
   updateDueBadges();
+  dailyBump();
+  renderDaily();
+}
+function renderDaily(){
+  const t = dailyToday(), streak = dailyStreak();
+  const hit = t.count >= t.goal;
+  const chip = document.getElementById('dailyChip');
+  chip.className = 'daily' + (hit ? ' hit' : '');
+  chip.innerHTML = `🔥 <b>${streak}</b> · heute <b>${t.count}</b>/${t.goal}${hit ? ' ✓' : ''}`;
 }
 function updateDueBadges(){
   const c = leitCounts();
@@ -786,5 +821,6 @@ document.addEventListener('keydown', e => {
 statLine();
 newRound();
 updateDueBadges();
+renderDaily();
 </script>
 </body></html>
