@@ -45,6 +45,9 @@ main.show{display:flex}
 .chip{font-size:.85rem;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:rgba(30,41,59,.6);color:var(--mut);transition:all .15s}
 .chip:hover{color:var(--txt);border-color:var(--line2)}
 .chip.on{background:rgba(56,189,248,.16);border-color:var(--acc);color:var(--acc);font-weight:600}
+.chip.due{border-color:rgba(239,68,68,.55);color:#fca5a5}
+.chip.due.on{background:rgba(239,68,68,.14);border-color:var(--no);color:#fecaca;font-weight:600}
+.dueb{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:99px;background:var(--no);color:#fff;font-size:.66rem;font-weight:800;padding:0 5px;margin-left:7px;vertical-align:1px}
 .switch{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--mut);cursor:pointer;user-select:none}
 .switch input{accent-color:var(--acc);width:16px;height:16px;cursor:pointer}
 .pool-info{font-size:.8rem;color:var(--mut2)}
@@ -187,7 +190,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   <nav class="tabs">
     <a href="index.html">Fragen</a>
     <a class="active" href="rechnen.html" onclick="return false">Rechnen</a>
-    <a href="msr.html">MSR</a>
+    <a href="msr.html" id="tabMsr">MSR</a>
   </nav>
   <div class="top-actions">
     <button id="btnHx">📈 h,x-Diagramm</button>
@@ -1162,6 +1165,42 @@ function checkDPoint(task, pt){
     hintX: okX ? null : (dx > 0 ? 'zu feucht – weiter links (kleineres x)' : 'zu trocken – weiter rechts (grösseres x)')
   };
 }
+/* ---------- Leitner-System (gemeinsam fuer rechnen.html + msr.html) ---------- */
+/* Boxen: falsch -> Box 1 (1 Tag), richtig: 1->2 (2 Tage), 2->3 (4 Tage), 3 -> gelernt (raus) */
+const LEIT_KEY = 'lapleitner_v1';
+const LEIT_DAY = 86400000;
+const LEIT_INTERVAL = { 1: 1, 2: 2, 3: 4 };
+function leitLoad(){ try { return JSON.parse(localStorage.getItem(LEIT_KEY) || '{}'); } catch(e){ return {}; } }
+function leitSave(d){ localStorage.setItem(LEIT_KEY, JSON.stringify(d)); }
+function leitOnAnswer(typeId, ok, now){
+  now = now || Date.now();
+  const d = leitLoad();
+  const e = d[typeId];
+  if (!ok){
+    d[typeId] = { box: 1, due: now + LEIT_INTERVAL[1] * LEIT_DAY };
+  } else if (e){
+    if (e.box >= 3) delete d[typeId];
+    else d[typeId] = { box: e.box + 1, due: now + LEIT_INTERVAL[e.box + 1] * LEIT_DAY };
+  }
+  leitSave(d);
+  return d[typeId] || null;
+}
+function leitDue(filterFn, now){
+  now = now || Date.now();
+  const d = leitLoad();
+  return Object.keys(d).filter(k => d[k].due <= now && (!filterFn || filterFn(k)));
+}
+function leitIsMsr(k){ return k.indexOf('d_') === 0 || k.indexOf('seq_') === 0; }
+function leitIsHxd(k){ return k.indexOf('hxd_') === 0; }
+function leitCounts(now){
+  const due = leitDue(null, now);
+  return {
+    rechnen: due.filter(k => !leitIsMsr(k) && !leitIsHxd(k)).length,
+    hxd: due.filter(leitIsHxd).length,
+    msr: due.filter(leitIsMsr).length,
+    total: due.length
+  };
+}
 /* ===== CORE-END ===== */
 
 </script>
@@ -1248,26 +1287,59 @@ function buildChips(){
     b.onclick = () => { P.filter = c.id; buildChips(); newTask(); };
     box.appendChild(b);
   });
+  const dueN = leitCounts().rechnen;
+  if (dueN > 0 || P.filter === '__due'){
+    const b = el('button', 'chip due' + (P.filter === '__due' ? ' on' : ''), '📅 Fällig (' + dueN + ')');
+    b.title = 'Leitner-Wiederholung: falsch gelöste Aufgabentypen, fällig nach 1/2/4 Tagen';
+    b.onclick = () => { P.filter = '__due'; buildChips(); newTask(); };
+    box.appendChild(b);
+  }
   updatePoolInfo();
+}
+function updateDueBadges(){
+  const c = leitCounts();
+  const set = (host, n) => {
+    if (!host) return;
+    let b = host.querySelector('.dueb');
+    if (n > 0){
+      if (!b){ b = document.createElement('span'); b.className = 'dueb'; host.appendChild(b); }
+      b.textContent = n;
+    } else if (b) b.remove();
+  };
+  set($('tabMsr'), c.msr);
+  set($('btnHx'), c.hxd);
+  const chip = document.querySelector('.chip.due');
+  const shouldShow = c.rechnen > 0 || P.filter === '__due';
+  if (!!chip !== shouldShow || (chip && !chip.textContent.includes('(' + c.rechnen + ')'))) buildChips();
 }
 function updatePoolInfo(){
   const n = store.wrong.length;
   $('poolInfo').textContent = n ? `${n} falsche Aufgabe${n > 1 ? 'n' : ''} gemerkt` : '';
 }
 function pickWrongEntry(){
-  const pool = store.wrong.filter(w => !P.filter || SUBS[P.filter].includes(w.sub));
+  const pool = store.wrong.filter(w => !P.filter || P.filter === '__due' || SUBS[P.filter].includes(w.sub));
   if (!pool.length) return null;
   return pool[Math.floor(Math.random() * pool.length)];
 }
 function newTask(){
   const useWrong = $('onlyWrong').checked;
-  let t = null, fromPool = false;
+  let t = null, fromPool = false, fromDue = false;
   if (useWrong){
     const w = pickWrongEntry();
     if (w){ t = genTask(w.sub, w.seed); fromPool = true; }
   }
-  if (!t) t = randomTask(P.filter);
-  P.task = t; P.t0 = Date.now(); P.counted = false; P.hintStage = 0; P.solved = false; P.fromPool = fromPool;
+  if (!t && P.filter === '__due'){
+    const due = leitDue(k => GENS[k]);
+    if (due.length){
+      const sub = due[Math.floor(Math.random() * due.length)];
+      t = genTask(sub, Math.floor(Math.random() * 4294967296));
+      fromDue = true;
+    } else {
+      P.filter = null; buildChips();   // nichts mehr fällig → zurück zu «Alle»
+    }
+  }
+  if (!t) t = randomTask(P.filter === '__due' ? null : P.filter);
+  P.task = t; P.t0 = Date.now(); P.counted = false; P.hintStage = 0; P.solved = false; P.fromPool = fromPool; P.fromDue = fromDue;
   swap($('taskCard'), () => {
     renderBadges($('taskBadges'), t);
     $('taskText').innerHTML = t.text;
@@ -1284,6 +1356,9 @@ function newTask(){
     if (P.fromPool && $('onlyWrong').checked){
       $('feedback').className = 'feedback show fb-info';
       $('feedback').innerHTML = '🔁 Wiederholung einer falsch gelösten Aufgabe – diesmal klappt’s!';
+    } else if (P.fromDue){
+      $('feedback').className = 'feedback show fb-info';
+      $('feedback').innerHTML = '📅 Leitner-Wiederholung: dieser Aufgabentyp ist heute fällig.';
     }
     setTimeout(() => $('answer').focus(), 60);
   });
@@ -1294,6 +1369,8 @@ function countFirstAttempt(ok){
   recordAttempt(P.task.sub, ok, (Date.now() - P.t0) / 1000);
   if (!ok) addWrong(P.task.sub, P.task.seed);
   else if (P.fromPool) removeWrong(P.task.sub, P.task.seed);
+  leitOnAnswer(P.task.sub, ok);
+  updateDueBadges();
   updatePoolInfo();
 }
 function doCheck(){
@@ -1420,8 +1497,10 @@ function submitExam(auto){
     const res = raw.trim() === '' ? { ok: false, empty: true } : checkAnswer(t, raw);
     recordAttempt(t.sub, !!res.ok, E.times[i]);
     if (!res.ok) addWrong(t.sub, t.seed);
+    leitOnAnswer(t.sub, !!res.ok);
     return { t, raw, ok: !!res.ok, hint: res.hint, empty: !!res.empty, sec: E.times[i] };
   });
+  updateDueBadges();
   const score = rows.filter(r => r.ok).length;
   const note = Math.round((5 * score / EXAM_LEN + 1) * 10) / 10;
   store.exams.push({ d: new Date().toISOString().slice(0, 10), score, note });
@@ -1714,9 +1793,18 @@ const HXUI = (function(){
     $('hxP955').title = $('hxP1013').title;
   }
   function newTask(){
-    task = randomDTask(); pressure = task.P;
+    const due = leitDue(k => DGENS[k]);
+    let fromDue = false;
+    if (due.length && Math.random() < 0.8){
+      const dsub = due[Math.floor(Math.random() * due.length)];
+      task = genDTask(dsub, Math.floor(Math.random() * 4294967296));
+      fromDue = true;
+    } else {
+      task = randomDTask();
+    }
+    pressure = task.P;
     cand = null; solved = false; revealed = false; counted = false; fails = 0; t0 = Date.now();
-    $('hxSubBadge').textContent = DSUBNAME[task.dsub];
+    $('hxSubBadge').textContent = (fromDue ? '📅 ' : '') + DSUBNAME[task.dsub];
     $('hxPBadge').textContent = (task.P === 955 ? '⚠ ' : '') + fmt(task.P) + ' mbar';
     $('hxPBadge').className = 'badge ' + (task.P === 955 ? 'p-warn' : 'p-norm');
     $('hxText').innerHTML = task.text;
@@ -1727,6 +1815,8 @@ const HXUI = (function(){
     if (counted) return;
     counted = true;
     recordAttempt(task.dsub, ok, (Date.now() - t0) / 1000);
+    leitOnAnswer(task.dsub, ok);
+    updateDueBadges();
   }
   function check(){
     const fb = $('hxFb');
@@ -1840,6 +1930,7 @@ $('exAnswer').addEventListener('input', renderExamDots);
 /* ================= Start ================= */
 buildChips();
 newTask();
+updateDueBadges();
 /* Deep-Link: rechnen.html#hx oder #stats */
 (function(){
   const h = location.hash.replace('#', '');

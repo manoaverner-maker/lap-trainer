@@ -31,6 +31,7 @@ button:disabled{opacity:.45;cursor:default}
 .tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s}
 .tabs a:hover{color:var(--txt)}
 .tabs a.active{background:var(--acc);color:#082f49}
+.dueb{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:99px;background:var(--no);color:#fff;font-size:.66rem;font-weight:800;padding:0 5px;margin-left:7px;vertical-align:1px}
 .top-actions{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:.85rem}
 .top-actions b{color:var(--txt)}
 main{width:100%;max-width:1480px;display:flex;flex-direction:column;gap:16px}
@@ -109,7 +110,7 @@ footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-
   <div class="brand">🎓 LAP Trainer <small>· Lüftung EFZ</small></div>
   <nav class="tabs">
     <a href="index.html">Fragen</a>
-    <a href="rechnen.html">Rechnen</a>
+    <a href="rechnen.html" id="tabRechnen">Rechnen</a>
     <a class="active" href="msr.html" onclick="return false">MSR</a>
   </nav>
   <div class="top-actions">
@@ -437,6 +438,41 @@ function checkSequence(seqId, order){
   const flags = order.map((item, i) => item === sq.items[i]);
   return { ok: flags.every(Boolean), flags, correct: sq.items, explain: sq.explain };
 }
+/* ---------- Leitner-System (identisch zu rechnen.html) ---------- */
+const LEIT_KEY = 'lapleitner_v1';
+const LEIT_DAY = 86400000;
+const LEIT_INTERVAL = { 1: 1, 2: 2, 3: 4 };
+function leitLoad(){ try { return JSON.parse(localStorage.getItem(LEIT_KEY) || '{}'); } catch(e){ return {}; } }
+function leitSave(d){ localStorage.setItem(LEIT_KEY, JSON.stringify(d)); }
+function leitOnAnswer(typeId, ok, now){
+  now = now || Date.now();
+  const d = leitLoad();
+  const e = d[typeId];
+  if (!ok){
+    d[typeId] = { box: 1, due: now + LEIT_INTERVAL[1] * LEIT_DAY };
+  } else if (e){
+    if (e.box >= 3) delete d[typeId];
+    else d[typeId] = { box: e.box + 1, due: now + LEIT_INTERVAL[e.box + 1] * LEIT_DAY };
+  }
+  leitSave(d);
+  return d[typeId] || null;
+}
+function leitDue(filterFn, now){
+  now = now || Date.now();
+  const d = leitLoad();
+  return Object.keys(d).filter(k => d[k].due <= now && (!filterFn || filterFn(k)));
+}
+function leitIsMsr(k){ return k.indexOf('d_') === 0 || k.indexOf('seq_') === 0; }
+function leitIsHxd(k){ return k.indexOf('hxd_') === 0; }
+function leitCounts(now){
+  const due = leitDue(null, now);
+  return {
+    rechnen: due.filter(k => !leitIsMsr(k) && !leitIsHxd(k)).length,
+    hxd: due.filter(leitIsHxd).length,
+    msr: due.filter(leitIsMsr).length,
+    total: due.length
+  };
+}
 /* ===== MSR-CORE-END ===== */
 
 </script>
@@ -450,6 +486,18 @@ function recordAttempt(id, ok, sec){
   const s = store.stats[id] || (store.stats[id] = { n: 0, ok: 0, time: 0 });
   s.n++; if (ok) s.ok++; s.time += Math.min(sec || 0, 600);
   save(); statLine();
+  leitOnAnswer(id, ok);
+  updateDueBadges();
+}
+function updateDueBadges(){
+  const c = leitCounts();
+  const host = document.getElementById('tabRechnen');
+  const n = c.rechnen + c.hxd;
+  let b = host.querySelector('.dueb');
+  if (n > 0){
+    if (!b){ b = document.createElement('span'); b.className = 'dueb'; host.appendChild(b); }
+    b.textContent = n;
+  } else if (b) b.remove();
 }
 function statLine(){
   let n = 0, ok = 0;
@@ -485,12 +533,35 @@ let seqChecked = false, seqDone = false, seqCounted = false, seqT0 = 0;
 function newRound(){
   const seed = Math.floor(Math.random() * 4294967296);
   round = genRound(seed);
+  // Leitner: fällige MSR-Typen bevorzugen
+  const due = leitDue(leitIsMsr);
+  let fromDue = false;
+  if (due.length && Math.random() < 0.8){
+    const seqDue = due.filter(k => SEQ_BY_ID[k]);
+    const devDue = due.filter(k => DEVICE_BY_ID[k]);
+    if (seqDue.length && (!devDue.length || Math.random() < 0.3)){
+      const sq = SEQ_BY_ID[seqDue[Math.floor(Math.random() * seqDue.length)]];
+      const rng = makeRng(seed);
+      let shuffled = R.shuffle(rng, sq.items), guard = 0;
+      while (shuffled.every((v, i) => v === sq.items[i]) && guard++ < 10) shuffled = R.shuffle(rng, sq.items);
+      round = { mode: 'seq', seed, sequence: sq, shuffled };
+      fromDue = true;
+    } else if (devDue.length){
+      const cands = SCENARIOS.filter(s => s.devices.some(d => devDue.includes(d)));
+      if (cands.length){
+        const sc = cands[Math.floor(Math.random() * cands.length)];
+        round = { mode: 'place', seed, scenario: sc, devices: R.shuffle(makeRng(seed ^ 0x5bd1e995), sc.devices) };
+        fromDue = true;
+      }
+    }
+  }
+  round.__due = fromDue;
   $('fb').className = 'feedback'; $('fb').innerHTML = '';
   gPlaced.innerHTML = '';
   document.querySelectorAll('.zone-c').forEach(c => c.classList.remove('target-pulse'));
   $('btnReveal').disabled = false;
   if (round.mode === 'place'){
-    $('modeBadge').textContent = '🧲 Platzieren';
+    $('modeBadge').textContent = (round.__due ? '📅 ' : '') + '🧲 Platzieren';
     $('roundBadge').textContent = round.scenario.title;
     $('taskText').textContent = round.scenario.text;
     $('placeBox').style.display = 'block'; $('seqBox').style.display = 'none';
@@ -499,7 +570,7 @@ function newRound(){
     round.devices.forEach(d => prog.status[d] = 'open');
     renderTray(); renderDots();
   } else {
-    $('modeBadge').textContent = '🔢 Reihenfolge';
+    $('modeBadge').textContent = (round.__due ? '📅 ' : '') + '🔢 Reihenfolge';
     $('roundBadge').textContent = round.sequence.title;
     $('taskText').textContent = round.sequence.intro;
     $('placeBox').style.display = 'none'; $('seqBox').style.display = 'block';
@@ -714,5 +785,6 @@ document.addEventListener('keydown', e => {
 
 statLine();
 newRound();
+updateDueBadges();
 </script>
 </body></html>
