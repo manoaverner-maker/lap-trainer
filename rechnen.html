@@ -168,6 +168,15 @@ h2.sec{font-size:1.05rem;margin-bottom:14px}
 footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-align:center;letter-spacing:.02em;line-height:1.8}
 footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-family:inherit}
 
+/* ---------- h,x-Canvas ---------- */
+#hxCanvas{width:100%;display:block;border-radius:12px;background:#0b1426;cursor:crosshair;touch-action:none}
+.ptoggle{display:flex;gap:6px}
+.ptoggle button{padding:6px 14px;border-radius:99px;font-size:.85rem}
+.ptoggle button.on{background:rgba(56,189,248,.16);border-color:var(--acc);color:var(--acc);font-weight:700}
+.ptoggle button:disabled{opacity:.65;cursor:default}
+.readout{display:flex;gap:16px;font-size:.86rem;color:var(--mut);font-variant-numeric:tabular-nums;background:rgba(15,23,42,.55);border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin-top:12px;flex-wrap:wrap}
+.readout b{color:var(--txt)}
+
 /* ---------- Konfetti ---------- */
 .cfx{position:fixed;top:-14px;border-radius:3px;pointer-events:none;z-index:99;animation:cfall linear forwards}
 @keyframes cfall{to{transform:translateY(108vh) rotate(660deg);opacity:.7}}
@@ -181,6 +190,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <a href="msr.html">MSR</a>
   </nav>
   <div class="top-actions">
+    <button id="btnHx">📈 h,x-Diagramm</button>
     <button id="btnStats">📊 Statistik</button>
     <button id="btnExam" class="primary">⏱ Prüfungsmodus</button>
   </div>
@@ -306,6 +316,31 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
       <button id="btnReset">↺ Statistik zurücksetzen</button>
     </div>
   </div>
+</main>
+
+<!-- ================= h,x-Diagramm ================= -->
+<main id="view-hx">
+  <section class="grid" style="grid-template-columns:minmax(0,7.5fr) minmax(0,4.5fr)">
+    <article class="card">
+      <canvas id="hxCanvas"></canvas>
+      <div class="readout" id="hxReadout"><span>Fadenkreuz: bewege die Maus über das Diagramm</span></div>
+    </article>
+    <article class="card">
+      <div class="badges"><span class="badge cat">h,x-Diagramm</span><span class="badge" id="hxSubBadge"></span><span class="badge" id="hxPBadge"></span></div>
+      <div class="task-text" id="hxText" style="font-size:1.02rem"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px">
+        <span style="color:var(--mut);font-size:.85rem">Luftdruck:</span>
+        <div class="ptoggle"><button id="hxP1013">1013 mbar</button><button id="hxP955">955 mbar</button></div>
+      </div>
+      <div class="feedback" id="hxFb"></div>
+      <div class="sol-actions">
+        <button class="primary" id="hxCheck">Prüfen ⏎</button>
+        <button id="hxReveal">💡 Lösung (L)</button>
+        <button id="hxNext">Nächste (N) →</button>
+      </div>
+      <div class="kbd-hint">Klicken / vom Startpunkt ziehen · <kbd>⏎</kbd> prüfen · <kbd>L</kbd> Lösung · <kbd>N</kbd> nächste · Toleranz ±1 K / ±0.5 g/kg</div>
+    </article>
+  </section>
 </main>
 
 <footer>
@@ -1048,6 +1083,85 @@ function checkAnswer(task, raw){
   }
   return { ok: false, val, hint };
 }
+/* ---------- h,x-Diagramm (Canvas): Projektion, Generatoren, Pruefung ---------- */
+/* Mollier-Schraeglage: Y = t·(1.006 + 0.00186·x)  (Isothermen steigen leicht mit x) */
+const HXD = {
+  X_MAX: 16, T_MIN: -15, T_MAX: 35,
+  yOf(t, x){ return t * (1.006 + 0.00186 * x); },
+  tOfY(Y, x){ return Y / (1.006 + 0.00186 * x); },
+  Y_MIN: -15 * 1.006, Y_MAX: 35 * (1.006 + 0.00186 * 16)
+};
+const DSUBS = ['hxd_punkt', 'hxd_erwaermen', 'hxd_kuehlen', 'hxd_dampf'];
+const DSUBNAME = {
+  hxd_punkt: 'Zustandspunkt setzen', hxd_erwaermen: 'Erwärmen zeichnen',
+  hxd_kuehlen: 'Kühlen zeichnen (sensibel)', hxd_dampf: 'Dampfbefeuchtung zeichnen'
+};
+const DTOL = { dt: 1.0, dx: 0.5 };   // ±1 K, ±0.5 g/kg
+const DGENS = {
+  hxd_punkt(rng){
+    const P = R.pick(rng, [1013, 955]);
+    let t, phi, x, tries = 0;
+    do { t = R.int(rng, 2, 32); phi = R.step(rng, 20, 90, 5); x = PHYS.xFromTPhi(t, phi, P); }
+    while (x > 15.2 && ++tries < 60);
+    return { dsub: 'hxd_punkt', P, t, phi, x,
+      text: `Setze den Zustandspunkt <b>${t} °C / ${phi} % r.F.</b> ins Diagramm (klicken, dann bei Bedarf ziehen).` };
+  },
+  hxd_erwaermen(rng){
+    const P = R.pick(rng, [1013, 955]);
+    let t1, phi1, x1, tries = 0;
+    do { t1 = R.int(rng, -10, 14); phi1 = R.step(rng, 40, 90, 5); x1 = PHYS.xFromTPhi(t1, phi1, P); }
+    while (x1 > 14.0 && ++tries < 60);
+    const t2 = Math.min(34, t1 + R.int(rng, 10, 22));
+    return { dsub: 'hxd_erwaermen', P, t1, phi1, x1, t2,
+      text: `Der Startzustand <b>${t1} °C / ${phi1} %</b> ist eingezeichnet. Zeichne die <b>Erwärmung auf ${t2} °C</b>: vom Startpunkt aus ziehen (x bleibt konstant).` };
+  },
+  hxd_kuehlen(rng){
+    const P = R.pick(rng, [1013, 955]);
+    let t1, phi1, t2, x1, tries = 0;
+    do {
+      t1 = R.int(rng, 24, 32); phi1 = R.step(rng, 25, 50, 5); t2 = R.int(rng, 12, 18);
+      x1 = PHYS.xFromTPhi(t1, phi1, P);
+    } while (x1 > 0.97 * PHYS.xFromTPhi(t2, 100, P) && ++tries < 80);
+    return { dsub: 'hxd_kuehlen', P, t1, phi1, x1, t2,
+      text: `Der Startzustand <b>${t1} °C / ${phi1} %</b> ist eingezeichnet. Zeichne die <b>Kühlung auf ${t2} °C</b> (ohne Entfeuchtung – der Taupunkt wird nicht erreicht).` };
+  },
+  hxd_dampf(rng){
+    const P = R.pick(rng, [1013, 955]);
+    let t, phi1, phi2, x2, tries = 0;
+    do { t = R.int(rng, 19, 23); phi1 = R.step(rng, 15, 35, 5); phi2 = R.step(rng, 45, 65, 5); x2 = PHYS.xFromTPhi(t, phi2, P); }
+    while (x2 > 15.0 && ++tries < 60);
+    const x1 = PHYS.xFromTPhi(t, phi1, P);
+    return { dsub: 'hxd_dampf', P, t, phi1, phi2, x1, x2,
+      text: `Der Startzustand <b>${t} °C / ${phi1} %</b> ist eingezeichnet. Zeichne die <b>Dampfbefeuchtung auf ${phi2} % r.F.</b> (t ≈ konstant).` };
+  }
+};
+function genDTask(dsub, seed){
+  const t = DGENS[dsub](makeRng(seed));
+  t.seed = seed;
+  return t;
+}
+function randomDTask(seed){
+  const s = seed !== undefined ? seed : Math.floor(Math.random() * 4294967296);
+  const rng = makeRng(s ^ 0x51ed270b);
+  return genDTask(DSUBS[Math.floor(rng() * DSUBS.length)], s);
+}
+/* Kandidat pt = {x [g/kg], t [degC]} gegen die Aufgabe pruefen */
+function checkDPoint(task, pt){
+  let target;
+  switch (task.dsub){
+    case 'hxd_punkt':     target = { x: task.x,  t: task.t };  break;
+    case 'hxd_erwaermen': target = { x: task.x1, t: task.t2 }; break;
+    case 'hxd_kuehlen':   target = { x: task.x1, t: task.t2 }; break;
+    case 'hxd_dampf':     target = { x: task.x2, t: task.t };  break;
+  }
+  const dt = pt.t - target.t, dx = pt.x - target.x;
+  const okT = Math.abs(dt) <= DTOL.dt, okX = Math.abs(dx) <= DTOL.dx;
+  return {
+    ok: okT && okX, okT, okX, target,
+    hintT: okT ? null : (dt > 0 ? 'zu warm – tiefer ansetzen' : 'zu kalt – höher ansetzen'),
+    hintX: okX ? null : (dx > 0 ? 'zu feucht – weiter links (kleineres x)' : 'zu trocken – weiter rechts (grösseres x)')
+  };
+}
 /* ===== CORE-END ===== */
 
 </script>
@@ -1109,13 +1223,15 @@ function swap(cardEl, fill){
 }
 
 /* ================= Views ================= */
-const VIEWS = ['practice', 'examsetup', 'exam', 'result', 'stats'];
+const VIEWS = ['practice', 'examsetup', 'exam', 'result', 'stats', 'hx'];
 let view = 'practice';
 function setView(v){
   view = v;
   VIEWS.forEach(x => $('view-' + x).classList.toggle('show', x === v));
   $('btnStats').classList.toggle('on', v === 'stats');
+  $('btnHx').classList.toggle('on', v === 'hx');
   if (v === 'stats') renderStats();
+  if (v === 'hx') HXUI.open();
   window.scrollTo({ top: 0 });
 }
 
@@ -1397,6 +1513,11 @@ function renderStats(){
     SUBS[c.id].forEach(s => { if (st[s]){ cn += st[s].n; cok += st[s].ok; ct += st[s].time; } });
     return { c, n: cn, ok: cok, t: ct, q: cn ? cok / cn : null };
   });
+  (function(){
+    let cn = 0, cok = 0, ct = 0;
+    DSUBS.forEach(s => { if (st[s]){ cn += st[s].n; cok += st[s].ok; ct += st[s].time; } });
+    catData.push({ c: { id: 'hxd', name: 'h,x-Diagramm (Canvas)' }, n: cn, ok: cok, t: ct, q: cn ? cok / cn : null });
+  })();
   catData.forEach(d => {
     const pct = d.q === null ? 0 : Math.round(d.q * 100);
     const cls = d.q === null ? '' : pct >= 80 ? 'g' : pct >= 55 ? '' : pct >= 35 ? 'y' : 'r';
@@ -1422,7 +1543,9 @@ function renderStats(){
   }
   $('recoBox').innerHTML = reco;
   $('recoBtn').onclick = function(){
-    P.filter = this.dataset.cat || null;
+    const c = this.dataset.cat || null;
+    if (c === 'hxd'){ setView('hx'); return; }
+    P.filter = c;
     buildChips(); setView('practice'); newTask();
   };
 
@@ -1432,6 +1555,7 @@ function renderStats(){
     : '<li style="color:var(--mut2)">noch keine Prüfung abgelegt</li>';
 }
 $('btnStats').onclick = () => setView(view === 'stats' ? 'practice' : 'stats');
+$('btnHx').onclick = () => setView(view === 'hx' ? 'practice' : 'hx');
 $('btnReset').onclick = () => {
   if (confirm('Statistik, Fehlerliste und Prüfungshistorie wirklich löschen?')){
     store = { stats: {}, wrong: [], exams: [] }; save();
@@ -1439,10 +1563,252 @@ $('btnReset').onclick = () => {
   }
 };
 
+/* ================= h,x-Diagramm (Canvas) ================= */
+const HXUI = (function(){
+  const cv = $('hxCanvas'), ctx = cv.getContext('2d');
+  const M = { l: 56, r: 14, t: 14, b: 42 };
+  let W = 900, H = 580;
+  let pressure = 1013;
+  let task = null, t0 = 0, counted = false, solved = false, revealed = false, fails = 0;
+  let cand = null, dragging = false, cross = null;
+  const X0 = 0, X1 = HXD.X_MAX, Y0 = HXD.Y_MIN - 0.8, Y1 = HXD.Y_MAX + 0.8;
+  const px = x => M.l + (x - X0) / (X1 - X0) * (W - M.l - M.r);
+  const py = Y => H - M.b - (Y - Y0) / (Y1 - Y0) * (H - M.t - M.b);
+  const pt = (t, x) => [px(x), py(HXD.yOf(t, x))];
+  function worldOf(cx, cy){
+    let x = (cx - M.l) / (W - M.l - M.r) * (X1 - X0) + X0;
+    x = Math.max(0, Math.min(X1, x));
+    const Y = (H - M.b - cy) / (H - M.t - M.b) * (Y1 - Y0) + Y0;
+    return { x, t: Math.max(HXD.T_MIN, Math.min(HXD.T_MAX, HXD.tOfY(Y, x))) };
+  }
+  function startPoint(){
+    if (!task) return null;
+    if (task.dsub === 'hxd_erwaermen' || task.dsub === 'hxd_kuehlen') return { x: task.x1, t: task.t1, lbl: `${task.t1} °C / ${task.phi1} %` };
+    if (task.dsub === 'hxd_dampf') return { x: task.x1, t: task.t, lbl: `${task.t} °C / ${task.phi1} %` };
+    return null;
+  }
+  function resize(){
+    const w = cv.clientWidth || 900;
+    W = w; H = Math.min(640, Math.round(w * 0.64));
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  function line(x1, y1, x2, y2){ ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  function drawBase(){
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(M.l, M.t, W - M.l - M.r, H - M.t - M.b); ctx.clip();
+    // 1-K-Isothermen (fein) + x-Linien fein
+    ctx.strokeStyle = '#141f36'; ctx.lineWidth = 1;
+    for (let t = HXD.T_MIN; t <= HXD.T_MAX; t++){
+      if (t % 5 === 0) continue;
+      const a = pt(t, 0), b = pt(t, X1); line(a[0], a[1], b[0], b[1]);
+    }
+    for (let x = 0; x <= X1; x++){ if (x % 5 !== 0) { line(px(x), M.t, px(x), H - M.b); } }
+    // 5er-Raster
+    ctx.strokeStyle = '#22304e';
+    for (let x = 0; x <= X1; x += 5) line(px(x), M.t, px(x), H - M.b);
+    for (let t = -15; t <= 35; t += 5){ const a = pt(t, 0), b = pt(t, X1); line(a[0], a[1], b[0], b[1]); }
+    // h-Diagonalen (h = Y + 2.501·x)
+    ctx.strokeStyle = '#2b3a58'; ctx.setLineDash([5, 5]);
+    ctx.fillStyle = '#64748b'; ctx.font = '10px system-ui';
+    for (let h = -10; h <= 70; h += 10){
+      const yA = py(h), yB = py(h - 2.501 * X1);
+      line(px(0), yA, px(X1), yB);
+      const lx = px(2.2), ly = py(h - 2.501 * 2.2);
+      if (ly > M.t + 12 && ly < H - M.b - 6) ctx.fillText('h=' + h, lx + 3, ly - 4);
+    }
+    ctx.setLineDash([]);
+    // phi-Kurven
+    for (let phi = 10; phi <= 100; phi += 10){
+      ctx.strokeStyle = phi === 100 ? '#38bdf8' : 'rgba(56,189,248,.26)';
+      ctx.lineWidth = phi === 100 ? 1.8 : 1.1;
+      ctx.beginPath();
+      let started = false, lastIn = null;
+      for (let t = HXD.T_MIN; t <= HXD.T_MAX + 0.001; t += 0.5){
+        const x = PHYS.xFromTPhi(t, phi, pressure);
+        if (x > X1 + 0.4) { break; }
+        const [cx2, cy2] = pt(t, x);
+        if (!started){ ctx.moveTo(cx2, cy2); started = true; } else ctx.lineTo(cx2, cy2);
+        lastIn = { t, x, cx2, cy2 };
+      }
+      ctx.stroke();
+      if (lastIn){
+        ctx.fillStyle = phi === 100 ? '#7dd3fc' : 'rgba(125,211,252,.55)';
+        ctx.font = 'bold 10px system-ui';
+        ctx.fillText(phi + '%', Math.min(lastIn.cx2 + 3, W - M.r - 28), Math.max(lastIn.cy2 - 4, M.t + 10));
+      }
+    }
+    ctx.restore();
+    // Achsen-Beschriftung
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+    for (let x = 0; x <= X1; x += 2) ctx.fillText(String(x), px(x), H - M.b + 16);
+    ctx.fillText('x  [g/kg]', (M.l + W - M.r) / 2, H - 8);
+    ctx.textAlign = 'right';
+    for (let t = -15; t <= 35; t += 5) ctx.fillText(String(t), M.l - 7, py(HXD.yOf(t, 0)) + 4);
+    ctx.save(); ctx.translate(14, (M.t + H - M.b) / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center';
+    ctx.fillText('t  [°C]', 0, 0); ctx.restore();
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';
+    ctx.fillText(fmt(pressure) + ' mbar', M.l + 6, M.t + 14);
+  }
+  function dot(t, x, color, r){
+    const [cx2, cy2] = pt(t, x);
+    ctx.beginPath(); ctx.arc(cx2, cy2, r || 6, 0, 7);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = '#0b1426'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  function guide(t, x, color){
+    ctx.strokeStyle = color; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+    const [cx2, cy2] = pt(t, x);
+    line(cx2, cy2, cx2, H - M.b);
+    line(M.l, cy2, cx2, cy2);
+    ctx.setLineDash([]);
+  }
+  function draw(){
+    drawBase();
+    const sp = startPoint();
+    if (sp){
+      dot(sp.t, sp.x, '#f59e0b', 7);
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px system-ui';
+      const [sx, sy] = pt(sp.t, sp.x);
+      ctx.fillText('Start ' + sp.lbl, sx + 10, sy + 4);
+    }
+    if (cand){
+      if (sp){ ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; const a = pt(sp.t, sp.x), b = pt(cand.t, cand.x); line(a[0], a[1], b[0], b[1]); }
+      dot(cand.t, cand.x, '#38bdf8', 6.5);
+    }
+    if (solved || revealed){
+      const res = checkDPoint(task, cand || { x: 0, t: 0 });
+      const tg = res.target;
+      const col = revealed && !solved ? '#f59e0b' : '#22c55e';
+      if (sp){ ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([6, 4]); const a = pt(sp.t, sp.x), b = pt(tg.t, tg.x); line(a[0], a[1], b[0], b[1]); ctx.setLineDash([]); }
+      guide(tg.t, tg.x, col);
+      dot(tg.t, tg.x, col, 6.5);
+    }
+    if (cross && !dragging){
+      ctx.strokeStyle = 'rgba(100,116,139,.5)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+      const [cx2, cy2] = pt(cross.t, cross.x);
+      line(cx2, M.t, cx2, H - M.b); line(M.l, cy2, W - M.r, cy2);
+      ctx.setLineDash([]);
+    }
+  }
+  function readout(p){
+    if (!p){ $('hxReadout').innerHTML = '<span>Fadenkreuz: bewege die Maus über das Diagramm</span>'; return; }
+    const phi = Math.max(0, Math.min(130, PHYS.phiFromTx(p.t, p.x, pressure)));
+    const h = PHYS.hFromTx(p.t, p.x);
+    $('hxReadout').innerHTML =
+      `<span>t = <b>${p.t.toFixed(1)} °C</b></span><span>x = <b>${p.x.toFixed(2)} g/kg</b></span>` +
+      `<span>φ ≈ <b>${phi > 100 ? '&gt;100' : phi.toFixed(0)} %</b></span><span>h = <b>${h.toFixed(1)} kJ/kg</b></span>` +
+      (cand ? `<span style="color:var(--acc)">Dein Punkt: <b>${cand.t.toFixed(1)} °C / ${cand.x.toFixed(2)} g/kg</b></span>` : '');
+  }
+  function setPressureUI(){
+    $('hxP1013').classList.toggle('on', pressure === 1013);
+    $('hxP955').classList.toggle('on', pressure === 955);
+    const locked = task && !solved && !revealed;
+    $('hxP1013').disabled = locked; $('hxP955').disabled = locked;
+    $('hxP1013').title = locked ? 'Während der Aufgabe durch die Aufgabe vorgegeben' : '';
+    $('hxP955').title = $('hxP1013').title;
+  }
+  function newTask(){
+    task = randomDTask(); pressure = task.P;
+    cand = null; solved = false; revealed = false; counted = false; fails = 0; t0 = Date.now();
+    $('hxSubBadge').textContent = DSUBNAME[task.dsub];
+    $('hxPBadge').textContent = (task.P === 955 ? '⚠ ' : '') + fmt(task.P) + ' mbar';
+    $('hxPBadge').className = 'badge ' + (task.P === 955 ? 'p-warn' : 'p-norm');
+    $('hxText').innerHTML = task.text;
+    $('hxFb').className = 'feedback'; $('hxFb').innerHTML = '';
+    setPressureUI(); draw(); readout(null);
+  }
+  function count(ok){
+    if (counted) return;
+    counted = true;
+    recordAttempt(task.dsub, ok, (Date.now() - t0) / 1000);
+  }
+  function check(){
+    const fb = $('hxFb');
+    if (solved){ newTask(); return; }
+    if (!cand){
+      fb.className = 'feedback show fb-info';
+      fb.innerHTML = task.dsub === 'hxd_punkt' ? '✏️ Zuerst in das Diagramm klicken.' : '✏️ Zuerst vom orangen Startpunkt aus ziehen.';
+      return;
+    }
+    const res = checkDPoint(task, cand);
+    if (res.ok){
+      const first = !counted;
+      count(true); solved = true; setPressureUI(); draw();
+      fb.className = 'feedback show fb-ok';
+      fb.innerHTML = `✓ <b>Getroffen!</b> Ziel: ${res.target.t.toFixed(1)} °C / ${res.target.x.toFixed(2)} g/kg` +
+        ` · deine Abweichung: ${Math.abs(cand.t - res.target.t).toFixed(1)} K, ${Math.abs(cand.x - res.target.x).toFixed(2)} g/kg` +
+        (first ? '' : ' <span style="color:var(--mut)">(nach Korrektur)</span>') +
+        '<br><span style="color:var(--mut);font-size:.85rem">⏎ für die nächste Aufgabe</span>';
+    } else {
+      count(false); fails++;
+      fb.className = 'feedback show fb-no';
+      const hints = [res.hintT, res.hintX].filter(Boolean).join(' · ');
+      fb.innerHTML = `✗ Noch daneben: <b>${hints}</b>` + (fails >= 2 ? '<br>💡 Mit <b>L</b> die Lösung einblenden.' : ' – korrigiere deinen Punkt und prüfe erneut.');
+    }
+  }
+  function reveal(){
+    if (!task || solved) return;
+    count(false); revealed = true; setPressureUI(); draw();
+    const res = checkDPoint(task, cand || { x: 0, t: 0 });
+    $('hxFb').className = 'feedback show fb-info';
+    $('hxFb').innerHTML = `💡 Lösung (orange): <b>${res.target.t.toFixed(1)} °C / ${res.target.x.toFixed(2)} g/kg</b>` +
+      (task.dsub !== 'hxd_punkt' ? ' – Prozesslinie ab Startpunkt eingeblendet.' : '') +
+      '<br><span style="color:var(--mut);font-size:.85rem">N für die nächste Aufgabe</span>';
+  }
+  /* Pointer */
+  function evPos(e){ const r = cv.getBoundingClientRect(); return { cx: e.clientX - r.left, cy: e.clientY - r.top }; }
+  cv.addEventListener('pointerdown', e => {
+    if (!task || solved || revealed) return;
+    const { cx, cy } = evPos(e);
+    const w = worldOf(cx, cy);
+    if (task.dsub === 'hxd_punkt'){ cand = w; dragging = true; }
+    else {
+      const sp = startPoint();
+      const [sx, sy] = pt(sp.t, sp.x);
+      const nearStart = Math.hypot(cx - sx, cy - sy) < 30;
+      const nearCand = cand ? Math.hypot(cx - pt(cand.t, cand.x)[0], cy - pt(cand.t, cand.x)[1]) < 22 : false;
+      if (nearStart || nearCand){ dragging = true; cand = w; }
+    }
+    if (dragging){ try { cv.setPointerCapture(e.pointerId); } catch(err){} draw(); readout(w); }
+  });
+  cv.addEventListener('pointermove', e => {
+    const { cx, cy } = evPos(e);
+    const w = worldOf(cx, cy);
+    cross = w;
+    if (dragging) cand = w;
+    draw(); readout(w);
+  });
+  cv.addEventListener('pointerup', () => { dragging = false; draw(); });
+  cv.addEventListener('pointerleave', () => { if (!dragging){ cross = null; draw(); readout(cand); } });
+  /* Druck-Umschalter (frei nach dem Lösen) */
+  $('hxP1013').onclick = () => { pressure = 1013; setPressureUI(); draw(); };
+  $('hxP955').onclick = () => { pressure = 955; setPressureUI(); draw(); };
+  $('hxCheck').onclick = check;
+  $('hxReveal').onclick = reveal;
+  $('hxNext').onclick = newTask;
+  window.addEventListener('resize', () => { if (view === 'hx') resize(); });
+  return {
+    open(){ if (!task) newTask(); resize(); requestAnimationFrame(resize); },
+    check, reveal, next: newTask
+  };
+})();
+
 /* ================= Tastatur ================= */
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape'){
-    if (view === 'stats' || view === 'examsetup') setView('practice');
+    if (view === 'stats' || view === 'examsetup' || view === 'hx') setView('practice');
+    return;
+  }
+  if (view === 'hx'){
+    if (e.key === 'Enter'){ e.preventDefault(); HXUI.check(); }
+    else if (e.key === 'l' || e.key === 'L'){ e.preventDefault(); HXUI.reveal(); }
+    else if (e.key === 'n' || e.key === 'N'){ e.preventDefault(); HXUI.next(); }
     return;
   }
   if (view === 'practice'){
@@ -1474,5 +1840,10 @@ $('exAnswer').addEventListener('input', renderExamDots);
 /* ================= Start ================= */
 buildChips();
 newTask();
+/* Deep-Link: rechnen.html#hx oder #stats */
+(function(){
+  const h = location.hash.replace('#', '');
+  if ((h === 'hx' || h === 'stats') && VIEWS.includes(h)) setView(h);
+})();
 </script>
 </body></html>
