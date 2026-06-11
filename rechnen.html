@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAP Rechen-Trainer · Lüftung</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<style>
+:root{
+  --bg:#0f172a;--card:#1e293b;--card2:#233048;--line:#334155;--line2:#3e4f6b;
+  --acc:#38bdf8;--acc-deep:#0ea5e9;--ok:#22c55e;--no:#ef4444;--warn:#f59e0b;
+  --txt:#e2e8f0;--mut:#94a3b8;--mut2:#64748b;
+  --r:16px;--shadow:0 8px 30px rgba(0,0,0,.4);--shadow-soft:0 4px 18px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-color:var(--line) var(--bg);background:var(--bg)}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
+::selection{background:rgba(56,189,248,.35)}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:9px 16px;transition:background .15s,border-color .15s,transform .12s,box-shadow .15s}
+button:hover{background:var(--card2);border-color:var(--line2)}
+button:active{transform:translateY(1px)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.primary{background:var(--acc);border-color:var(--acc);color:#082f49;font-weight:700}
+button.primary:hover{background:#5ecbfa;box-shadow:0 4px 16px rgba(56,189,248,.25)}
+button.ghost{background:transparent}
+button:disabled{opacity:.45;cursor:default;transform:none}
+
+/* ---------- Topbar ---------- */
+.top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:16px 2px 14px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.06rem;letter-spacing:.01em;white-space:nowrap}
+.brand small{color:var(--mut);font-weight:500}
+.tabs{display:flex;background:rgba(30,41,59,.75);border:1px solid var(--line);border-radius:99px;padding:4px;gap:2px}
+.tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s}
+.tabs a:hover{color:var(--txt)}
+.tabs a.active{background:var(--acc);color:#082f49}
+.top-actions{margin-left:auto;display:flex;gap:8px}
+.top-actions button.on{border-color:var(--acc);color:var(--acc)}
+
+/* ---------- Übungsansicht ---------- */
+main{width:100%;max-width:1480px;display:none;flex-direction:column;gap:16px}
+main.show{display:flex}
+.filters{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:.85rem;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:rgba(30,41,59,.6);color:var(--mut);transition:all .15s}
+.chip:hover{color:var(--txt);border-color:var(--line2)}
+.chip.on{background:rgba(56,189,248,.16);border-color:var(--acc);color:var(--acc);font-weight:600}
+.switch{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--mut);cursor:pointer;user-select:none}
+.switch input{accent-color:var(--acc);width:16px;height:16px;cursor:pointer}
+.pool-info{font-size:.8rem;color:var(--mut2)}
+.grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:18px;align-items:start}
+@media(max-width:1080px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(36,48,70,.5),rgba(30,41,59,.9)),var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
+.swap-out{opacity:0;transform:translateY(-8px);transition:opacity .16s ease,transform .16s ease}
+.swap-in{animation:cardIn .28s cubic-bezier(.2,.7,.3,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.badge{font-size:.72rem;font-weight:600;letter-spacing:.02em;border-radius:99px;padding:3px 11px;border:1px solid var(--line2);color:var(--mut)}
+.badge.cat{border-color:var(--acc);color:var(--acc)}
+.badge.p-norm{color:var(--mut)}
+.badge.p-warn{border-color:var(--warn);color:var(--warn);font-weight:700}
+.task-text{font-size:1.16rem;font-weight:600;line-height:1.55;margin-bottom:18px}
+.given{width:100%;border-collapse:collapse;font-size:.94rem}
+.given caption{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut2);padding-bottom:8px}
+.given tr{border-top:1px solid rgba(51,65,85,.6);transition:background .12s}
+.given tr:hover{background:rgba(56,189,248,.05)}
+.given td{padding:7px 4px;vertical-align:top}
+.given td.k{color:var(--mut);width:46%}
+.given td.v{font-weight:600;font-variant-numeric:tabular-nums}
+.given td.u{color:var(--mut2);font-size:.85rem;white-space:nowrap}
+.given tr.warn td.v,.given tr.warn td.u{color:var(--warn)}
+
+.ask-line{font-size:.95rem;color:var(--mut);margin-bottom:12px}
+.ask-line b{color:var(--txt)}
+.input-row{display:flex;gap:10px;align-items:stretch;margin-bottom:6px}
+.input-wrap{position:relative;flex:1;display:flex}
+#answer,.exam-input{flex:1;width:100%;font:inherit;font-size:1.35rem;font-variant-numeric:tabular-nums;background:#0b1426;border:1px solid var(--line2);border-radius:12px;color:var(--txt);padding:12px 86px 12px 16px;transition:border-color .15s,box-shadow .15s}
+#answer:focus,.exam-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+.unit-tag{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:1rem;pointer-events:none}
+.shake{animation:shake .3s}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.feedback{border-radius:12px;padding:13px 15px;font-size:.95rem;line-height:1.5;margin:10px 0 4px;display:none;animation:cardIn .25s}
+.feedback.show{display:block}
+.fb-ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.45);color:#bbf7d0}
+.fb-trap{background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.45);color:#fde68a}
+.fb-no{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.4);color:#fecaca}
+.fb-info{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.35);color:#bae6fd}
+.sol-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.steps{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.step{display:flex;gap:12px;background:rgba(15,23,42,.55);border:1px solid var(--line);border-radius:12px;padding:12px 14px;opacity:0;transform:translateY(6px);animation:stepIn .3s forwards}
+@keyframes stepIn{to{opacity:1;transform:none}}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;background:rgba(56,189,248,.14);border:1px solid var(--acc);color:var(--acc);font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.step .body{font-size:.92rem;line-height:1.55;min-width:0}
+.step .body .t{font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-bottom:3px}
+.step.result{border-color:rgba(56,189,248,.55);background:rgba(56,189,248,.07)}
+.step.result .body b{color:var(--acc);font-size:1.02rem}
+.kbd-hint{color:var(--mut2);font-size:.75rem;margin-top:14px}
+.kbd-hint kbd{background:var(--card2);border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-family:inherit;font-size:.72rem}
+
+/* ---------- Prüfungsmodus ---------- */
+.exam-hero{max-width:760px;margin:30px auto;text-align:center;padding:40px 36px}
+.exam-hero h2{font-size:1.5rem;margin-bottom:12px}
+.exam-hero p{color:var(--mut);line-height:1.65;margin-bottom:10px}
+.exam-hero .specs{display:flex;gap:14px;justify-content:center;margin:22px 0 26px;flex-wrap:wrap}
+.spec{background:rgba(15,23,42,.55);border:1px solid var(--line);border-radius:12px;padding:14px 20px;min-width:130px}
+.spec b{display:block;font-size:1.35rem;color:var(--acc)}
+.spec span{font-size:.78rem;color:var(--mut)}
+.exam-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ring-wrap{position:relative;width:74px;height:74px;flex:0 0 74px}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--line);stroke-width:6}
+.ring-fg{fill:none;stroke:var(--acc);stroke-width:6;stroke-linecap:round;stroke-dasharray:207.3;transition:stroke-dashoffset .8s linear,stroke .4s}
+.ring-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.92rem;font-variant-numeric:tabular-nums}
+.ring-wrap.low .ring-fg{stroke:var(--warn)}
+.ring-wrap.crit .ring-fg{stroke:var(--no)}
+.ring-wrap.crit .ring-time{color:var(--no);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.45}}
+.dots{display:flex;gap:9px}
+.dot{width:34px;height:34px;border-radius:10px;border:1px solid var(--line2);background:rgba(30,41,59,.7);color:var(--mut);font-size:.85rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.dot:hover{border-color:var(--acc)}
+.dot.filled{background:rgba(56,189,248,.16);border-color:var(--acc-deep);color:var(--acc)}
+.dot.cur{outline:2px solid var(--acc);outline-offset:2px;color:var(--txt)}
+.exam-nav{display:flex;gap:10px;margin-left:auto}
+
+/* ---------- Auswertung ---------- */
+.result-head{text-align:center;padding:34px 24px 26px}
+.result-head .big{font-size:3.2rem;font-weight:800;font-variant-numeric:tabular-nums}
+.result-head .big small{font-size:1.4rem;color:var(--mut);font-weight:600}
+.result-head .note{font-size:1.25rem;margin-top:6px}
+.note .val{font-weight:800;font-variant-numeric:tabular-nums}
+.note.pass .val{color:var(--ok)}
+.note.fail .val{color:var(--no)}
+.verdict{color:var(--mut);margin-top:8px}
+.rtable{width:100%;border-collapse:collapse;font-size:.92rem}
+.rtable th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mut2);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.rtable td{padding:10px;border-bottom:1px solid rgba(51,65,85,.5);font-variant-numeric:tabular-nums;vertical-align:top}
+.rtable tr:hover td{background:rgba(56,189,248,.04)}
+.rtable .st-ok{color:var(--ok);font-weight:700}
+.rtable .st-no{color:var(--no);font-weight:700}
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:900px){.sw-grid{grid-template-columns:1fr}}
+.sw-box h3{font-size:.85rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin-bottom:10px}
+.sw-box ul{list-style:none}
+.sw-box li{padding:6px 0;border-bottom:1px solid rgba(51,65,85,.4);font-size:.92rem}
+.sw-box li b{font-variant-numeric:tabular-nums}
+
+/* ---------- Statistik ---------- */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow-soft)}
+.stat-card b{display:block;font-size:1.7rem;font-variant-numeric:tabular-nums}
+.stat-card span{font-size:.8rem;color:var(--mut)}
+.bars{display:flex;flex-direction:column;gap:14px}
+.bar-row{display:grid;grid-template-columns:210px 1fr 150px;gap:14px;align-items:center}
+@media(max-width:800px){.bar-row{grid-template-columns:130px 1fr 110px}}
+.bar-row .lbl{font-size:.92rem}
+.bar-row .lbl small{display:block;color:var(--mut2);font-size:.74rem}
+.bar{height:12px;border-radius:99px;background:rgba(15,23,42,.8);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--acc);width:0;transition:width .8s cubic-bezier(.2,.7,.3,1)}
+.bar i.g{background:var(--ok)}.bar i.y{background:var(--warn)}.bar i.r{background:var(--no)}
+.bar-row .meta{font-size:.8rem;color:var(--mut);text-align:right;font-variant-numeric:tabular-nums}
+.reco{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid rgba(56,189,248,.45);background:rgba(56,189,248,.07);border-radius:var(--r);padding:18px 22px}
+.reco .txt{flex:1;min-width:220px}
+.reco b{color:var(--acc)}
+.empty{text-align:center;color:var(--mut);padding:40px 20px;line-height:1.7}
+.exam-history li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(51,65,85,.4);font-size:.9rem}
+h2.sec{font-size:1.05rem;margin-bottom:14px}
+
+footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-align:center;letter-spacing:.02em;line-height:1.8}
+footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-family:inherit}
+
+/* ---------- Konfetti ---------- */
+.cfx{position:fixed;top:-14px;border-radius:3px;pointer-events:none;z-index:99;animation:cfall linear forwards}
+@keyframes cfall{to{transform:translateY(108vh) rotate(660deg);opacity:.7}}
+</style></head><body>
+
+<header class="top">
+  <div class="brand">🎓 LAP Trainer <small>· Lüftung EFZ</small></div>
+  <nav class="tabs">
+    <a href="index.html">Fragen</a>
+    <a class="active" href="rechnen.html" onclick="return false">Rechnen</a>
+  </nav>
+  <div class="top-actions">
+    <button id="btnStats">📊 Statistik</button>
+    <button id="btnExam" class="primary">⏱ Prüfungsmodus</button>
+  </div>
+</header>
+
+<!-- ================= Übung ================= -->
+<main id="view-practice" class="show">
+  <div class="filters">
+    <div class="chips" id="catChips"></div>
+    <label class="switch"><input type="checkbox" id="onlyWrong"> nur falsche wiederholen</label>
+    <span class="pool-info" id="poolInfo"></span>
+  </div>
+  <section class="grid">
+    <article class="card" id="taskCard">
+      <div class="badges" id="taskBadges"></div>
+      <div class="task-text" id="taskText"></div>
+      <table class="given" id="givenTable"></table>
+    </article>
+    <article class="card" id="answerCard">
+      <div class="ask-line">Gesucht: <b id="askWhat"></b></div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <input id="answer" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Resultat">
+          <span class="unit-tag" id="unitTag"></span>
+        </div>
+        <button class="primary" id="btnCheck">Prüfen</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="sol-actions">
+        <button id="btnHint">💡 Hinweis</button>
+        <button id="btnNext">Nächste Aufgabe →</button>
+      </div>
+      <div class="steps" id="steps"></div>
+      <div class="kbd-hint"><kbd>⏎</kbd> prüfen / weiter &nbsp;·&nbsp; <kbd>H</kbd> Hinweis-Stufe &nbsp;·&nbsp; <kbd>N</kbd> nächste Aufgabe</div>
+    </article>
+  </section>
+</main>
+
+<!-- ================= Prüfung: Setup ================= -->
+<main id="view-examsetup">
+  <div class="card exam-hero">
+    <h2>⏱ Prüfungsmodus</h2>
+    <p>Wie am QV: <b>6 Berechnungsaufgaben</b> quer durch alle Kategorien, <b>80 Minuten</b> Zeit, keine Hinweise.<br>
+    Mit <kbd>←</kbd>/<kbd>→</kbd> zwischen den Aufgaben wechseln, am Schluss abgeben – die Auswertung zeigt dir Note, Zeit pro Aufgabe und deine Stärken/Schwächen.</p>
+    <div class="specs">
+      <div class="spec"><b>6</b><span>Aufgaben</span></div>
+      <div class="spec"><b>80 min</b><span>Countdown</span></div>
+      <div class="spec"><b>±2 %</b><span>Toleranz</span></div>
+      <div class="spec"><b>Note ≥ 4.0</b><span>bestanden</span></div>
+    </div>
+    <button class="primary" id="btnStartExam" style="font-size:1.05rem;padding:13px 34px">Prüfung starten</button>
+    <p style="margin-top:14px"><button class="ghost" id="btnExamBack">← zurück zur Übung</button></p>
+  </div>
+</main>
+
+<!-- ================= Prüfung: läuft ================= -->
+<main id="view-exam">
+  <div class="exam-top card" style="padding:14px 20px">
+    <div class="ring-wrap" id="ringWrap">
+      <svg width="74" height="74" viewBox="0 0 74 74">
+        <circle class="ring-bg" cx="37" cy="37" r="33"></circle>
+        <circle class="ring-fg" id="ringFg" cx="37" cy="37" r="33"></circle>
+      </svg>
+      <div class="ring-time" id="ringTime">80:00</div>
+    </div>
+    <div class="dots" id="examDots"></div>
+    <div class="exam-nav">
+      <button id="btnPrev">←</button>
+      <button id="btnNextEx">→</button>
+      <button class="primary" id="btnSubmit">Abgeben ✓</button>
+    </div>
+  </div>
+  <section class="grid">
+    <article class="card" id="exTaskCard">
+      <div class="badges" id="exBadges"></div>
+      <div class="task-text" id="exText"></div>
+      <table class="given" id="exGiven"></table>
+    </article>
+    <article class="card">
+      <div class="ask-line">Gesucht: <b id="exAsk"></b></div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <input class="exam-input" id="exAnswer" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Resultat">
+          <span class="unit-tag" id="exUnit"></span>
+        </div>
+      </div>
+      <div class="kbd-hint" style="margin-top:10px"><kbd>←</kbd>/<kbd>→</kbd> Aufgabe wechseln &nbsp;·&nbsp; <kbd>⏎</kbd> nächste &nbsp;·&nbsp; Antworten werden automatisch gespeichert</div>
+    </article>
+  </section>
+</main>
+
+<!-- ================= Auswertung ================= -->
+<main id="view-result">
+  <div class="card result-head">
+    <div class="big"><span id="resScore">0</span><small> / 6 richtig</small></div>
+    <div class="note" id="resNote">Note <span class="val">–</span></div>
+    <div class="verdict" id="resVerdict"></div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="primary" id="btnTrainWrong">Falsche jetzt üben</button>
+      <button id="btnExamAgain">Neue Prüfung</button>
+      <button id="btnToPractice">Zur Übung</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 class="sec">Prüfungsprotokoll</h2>
+    <table class="rtable" id="resTable"></table>
+  </div>
+  <div class="card sw-grid" id="swBox"></div>
+</main>
+
+<!-- ================= Statistik ================= -->
+<main id="view-stats">
+  <div class="reco" id="recoBox"></div>
+  <div class="stat-cards" id="statCards"></div>
+  <div class="card">
+    <h2 class="sec">Trefferquote &amp; Ø-Zeit pro Kategorie</h2>
+    <div class="bars" id="statBars"></div>
+  </div>
+  <div class="card sw-grid">
+    <div class="sw-box"><h3>Letzte Prüfungen</h3><ul class="exam-history" id="examHistory"></ul></div>
+    <div class="sw-box"><h3>Verwaltung</h3>
+      <p style="color:var(--mut);font-size:.9rem;line-height:1.6;margin-bottom:14px">Fortschritt, Statistik und Fehlerliste liegen lokal im Browser (localStorage).</p>
+      <button id="btnReset">↺ Statistik zurücksetzen</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <kbd>⏎</kbd> prüfen · <kbd>H</kbd> Hinweis · <kbd>N</kbd> nächste · <kbd>←→</kbd> Prüfungsmodus<br>
+  Manoa Verner · GPL22c · 2026
+</footer>
+
+<script>
+/* ===== CORE-START ===== */
+'use strict';
+/* ---------- Physik feuchte Luft (Magnus, ueber Wasser) ---------- */
+const PHYS = {
+  pSat(t){ return 6.112 * Math.exp(17.62 * t / (243.12 + t)); },            // hPa
+  xFromTPhi(t, phi, P){ const pd = phi / 100 * PHYS.pSat(t); return 622 * pd / (P - pd); }, // g/kg
+  phiFromTx(t, x, P){ const pd = P * x / (622 + x); return 100 * pd / PHYS.pSat(t); },      // %
+  hFromTx(t, x){ return 1.006 * t + x / 1000 * (2501 + 1.86 * t); },        // kJ/kg
+  tFromHx(h, x){ return (h - 2.501 * x) / (1.006 + 0.00186 * x); },         // degC (x in g/kg)
+  tDew(x, P){ const pd = P * x / (622 + x); const l = Math.log(pd / 6.112); return 243.12 * l / (17.62 - l); }
+};
+function hxState(t, phi, P){ const x = PHYS.xFromTPhi(t, phi, P); return { t, phi, x, h: PHYS.hFromTx(t, x) }; }
+const RHO = { 1013: 1.20, 955: 1.13 }; // kg/m3, Rechenwert wie Schule/Diagramm (~20 degC)
+
+/* ---------- Zufall (deterministisch je Seed) ---------- */
+function makeRng(seed){ let s = seed >>> 0; return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = {
+  int(rng, a, b){ return a + Math.floor(rng() * (b - a + 1)); },
+  pick(rng, arr){ return arr[Math.floor(rng() * arr.length)]; },
+  step(rng, a, b, st){ const n = Math.round((b - a) / st); const v = a + R.int(rng, 0, n) * st; return Math.round(v * 1e6) / 1e6; }
+};
+
+/* ---------- Formatierung ---------- */
+function fmt(n, dec){
+  dec = dec === undefined ? 0 : dec;
+  const neg = n < 0; n = Math.abs(n);
+  const f = n.toFixed(dec); const p = f.split('.');
+  const i = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+  return (neg ? '−' : '') + i + (p[1] ? '.' + p[1] : '');
+}
+function parseNum(s){
+  if (s === null || s === undefined) return NaN;
+  s = String(s).trim().replace(/−/g, '-').replace(/['’\s]/g, '').replace(/,/g, '.');
+  if (!/^-?\d*\.?\d+(e-?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+
+/* ---------- Kategorien ---------- */
+const CATS = [
+  { id: 'hx',     name: 'h,x-Prozesse' },
+  { id: 'luft',   name: 'Luftmengen' },
+  { id: 'druck',  name: 'Druck & Ventilator' },
+  { id: 'schall', name: 'Schall' },
+  { id: 'wrg',    name: 'WRG' }
+];
+const SUBS = {
+  hx:    ['hx_erhitzer', 'hx_kuehler', 'hx_dampf', 'hx_misch'],
+  luft:  ['luft_sia', 'luft_co2', 'luft_feuchte', 'luft_mak'],
+  druck: ['druck_pel', 'druck_gesetz', 'druck_total', 'druck_siphon'],
+  schall:['schall_add', 'schall_einf'],
+  wrg:   ['wrg_phi', 'wrg_t', 'wrg_q']
+};
+const SUBNAME = {
+  hx_erhitzer: 'Lufterhitzer', hx_kuehler: 'Luftkühler & Kondensat', hx_dampf: 'Dampfbefeuchter', hx_misch: 'Mischung',
+  luft_sia: 'SIA personen-/flächenbezogen', luft_co2: 'CO₂-Ansatz', luft_feuchte: 'Feuchteabfuhr', luft_mak: 'MAK-Verdünnung',
+  druck_pel: 'Ventilatorleistung', druck_gesetz: 'Ventilatorgesetze', druck_total: 'Gesamtdruck', druck_siphon: 'Siphonhöhe',
+  schall_add: 'Pegeladdition', schall_einf: 'Einfügungsdämpfung',
+  wrg_phi: 'Rückwärmzahl', wrg_t: 'Temperatur nach WRG', wrg_q: 'WRG-Leistung & Nacherwärmung'
+};
+const ROOMS = ['Bürogebäude', 'Schulhaus', 'Turnhalle', 'Mehrzwecksaal', 'Restaurant', 'Verwaltungsgebäude'];
+
+function pressureGiven(P){
+  return { k: 'Luftdruck p', v: fmt(P), u: P === 955 ? 'mbar (540 m ü.M.)' : 'mbar', warn: P !== 1013 };
+}
+
+/* ---------- Generatoren ---------- */
+const GENS = {
+
+  /* === K1: h,x === */
+  hx_erhitzer(rng){
+    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const V = R.step(rng, 1500, 12000, 500);
+    const t1 = R.int(rng, -12, 6), phi1 = R.step(rng, 60, 90, 5), t2 = R.int(rng, 18, 24);
+    const s1 = hxState(t1, phi1, P);
+    const h2 = PHYS.hFromTx(t2, s1.x);
+    const m = V * rho, dh = h2 - s1.h;
+    const sol = m * dh / 3600;
+    return {
+      cat: 'hx', title: 'Leistung Lufterhitzer',
+      text: `In der Zuluftanlage eines ${R.pick(rng, ROOMS)}s wird die Aussenluft im Winterbetrieb von ${fmt(t1)} °C / ${fmt(phi1)} % r.F. im Lufterhitzer auf ${fmt(t2)} °C erwärmt (x = konstant). Berechnen Sie die notwendige Heizleistung.`,
+      given: [
+        { k: 'Luftvolumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Lufteintritt', v: `${fmt(t1)} °C / ${fmt(phi1)} %`, u: 'r.F.' },
+        { k: 'Luftaustritt', v: fmt(t2), u: '°C' },
+        { k: 'Luftdichte ρ', v: rho.toFixed(2), u: 'kg/m³' },
+        pressureGiven(P)
+      ],
+      ask: 'Heizleistung Q̇', unit: 'kW', sol, round: 1, tol: { rel: 0.02, abs: 0.05 },
+      steps: [
+        { t: 'Formel', d: `Q̇ = ṁ · Δh / 3600 [kW] mit ṁ = V̇ · ρ [kg/h]. Erwärmen = senkrecht nach oben im h,x-Diagramm (x bleibt konstant). Schnell-Kontrolle: Faustformel Q̇ ≈ V̇ · 0.34 · ΔT (nur bei 1013 mbar!).` },
+        { t: 'Zustand 1 ablesen', d: `Bei ${fmt(t1)} °C / ${fmt(phi1)} % r.F. und p = ${fmt(P)} mbar: x = ${s1.x.toFixed(2)} g/kg, h₁ = ${s1.h.toFixed(1)} kJ/kg.` },
+        { t: 'Zustand 2 ablesen', d: `Erwärmen auf ${fmt(t2)} °C bei gleichem x = ${s1.x.toFixed(2)} g/kg: h₂ = ${h2.toFixed(1)} kJ/kg → Δh = ${dh.toFixed(1)} kJ/kg.` },
+        { t: 'Massenstrom', d: `ṁ = ${fmt(V)} m³/h · ${rho.toFixed(2)} kg/m³ = ${fmt(m)} kg/h.` },
+        { t: 'Resultat', d: `Q̇ = ${fmt(m)} · ${dh.toFixed(1)} / 3600 = <b>${fmt(sol, 1)} kW</b>.` }
+      ],
+      traps: [
+        { v: m * dh, hint: 'Division durch 3600 vergessen: ṁ·Δh ergibt kJ/h – erst ÷3600 macht daraus kW.' },
+        { v: V * dh / 3600, hint: 'Du hast mit dem Volumenstrom statt dem Massenstrom gerechnet – zuerst ṁ = V̇·ρ bilden.' },
+        { v: V * 0.34 * (t2 - t1) / 1000, hint: `Faustformel 0.34 gilt nur bei 1013 mbar. Hier ist p = ${fmt(P)} mbar (ρ ≈ ${rho.toFixed(2)}) – exakt über Δh rechnen.` },
+        { v: m * dh / 3600 * 1000, hint: 'Das wäre die Leistung in Watt – gefragt ist kW.' }
+      ]
+    };
+  },
+
+  hx_kuehler(rng){
+    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const V = R.step(rng, 2000, 10000, 500);
+    let t1, phi1, t2, phi2, s1, x2, tries = 0;
+    do {
+      t1 = R.int(rng, 26, 34); phi1 = R.step(rng, 40, 60, 5);
+      t2 = R.int(rng, 11, 17); phi2 = R.pick(rng, [90, 95]);
+      s1 = hxState(t1, phi1, P); x2 = PHYS.xFromTPhi(t2, phi2, P); tries++;
+    } while (x2 > s1.x - 0.8 && tries < 60);
+    if (x2 > s1.x - 0.8){ t2 = 11; phi2 = 90; x2 = PHYS.xFromTPhi(11, 90, P); }
+    const h2 = PHYS.hFromTx(t2, x2);
+    const m = V * rho, dh = s1.h - h2, dx = s1.x - x2;
+    const askKond = rng() < 0.5;
+    const solQ = m * dh / 3600, solK = m * dx / 1000;
+    const base = {
+      cat: 'hx',
+      given: [
+        { k: 'Luftvolumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Lufteintritt', v: `${fmt(t1)} °C / ${fmt(phi1)} %`, u: 'r.F.' },
+        { k: 'Luftaustritt', v: `${fmt(t2)} °C / ~${fmt(phi2)} %`, u: 'r.F.' },
+        { k: 'Luftdichte ρ', v: rho.toFixed(2), u: 'kg/m³' },
+        pressureGiven(P)
+      ],
+      stepsCommon: [
+        { t: 'Zustand 1 ablesen', d: `${fmt(t1)} °C / ${fmt(phi1)} % bei p = ${fmt(P)} mbar: x₁ = ${s1.x.toFixed(2)} g/kg, h₁ = ${s1.h.toFixed(1)} kJ/kg.` },
+        { t: 'Zustand 2 ablesen', d: `${fmt(t2)} °C / ${fmt(phi2)} %: x₂ = ${x2.toFixed(2)} g/kg, h₂ = ${h2.toFixed(1)} kJ/kg. Der Prozess läuft zur Sättigungslinie und ihr entlang nach unten (Entfeuchtung).` },
+        { t: 'Massenstrom', d: `ṁ = ${fmt(V)} · ${rho.toFixed(2)} = ${fmt(m)} kg/h.` }
+      ]
+    };
+    if (askKond){
+      return Object.assign(base, {
+        title: 'Kondensatmenge Luftkühler',
+        text: `Im Luftkühler einer Klimaanlage wird die Luft von ${fmt(t1)} °C / ${fmt(phi1)} % r.F. auf ${fmt(t2)} °C abgekühlt und dabei entfeuchtet (Austritt ~${fmt(phi2)} % r.F.). Berechnen Sie die anfallende Kondensatmenge.`,
+        ask: 'Kondensatmenge ṁₖ', unit: 'kg/h', sol: solK, round: 1, tol: { rel: 0.025, abs: 0.2 },
+        steps: [
+          { t: 'Formel', d: `ṁₖ = ṁ · Δx / 1000 [kg/h] mit ṁ = V̇·ρ [kg/h] und Δx in g/kg. Kondensat = ausgeschiedene Feuchte (x₁ − x₂).` }
+        ].concat(base.stepsCommon, [
+          { t: 'Resultat', d: `Δx = ${s1.x.toFixed(2)} − ${x2.toFixed(2)} = ${dx.toFixed(2)} g/kg → ṁₖ = ${fmt(m)} · ${dx.toFixed(2)} / 1000 = <b>${fmt(solK, 1)} kg/h</b>. (Kondensatablauf mit Siphon!)` }
+        ]),
+        traps: [
+          { v: m * dx, hint: 'Δx ist in g/kg – durch 1000 teilen, sonst erhältst du g/h.' },
+          { v: V * dx / 1000, hint: 'Mit dem Massenstrom rechnen (ṁ = V̇·ρ), nicht mit dem Volumenstrom.' },
+          { v: m * dh / 3600, hint: 'Das wäre die Kühlleistung in kW – gefragt ist die Kondensatmenge über Δx.' }
+        ]
+      });
+    }
+    return Object.assign(base, {
+      title: 'Kühlleistung Kaltwasserbatterie',
+      text: `Im Luftkühler einer Klimaanlage wird die Luft von ${fmt(t1)} °C / ${fmt(phi1)} % r.F. auf ${fmt(t2)} °C abgekühlt (Austritt ~${fmt(phi2)} % r.F., mit Entfeuchtung). Berechnen Sie die Kühlleistung.`,
+      ask: 'Kühlleistung Q̇ₖ', unit: 'kW', sol: solQ, round: 1, tol: { rel: 0.02, abs: 0.05 },
+      steps: [
+        { t: 'Formel', d: `Q̇ₖ = ṁ · Δh / 3600 [kW] – über die ENTHALPIE-Differenz, weil sensible UND latente Leistung anfallen (Entfeuchtung!).` }
+      ].concat(base.stepsCommon, [
+        { t: 'Resultat', d: `Δh = ${s1.h.toFixed(1)} − ${h2.toFixed(1)} = ${dh.toFixed(1)} kJ/kg → Q̇ₖ = ${fmt(m)} · ${dh.toFixed(1)} / 3600 = <b>${fmt(solQ, 1)} kW</b>.` }
+      ]),
+      traps: [
+        { v: V * 0.34 * (t1 - t2) / 1000, hint: 'Du hast nur SENSIBEL gerechnet – beim Kühlen mit Entfeuchtung kommt der latente Anteil dazu: über Δh rechnen!' },
+        { v: m * 1.006 * (t1 - t2) / 3600, hint: 'Nur sensibler Anteil – die Entfeuchtung (latent) fehlt. Über Δh aus dem h,x-Diagramm rechnen.' },
+        { v: m * dh, hint: 'Division durch 3600 vergessen (kJ/h → kW).' }
+      ]
+    });
+  },
+
+  hx_dampf(rng){
+    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const V = R.step(rng, 2000, 10000, 500);
+    const t = R.int(rng, 20, 23), phi1 = R.step(rng, 10, 35, 5), phi2 = R.step(rng, 40, 60, 5);
+    const x1 = PHYS.xFromTPhi(t, phi1, P), x2 = PHYS.xFromTPhi(t, phi2, P);
+    const m = V * rho, dx = x2 - x1;
+    const sol = m * dx / 1000;
+    return {
+      cat: 'hx', title: 'Wassermenge Dampfbefeuchter',
+      text: `Ein Dampfbefeuchter befeuchtet die Zuluft bei konstanter Temperatur von ${fmt(t)} °C von ${fmt(phi1)} % r.F. auf ${fmt(phi2)} % r.F. Berechnen Sie die zuzuführende Dampfmenge.`,
+      given: [
+        { k: 'Luftvolumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Zustand vorher', v: `${fmt(t)} °C / ${fmt(phi1)} %`, u: 'r.F.' },
+        { k: 'Zustand nachher', v: `${fmt(t)} °C / ${fmt(phi2)} %`, u: 'r.F.' },
+        { k: 'Luftdichte ρ', v: rho.toFixed(2), u: 'kg/m³' },
+        pressureGiven(P)
+      ],
+      ask: 'Dampfmenge ṁ₀', unit: 'kg/h', sol, round: 1, tol: { rel: 0.025, abs: 0.2 },
+      steps: [
+        { t: 'Formel', d: `ṁ₀ = ṁ · Δx / 1000 = V̇ · ρ · Δx / 1000 [kg/h]. Dampfbefeuchtung verläuft im h,x-Diagramm fast senkrecht (t ≈ konstant), x steigt.` },
+        { t: 'x-Werte ablesen', d: `Bei ${fmt(t)} °C und p = ${fmt(P)} mbar: x₁ (${fmt(phi1)} %) = ${x1.toFixed(2)} g/kg, x₂ (${fmt(phi2)} %) = ${x2.toFixed(2)} g/kg → Δx = ${dx.toFixed(2)} g/kg.` },
+        { t: 'Massenstrom', d: `ṁ = ${fmt(V)} · ${rho.toFixed(2)} = ${fmt(m)} kg/h.` },
+        { t: 'Resultat', d: `ṁ₀ = ${fmt(m)} · ${dx.toFixed(2)} / 1000 = <b>${fmt(sol, 1)} kg/h Dampf</b>.` }
+      ],
+      traps: [
+        { v: m * dx, hint: 'Δx ist in g/kg – durch 1000 teilen für kg/h.' },
+        { v: V * dx / 1000, hint: 'Dichte vergessen: ṁ = V̇·ρ, erst dann mal Δx.' }
+      ]
+    };
+  },
+
+  hx_misch(rng){
+    const P = R.pick(rng, [1013, 955]);
+    let ta, pa, tu, pu, ratio, ra, ru, sa, su, xm, hm, tm, tries = 0;
+    do {
+      ta = R.int(rng, -10, 8); pa = R.step(rng, 60, 90, 5);
+      tu = R.int(rng, 21, 25); pu = R.step(rng, 30, 50, 5);
+      ratio = R.pick(rng, [[1, 1], [1, 2], [1, 3], [2, 1], [3, 1], [2, 3]]);
+      ra = ratio[0]; ru = ratio[1];
+      sa = hxState(ta, pa, P); su = hxState(tu, pu, P);
+      xm = (ra * sa.x + ru * su.x) / (ra + ru);
+      hm = (ra * sa.h + ru * su.h) / (ra + ru);
+      tm = PHYS.tFromHx(hm, xm);
+      tries++;
+    } while (Math.abs(tm) < 1 && tries < 40);  // Mischtemperatur um 0 °C vermeiden
+    if (Math.abs(tm) < 1){
+      tu = 25; su = hxState(tu, pu, P);
+      xm = (ra * sa.x + ru * su.x) / (ra + ru);
+      hm = (ra * sa.h + ru * su.h) / (ra + ru);
+      tm = PHYS.tFromHx(hm, xm);
+    }
+    const askX = rng() < 0.35;
+    const sol = askX ? xm : tm;
+    return {
+      cat: 'hx', title: 'Mischung zweier Luftströme',
+      text: `In einer Umluftanlage werden Aussenluft (${fmt(ta)} °C / ${fmt(pa)} % r.F.) und Umluft (${fmt(tu)} °C / ${fmt(pu)} % r.F.) im Massenstrom-Verhältnis AUL : UML = ${ra} : ${ru} gemischt. Bestimmen Sie ${askX ? 'den Wassergehalt xₘ' : 'die Temperatur tₘ'} der Mischluft.`,
+      given: [
+        { k: 'Aussenluft', v: `${fmt(ta)} °C / ${fmt(pa)} %`, u: 'r.F.' },
+        { k: 'Umluft', v: `${fmt(tu)} °C / ${fmt(pu)} %`, u: 'r.F.' },
+        { k: 'Verhältnis AUL : UML', v: `${ra} : ${ru}`, u: '(Massenströme)' },
+        pressureGiven(P)
+      ],
+      ask: askX ? 'Wassergehalt xₘ' : 'Mischtemperatur tₘ',
+      unit: askX ? 'g/kg' : '°C',
+      sol, round: 1, tol: askX ? { rel: 0.03, abs: 0.15 } : { rel: 0, abs: 0.4 },
+      steps: [
+        { t: 'Formel', d: `Mischpunkt liegt auf der Geraden zwischen beiden Zuständen, gewichtet nach Massenströmen: xₘ = (ṁ₁x₁ + ṁ₂x₂)/(ṁ₁+ṁ₂), gleich für hₘ. Temperatur dann aus hₘ und xₘ ablesen.` },
+        { t: 'Zustände ablesen', d: `AUL: x = ${sa.x.toFixed(2)} g/kg, h = ${sa.h.toFixed(1)} kJ/kg. UML: x = ${su.x.toFixed(2)} g/kg, h = ${su.h.toFixed(1)} kJ/kg (p = ${fmt(P)} mbar).` },
+        { t: 'Gewichtetes Mittel', d: `xₘ = (${ra}·${sa.x.toFixed(2)} + ${ru}·${su.x.toFixed(2)}) / ${ra + ru} = ${xm.toFixed(2)} g/kg; hₘ = (${ra}·${sa.h.toFixed(1)} + ${ru}·${su.h.toFixed(1)}) / ${ra + ru} = ${hm.toFixed(1)} kJ/kg.` },
+        { t: 'Resultat', d: askX
+          ? `<b>xₘ = ${xm.toFixed(1)} g/kg</b> (Mischpunkt näher beim grösseren Strom).`
+          : `Aus hₘ = ${hm.toFixed(1)} kJ/kg und xₘ = ${xm.toFixed(2)} g/kg: <b>tₘ ≈ ${tm.toFixed(1)} °C</b> (Mischpunkt näher beim grösseren Strom).` }
+      ],
+      traps: (ra !== ru) ? [
+        { v: askX ? (sa.x + su.x) / 2 : (ta + tu) / 2, hint: `Nicht das einfache Mittel: im Verhältnis ${ra} : ${ru} gewichten – der Mischpunkt liegt näher beim grösseren Massenstrom.` },
+        { v: askX ? (ru * sa.x + ra * su.x) / (ra + ru) : (ru * ta + ra * tu) / (ra + ru), hint: 'Gewichte vertauscht: AUL-Anteil gehört zu AUL-Werten, UML-Anteil zu UML-Werten.' }
+      ] : []
+    };
+  },
+
+  /* === K2: Luftmengen === */
+  luft_sia(rng){
+    const room = R.pick(rng, ['Grossraumbüro', 'Sitzungszimmer', 'Schulzimmer', 'Restaurant', 'Hörsaal', 'Verkaufsraum']);
+    const A = R.step(rng, 40, 300, 10);
+    const Pn = R.int(rng, 6, 60);
+    const vp = R.pick(rng, [25, 30, 36]);
+    const va = R.pick(rng, [2, 2.5, 3, 3.5, 4, 4.5, 5.5, 7]);
+    let Vp = Pn * vp, Va = A * va;
+    let Aa = A;
+    if (Math.abs(Vp - Va) / Math.max(Vp, Va) < 0.08){ Aa = A + 40; Va = Aa * va; }
+    const sol = Math.max(Vp, Va);
+    const persWins = Vp >= Va;
+    return {
+      cat: 'luft', title: 'Aussenluftvolumenstrom nach SIA',
+      text: `Ein ${room} (${fmt(Aa)} m² Nettofläche) ist mit ${fmt(Pn)} Personen belegt. Gemäss SIA 2024 gelten ${fmt(vp)} m³/h pro Person bzw. ${va} m³/h pro m². Bestimmen Sie den massgebenden Aussenluftvolumenstrom.`,
+      given: [
+        { k: 'Raum', v: room, u: '' },
+        { k: 'Nettofläche A', v: fmt(Aa), u: 'm²' },
+        { k: 'Personenzahl', v: fmt(Pn), u: 'Pers.' },
+        { k: 'personenbezogen', v: fmt(vp), u: 'm³/(h·Pers.)' },
+        { k: 'flächenbezogen', v: String(va), u: 'm³/(h·m²)' }
+      ],
+      ask: 'massgebender Volumenstrom V̇', unit: 'm³/h', sol, round: 0, tol: { rel: 0.02, abs: 1 },
+      steps: [
+        { t: 'Formel', d: `Beide Ansätze berechnen: V̇ₚ = Personen · m³/(h·Pers.) und V̇ₐ = Fläche · m³/(h·m²). Massgebend ist der GRÖSSERE Wert.` },
+        { t: 'Personenbezogen', d: `V̇ₚ = ${fmt(Pn)} · ${fmt(vp)} = ${fmt(Vp)} m³/h.` },
+        { t: 'Flächenbezogen', d: `V̇ₐ = ${fmt(Aa)} · ${va} = ${fmt(Va)} m³/h.` },
+        { t: 'Resultat', d: `${persWins ? 'Der personenbezogene' : 'Der flächenbezogene'} Wert ist grösser → <b>V̇ = ${fmt(sol)} m³/h</b>.` }
+      ],
+      traps: [
+        { v: Math.min(Vp, Va), hint: 'Massgebend ist der GRÖSSERE der beiden Werte – nicht der kleinere.' },
+        { v: Vp + Va, hint: 'Nicht addieren: die beiden Ansätze werden VERGLICHEN, das Maximum gilt.' }
+      ]
+    };
+  },
+
+  luft_co2(rng){
+    const Pn = R.int(rng, 8, 120);
+    const q = R.pick(rng, [15, 18, 20]);     // l/h pro Person
+    const ci = R.pick(rng, [1000, 1200, 1400]), ca = R.pick(rng, [400, 450]);
+    const sol = Pn * q * 1000 / (ci - ca);   // m3/h
+    return {
+      cat: 'luft', title: 'Luftmenge über CO₂-Bilanz',
+      text: `In einem Sitzungszimmer halten sich ${fmt(Pn)} Personen auf; jede gibt ${q} l/h CO₂ ab. Die CO₂-Konzentration im Raum darf ${fmt(ci)} ppm nicht übersteigen, die Aussenluft enthält ${fmt(ca)} ppm. Welcher Aussenluftvolumenstrom ist erforderlich?`,
+      given: [
+        { k: 'Personen', v: fmt(Pn), u: 'Pers.' },
+        { k: 'CO₂-Abgabe', v: String(q), u: 'l/(h·Pers.)' },
+        { k: 'Grenzwert innen cᵢ', v: fmt(ci), u: 'ppm' },
+        { k: 'Aussenluft cₐ', v: fmt(ca), u: 'ppm' }
+      ],
+      ask: 'Aussenluftvolumenstrom V̇', unit: 'm³/h', sol, round: 0, tol: { rel: 0.02, abs: 1 },
+      steps: [
+        { t: 'Formel', d: `V̇ = q̇_CO₂ / (cᵢ − cₐ). Schadstofflast in m³/h, Konzentrationen als Volumenanteil (1 ppm = 10⁻⁶ = 1 ml/m³).` },
+        { t: 'CO₂-Last', d: `q̇ = ${fmt(Pn)} · ${q} l/h = ${fmt(Pn * q)} l/h = ${(Pn * q / 1000).toFixed(2)} m³/h.` },
+        { t: 'Konzentrationsdifferenz', d: `Δc = ${fmt(ci)} − ${fmt(ca)} = ${fmt(ci - ca)} ppm = ${((ci - ca) / 1e6).toExponential(1)} m³ CO₂ / m³ Luft.` },
+        { t: 'Resultat', d: `V̇ = ${(Pn * q / 1000).toFixed(2)} / ${((ci - ca) / 1e6).toExponential(1)} = <b>${fmt(sol)} m³/h</b> (≈ ${fmt(sol / Pn, 1)} m³/h pro Person – plausibel).` }
+      ],
+      traps: [
+        { v: sol / 1000, hint: 'Die CO₂-Abgabe ist in l/h – in m³/h umrechnen (÷1000), ppm = 10⁻⁶.' },
+        { v: sol * 1000, hint: 'Faktor 1000: prüfe l ↔ m³ und ppm (= 10⁻⁶, nicht 10⁻³).' },
+        { v: Pn * q * 1000 / ci, hint: 'Mit der DIFFERENZ rechnen: die Aussenluft bringt schon ' + fmt(ca) + ' ppm mit → Δc = cᵢ − cₐ.' }
+      ]
+    };
+  },
+
+  luft_feuchte(rng){
+    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const W = R.step(rng, 4, 24, 0.5);       // kg/h Wasserdampf
+    const xr = R.step(rng, 9, 12, 0.5);
+    const dx = R.step(rng, 1.5, 3, 0.5);
+    const xz = Math.round((xr - dx) * 10) / 10;
+    const sol = W * 1000 / (rho * dx);
+    return {
+      cat: 'luft', title: 'Luftmenge zur Feuchteabfuhr',
+      text: `In einem Auditorium geben die Personen ${W.toFixed(1)} kg/h Wasserdampf ab. Die absolute Raumluftfeuchte soll ${xr.toFixed(1)} g/kg betragen, die Zuluft hat ${xz.toFixed(1)} g/kg. Welcher Zuluftvolumenstrom ist zur Abfuhr der Feuchte erforderlich?`,
+      given: [
+        { k: 'Feuchtelast Ẇ', v: W.toFixed(1), u: 'kg/h' },
+        { k: 'Raumluft xᵣ', v: xr.toFixed(1), u: 'g/kg' },
+        { k: 'Zuluft xᴢ', v: xz.toFixed(1), u: 'g/kg' },
+        { k: 'Raumtemperatur', v: '21', u: '°C' },
+        { k: 'Luftdichte ρ', v: rho.toFixed(2), u: 'kg/m³' },
+        pressureGiven(P)
+      ],
+      ask: 'Zuluftvolumenstrom V̇', unit: 'm³/h', sol, round: 0, tol: { rel: 0.02, abs: 5 },
+      steps: [
+        { t: 'Formel', d: `Feuchtebilanz: Ẇ = ṁ · Δx / 1000 → V̇ = Ẇ · 1000 / (ρ · Δx). Δx = xᵣ − xᴢ (Luft nimmt vom Eintritt bis zum Austritt Δx auf).` },
+        { t: 'Δx bestimmen', d: `Δx = ${xr.toFixed(1)} − ${xz.toFixed(1)} = ${dx.toFixed(1)} g/kg.` },
+        { t: 'Einsetzen', d: `V̇ = ${W.toFixed(1)} kg/h · 1000 / (${rho.toFixed(2)} kg/m³ · ${dx.toFixed(1)} g/kg)` },
+        { t: 'Resultat', d: `<b>V̇ = ${fmt(sol)} m³/h</b>. Bei p = ${fmt(P)} mbar gilt ρ = ${rho.toFixed(2)} kg/m³ ${P === 955 ? '(Höhenlage beachten!)' : ''}.` }
+      ],
+      traps: [
+        { v: sol / 1000, hint: 'Ẇ ist in kg/h, Δx in g/kg – der Faktor 1000 fehlt.' },
+        { v: W * 1000 / dx, hint: 'Dichte ρ vergessen: V̇ = Ẇ·1000/(ρ·Δx).' },
+        { v: W * 1000 / (RHO[P === 1013 ? 955 : 1013] * dx), hint: `Dichte zum Luftdruck prüfen: bei ${fmt(P)} mbar ist ρ = ${rho.toFixed(2)} kg/m³.` }
+      ]
+    };
+  },
+
+  luft_mak(rng){
+    const stoff = R.pick(rng, [
+      { n: 'Ammoniak', mak: 20 }, { n: 'Kohlenmonoxid', mak: 30 },
+      { n: 'Lösungsmitteldämpfe', mak: 50 }, { n: 'Toluol', mak: 100 }
+    ]);
+    const inLiter = rng() < 0.4;
+    const Em3 = inLiter ? R.step(rng, 50, 600, 50) / 1000 : R.step(rng, 0.05, 0.6, 0.05);
+    const Etxt = inLiter ? `${fmt(Em3 * 1000)} l/h` : `${Em3.toFixed(2)} m³/h`;
+    const sol = Em3 / (stoff.mak * 1e-6);
+    return {
+      cat: 'luft', title: 'Verdünnungsluftmenge (MAK)',
+      text: `In einem Labor treten Leckagen von ${stoff.n} auf: ${Etxt}. Der MAK-Wert gemäss SUVA beträgt ${stoff.mak} ml/m³ (${stoff.mak} ppm); die Aussenluft ist unbelastet. Welcher Luftvolumenstrom ist zur Belüftung erforderlich?`,
+      given: [
+        { k: 'Stoff', v: stoff.n, u: '' },
+        { k: 'Emission q̇', v: Etxt, u: '' },
+        { k: 'MAK-Wert', v: fmt(stoff.mak), u: 'ml/m³ (ppm)' },
+        { k: 'Aussenluft', v: 'unbelastet', u: '' }
+      ],
+      ask: 'Volumenstrom V̇', unit: 'm³/h', sol, round: 0, tol: { rel: 0.02, abs: 1 },
+      steps: [
+        { t: 'Formel', d: `V̇ = q̇_Schadstoff / MAK. Der MAK-Wert ist die zulässige Konzentration: ${stoff.mak} ml/m³ = ${stoff.mak}·10⁻⁶ m³ pro m³ Luft.` },
+        { t: 'Emission umrechnen', d: inLiter ? `q̇ = ${fmt(Em3 * 1000)} l/h = ${Em3.toFixed(2)} m³/h.` : `q̇ = ${Em3.toFixed(2)} m³/h (bereits in m³/h).` },
+        { t: 'Einsetzen', d: `V̇ = ${Em3.toFixed(2)} / (${stoff.mak} · 10⁻⁶)` },
+        { t: 'Resultat', d: `<b>V̇ = ${fmt(sol)} m³/h</b>. Die Verdünnung auf wenige ppm braucht sehr viel Luft – deshalb Quellenerfassung bevorzugen.` }
+      ],
+      traps: [
+        { v: sol / 1000, hint: 'ppm = 10⁻⁶ (ml/m³), nicht 10⁻³ – Faktor 1000 daneben.' },
+        { v: sol * 1000, hint: inLiter ? 'Die Emission ist in l/h angegeben – zuerst in m³/h umrechnen (÷1000).' : 'Faktor 1000: ppm = 10⁻⁶ prüfen.' }
+      ]
+    };
+  },
+
+  /* === K3: Druck & Ventilator === */
+  druck_pel(rng){
+    const V = R.step(rng, 2000, 15000, 500);
+    const dpe = R.step(rng, 200, 600, 10), dpi = R.step(rng, 150, 400, 10);
+    const eta = R.step(rng, 0.55, 0.75, 0.05);
+    const dpt = dpe + dpi;
+    const sol = V * dpt / (3600 * eta) / 1000; // kW
+    return {
+      cat: 'druck', title: 'Elektrische Ventilatorleistung',
+      text: `Eine Zuluftanlage fördert ${fmt(V)} m³/h. Die Druckverlustberechnung ergab extern ${fmt(dpe)} Pa; gemäss Geräte-Datenblatt beträgt der interne Druckverlust ${fmt(dpi)} Pa. Der Gesamtwirkungsgrad der Ventilatoreinheit beträgt ${Math.round(eta * 100)} %. Berechnen Sie die elektrische Ventilatorleistung.`,
+      given: [
+        { k: 'Volumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Druckverlust extern', v: fmt(dpe), u: 'Pa' },
+        { k: 'Druckverlust intern', v: fmt(dpi), u: 'Pa' },
+        { k: 'Wirkungsgrad η total', v: Math.round(eta * 100) + '', u: '%' }
+      ],
+      ask: 'el. Leistung P', unit: 'kW', sol, round: 2, tol: { rel: 0.02, abs: 0.01 },
+      steps: [
+        { t: 'Formel', d: `P = V̇ · Δp_tot / (3600 · η) [W] – V̇ in m³/h durch 3600 in m³/s, Δp_tot = extern + intern.` },
+        { t: 'Gesamtdruck', d: `Δp_tot = ${fmt(dpe)} + ${fmt(dpi)} = ${fmt(dpt)} Pa.` },
+        { t: 'Einsetzen', d: `P = ${fmt(V)} · ${fmt(dpt)} / (3600 · ${eta.toFixed(2)}) = ${fmt(V * dpt / (3600 * eta), 0)} W.` },
+        { t: 'Resultat', d: `<b>P = ${fmt(sol, 2)} kW</b>. (Vergleich mit Leistungsschutzschalter: reicht dessen Einstellwert?)` }
+      ],
+      traps: [
+        { v: V * dpe / (3600 * eta) / 1000, hint: 'Interner Druckverlust vergessen: Δp_tot = extern + intern.' },
+        { v: V * dpt / 3600 / 1000, hint: 'Wirkungsgrad η vergessen: P = V̇·Δp/(3600·η).' },
+        { v: V * dpt / (3600 * eta), hint: 'Das ist die Leistung in WATT – gefragt ist kW (÷1000).' },
+        { v: V * dpt * eta / 3600 / 1000, hint: 'η gehört in den NENNER (je schlechter der Wirkungsgrad, desto mehr Strom).' }
+      ]
+    };
+  },
+
+  druck_gesetz(rng){
+    const n1 = R.step(rng, 800, 1400, 50);
+    const k = R.pick(rng, [0.8, 0.85, 0.9, 1.1, 1.15, 1.2, 1.25, 1.3]);
+    const n2 = Math.round(n1 * k / 10) * 10;
+    const ke = n2 / n1;
+    const V1 = R.step(rng, 2000, 12000, 500);
+    const dp1 = R.step(rng, 300, 800, 25);
+    const P1 = R.step(rng, 1, 5, 0.25);
+    const which = R.pick(rng, ['V', 'dp', 'P']);
+    const cfg = {
+      V:  { sol: V1 * ke, unit: 'm³/h', ask: 'neuer Volumenstrom V̇₂', exp: 1, base: V1, baseTxt: `${fmt(V1)} m³/h`, round: 0, tol: { rel: 0.02, abs: 5 } },
+      dp: { sol: dp1 * ke * ke, unit: 'Pa', ask: 'neue Druckerhöhung Δp₂', exp: 2, base: dp1, baseTxt: `${fmt(dp1)} Pa`, round: 0, tol: { rel: 0.02, abs: 2 } },
+      P:  { sol: P1 * ke * ke * ke, unit: 'kW', ask: 'neue Wellenleistung P₂', exp: 3, base: P1, baseTxt: `${P1.toFixed(2)} kW`, round: 2, tol: { rel: 0.02, abs: 0.01 } }
+    }[which];
+    const expTxt = { 1: 'V̇ ~ n', 2: 'Δp ~ n²', 3: 'P ~ n³' };
+    return {
+      cat: 'druck', title: 'Ventilatorgesetze (Drehzahländerung)',
+      text: `Ein Ventilator läuft mit ${fmt(n1)} 1/min (V̇₁ = ${fmt(V1)} m³/h, Δp₁ = ${fmt(dp1)} Pa, P₁ = ${P1.toFixed(2)} kW). Die Drehzahl wird auf ${fmt(n2)} 1/min ${ke > 1 ? 'erhöht' : 'reduziert'}. Berechnen Sie ${cfg.ask}.`,
+      given: [
+        { k: 'Drehzahl n₁ → n₂', v: `${fmt(n1)} → ${fmt(n2)}`, u: '1/min' },
+        { k: 'V̇₁', v: fmt(V1), u: 'm³/h' },
+        { k: 'Δp₁', v: fmt(dp1), u: 'Pa' },
+        { k: 'P₁', v: P1.toFixed(2), u: 'kW' }
+      ],
+      ask: cfg.ask, unit: cfg.unit, sol: cfg.sol, round: cfg.round, tol: cfg.tol,
+      steps: [
+        { t: 'Formel', d: `Ventilatorgesetze: V̇ ~ n, Δp ~ n², P ~ n³. Hier gilt: ${expTxt[cfg.exp]}.` },
+        { t: 'Drehzahlverhältnis', d: `n₂/n₁ = ${fmt(n2)}/${fmt(n1)} = ${ke.toFixed(3)}.` },
+        { t: 'Einsetzen', d: `${cfg.ask.split(' ').pop()} = ${cfg.baseTxt} · ${ke.toFixed(3)}${cfg.exp > 1 ? '<sup>' + cfg.exp + '</sup>' : ''} = ${cfg.baseTxt} · ${Math.pow(ke, cfg.exp).toFixed(3)}.` },
+        { t: 'Resultat', d: `<b>${fmt(cfg.sol, cfg.round)} ${cfg.unit}</b>. Merke: kleine Drehzahlreduktion = grosse Stromersparnis (n³!).` }
+      ],
+      traps: [1, 2, 3].filter(e => e !== cfg.exp).map(e => ({
+        v: cfg.base * Math.pow(ke, e),
+        hint: `Falscher Exponent: es gilt ${expTxt[cfg.exp]} – also (n₂/n₁)${cfg.exp === 1 ? '' : cfg.exp === 2 ? '²' : '³'}. (V̇ ~ n, Δp ~ n², P ~ n³)`
+      }))
+    };
+  },
+
+  druck_total(rng){
+    const variant = rng() < 0.5 ? 'saug' : 'dyn';
+    if (variant === 'saug'){
+      const pst = -R.step(rng, 60, 150, 5), pdyn = R.step(rng, 15, 45, 5);
+      const sol = pst + pdyn;
+      return {
+        cat: 'druck', title: 'Gesamtdruck im Kanal',
+        text: `In einem geraden Kanal am Ansaugstutzen eines Ventilators werden gemessen: statischer Druck ${fmt(pst)} Pa, dynamischer Druck ${fmt(pdyn)} Pa. Wie hoch ist der Gesamtdruck im Kanal?`,
+        given: [
+          { k: 'statischer Druck pₛₜ', v: fmt(pst), u: 'Pa' },
+          { k: 'dynamischer Druck p_dyn', v: fmt(pdyn), u: 'Pa' }
+        ],
+        ask: 'Gesamtdruck p_tot', unit: 'Pa', sol, round: 0, tol: { rel: 0, abs: 1 },
+        steps: [
+          { t: 'Formel', d: `p_tot = p_st + p_dyn. Saugseitig ist der statische Druck NEGATIV (Unterdruck), der dynamische immer positiv.` },
+          { t: 'Einsetzen', d: `p_tot = (${fmt(pst)}) + ${fmt(pdyn)}` },
+          { t: 'Resultat', d: `<b>p_tot = ${fmt(sol)} Pa</b> – saugseitig bleibt der Gesamtdruck negativ.` }
+        ],
+        traps: [
+          { v: pst - pdyn, hint: 'p_tot = p_st + p_dyn – der dynamische Druck wird ADDIERT (er ist immer positiv).' },
+          { v: -pst + pdyn, hint: 'Vorzeichen: saugseitig ist der statische Druck NEGATIV (−' + fmt(-pst) + ' Pa).' }
+        ]
+      };
+    }
+    const v = R.step(rng, 3, 8, 0.5), rho = R.pick(rng, [1.15, 1.2]);
+    const pst = R.step(rng, 40, 160, 5);
+    const pdyn = rho / 2 * v * v;
+    const sol = pst + pdyn;
+    return {
+      cat: 'druck', title: 'Dynamischer Druck & Gesamtdruck',
+      text: `Druckseitig wird in einem Kanal eine Luftgeschwindigkeit von ${v.toFixed(1)} m/s und ein statischer Druck von ${fmt(pst)} Pa gemessen (ρ = ${rho.toFixed(2)} kg/m³). Berechnen Sie den Gesamtdruck.`,
+      given: [
+        { k: 'Luftgeschwindigkeit w', v: v.toFixed(1), u: 'm/s' },
+        { k: 'statischer Druck pₛₜ', v: fmt(pst), u: 'Pa' },
+        { k: 'Luftdichte ρ', v: rho.toFixed(2), u: 'kg/m³' }
+      ],
+      ask: 'Gesamtdruck p_tot', unit: 'Pa', sol, round: 1, tol: { rel: 0.02, abs: 0.5 },
+      steps: [
+        { t: 'Formel', d: `p_dyn = ρ/2 · w², dann p_tot = p_st + p_dyn.` },
+        { t: 'Dynamischer Druck', d: `p_dyn = ${rho.toFixed(2)}/2 · ${v.toFixed(1)}² = ${pdyn.toFixed(1)} Pa.` },
+        { t: 'Resultat', d: `p_tot = ${fmt(pst)} + ${pdyn.toFixed(1)} = <b>${fmt(sol, 1)} Pa</b>.` }
+      ],
+      traps: [
+        { v: pst + rho * v * v, hint: 'p_dyn = ρ/2 · w² – die Hälfte fehlt.' },
+        { v: pdyn, hint: 'Das ist nur der dynamische Druck – Gesamtdruck = statisch + dynamisch.' }
+      ]
+    };
+  },
+
+  druck_siphon(rng){
+    const p = R.step(rng, 300, 800, 50);
+    const rw = 998.2, g = 9.81;
+    const h0 = p / (rw * g) * 1000;          // mm ohne Reserve
+    const sol = h0 * 1.5;
+    return {
+      cat: 'druck', title: 'Siphonhöhe Kondensatablauf',
+      text: `Am Kondensatablauf eines Luftkühlers herrscht ein statischer Unterdruck von ${fmt(p)} Pa (ρ_Wasser = 998.2 kg/m³). Berechnen Sie die erforderliche Siphonhöhe inkl. 50 % Reserve.`,
+      given: [
+        { k: 'statischer Druck', v: fmt(p), u: 'Pa' },
+        { k: 'Dichte Wasser ρ', v: '998.2', u: 'kg/m³' },
+        { k: 'Reserve', v: '50', u: '%' }
+      ],
+      ask: 'Siphonhöhe h', unit: 'mm', sol, round: 0, tol: { rel: 0.02, abs: 1 },
+      steps: [
+        { t: 'Formel', d: `Der Wassersack muss den Unterdruck halten: h = p / (ρ · g), dann +50 % Reserve.` },
+        { t: 'Grundhöhe', d: `h = ${fmt(p)} / (998.2 · 9.81) = ${(h0 / 1000).toFixed(4)} m = ${h0.toFixed(1)} mm.` },
+        { t: 'Reserve', d: `h · 1.5 = ${h0.toFixed(1)} · 1.5` },
+        { t: 'Resultat', d: `<b>h ≈ ${fmt(sol)} mm</b> Siphonhöhe (sonst zieht der Ventilator den Siphon leer – Luft statt Wasser).` }
+      ],
+      traps: [
+        { v: h0, hint: 'Die 50 % Reserve fehlt: Resultat × 1.5.' },
+        { v: sol / 1000, hint: 'Antwort in mm angeben (nicht in m).' },
+        { v: sol / 10, hint: 'Antwort in mm – prüfe die Einheiten-Umrechnung (m → mm: ×1000).' }
+      ]
+    };
+  },
+
+  /* === K4: Schall === */
+  schall_add(rng){
+    const n = R.pick(rng, [2, 2, 3]);
+    let Ls;
+    if (n === 2 && rng() < 0.35){ const L = R.int(rng, 62, 90); Ls = [L, L]; }
+    else { Ls = []; for (let i = 0; i < n; i++) Ls.push(R.int(rng, 60, 92)); }
+    const sum = Ls.reduce((a, L) => a + Math.pow(10, L / 10), 0);
+    const sol = 10 * Math.log10(sum);
+    const srt = [...Ls].sort((a, b) => b - a);
+    const tableSteps = [];
+    let acc = srt[0];
+    for (let i = 1; i < srt.length; i++){
+      const d = acc - srt[i];
+      const add = d <= 1 ? 3 : d <= 3 ? 2 : d <= 9 ? 1 : 0;
+      tableSteps.push(`${acc.toFixed(0)} dB & ${srt[i]} dB → Differenz ${d.toFixed(0)} dB → +${add} dB → ${(Math.round(acc) + add)} dB`);
+      acc = Math.round(acc) + add;
+    }
+    return {
+      cat: 'schall', title: 'Schallpegel-Addition',
+      text: n === 2
+        ? `Auf einem Dach laufen zwei Lüftungsgeräte gleichzeitig. Gerät 1 hat einen Schallleistungspegel von ${Ls[0]} dB, Gerät 2 von ${Ls[1]} dB. Welcher Gesamtpegel ist zu erwarten?`
+        : `Drei Schallquellen wirken zusammen: ${Ls[0]} dB, ${Ls[1]} dB und ${Ls[2]} dB. Berechnen Sie den Gesamtschallpegel.`,
+      given: Ls.map((L, i) => ({ k: `Quelle ${i + 1}`, v: fmt(L), u: 'dB' })),
+      ask: 'Gesamtpegel L_tot', unit: 'dB', sol, round: 1, tol: { rel: 0, abs: 0.5 },
+      steps: [
+        { t: 'Formel', d: `Pegel werden ENERGETISCH addiert: L = 10·lg(Σ10^(Lᵢ/10)). Schnellweg: Additionstabelle (Differenz 0–1 → +3 dB, 2–3 → +2, 4–9 → +1, >9 → +0), immer mit der lautesten Quelle beginnen.` },
+        { t: 'Tabellenmethode', d: tableSteps.join('<br>') },
+        { t: 'Exakt', d: `L = 10·lg(${Ls.map(L => '10^' + (L / 10).toFixed(1)).join(' + ')}) = ${sol.toFixed(1)} dB.` },
+        { t: 'Resultat', d: `<b>L_tot ≈ ${sol.toFixed(1)} dB</b>. Merke: zwei gleich laute Quellen = +3 dB.` }
+      ],
+      traps: [
+        { v: Ls.reduce((a, b) => a + b, 0), hint: 'Pegel NIE arithmetisch addieren – energetisch rechnen oder Additionstabelle verwenden.' },
+        { v: srt[0], hint: 'Die weiteren Quellen erhöhen den Pegel – mit Tabelle oder Formel addieren (max. +3 dB pro gleich lauter Quelle).' }
+      ]
+    };
+  },
+
+  schall_einf(rng){
+    const Lw = R.int(rng, 75, 95);
+    const Lzul = R.pick(rng, [50, 55, 60, 65]);
+    const useDn = rng() < 0.6;
+    const Dn = useDn ? R.pick(rng, [3, 5, 8]) : 0;
+    const sol = Lw - Dn - Lzul;
+    return {
+      cat: 'schall', title: 'Erforderliche Einfügungsdämpfung',
+      text: `Der Ventilator einer Zuluftanlage hat im massgebenden Oktavband einen Schallleistungspegel von ${Lw} dB. ${useDn ? `Das Kanalnetz dämpft auf dem Weg zum Raum bereits ${Dn} dB. ` : ''}Im Raum sind höchstens ${Lzul} dB zulässig. Welche Einfügungsdämpfung De muss der Schalldämpfer mindestens erbringen?`,
+      given: [
+        { k: 'Quellpegel Lᵥᵥ', v: fmt(Lw), u: 'dB' },
+        ...(useDn ? [{ k: 'natürliche Dämpfung', v: fmt(Dn), u: 'dB' }] : []),
+        { k: 'zulässiger Pegel', v: fmt(Lzul), u: 'dB' }
+      ],
+      ask: 'Einfügungsdämpfung De', unit: 'dB', sol, round: 0, tol: { rel: 0, abs: 0.5 },
+      steps: [
+        { t: 'Formel', d: `De_erf = L_Quelle − D_natürlich − L_zulässig. Der Schalldämpfer muss die Differenz schlucken, die das Kanalnetz nicht von allein dämpft.` },
+        { t: 'Einsetzen', d: `De = ${Lw}${useDn ? ' − ' + Dn : ''} − ${Lzul}` },
+        { t: 'Resultat', d: `<b>De = ${fmt(sol)} dB</b> – Schalldämpfer mit mindestens dieser Einfügungsdämpfung im massgebenden Band wählen.` }
+      ],
+      traps: [
+        ...(useDn ? [{ v: Lw + Dn - Lzul, hint: 'Die natürliche Dämpfung hilft dir – sie wird ABGEZOGEN, nicht addiert.' },
+                     { v: Lw - Lzul, hint: 'Die natürliche Kanaldämpfung (' + Dn + ' dB) darfst du noch abziehen.' }] : []),
+        { v: Lw + Lzul - Dn, hint: 'De = Quellpegel MINUS zulässiger Pegel (minus natürliche Dämpfung).' }
+      ]
+    };
+  },
+
+  /* === K5: WRG === */
+  wrg_phi(rng){
+    const ta = R.int(rng, -10, 8), tb = R.int(rng, 20, 24);
+    const phiT = R.step(rng, 0.60, 0.85, 0.01);
+    const tn = Math.round((ta + phiT * (tb - ta)) * 2) / 2;
+    const sol = (tn - ta) / (tb - ta) * 100;
+    return {
+      cat: 'wrg', title: 'Rückwärmzahl bestimmen',
+      text: `Eine WRG erwärmt die Aussenluft von ${fmt(ta)} °C auf ${tn.toFixed(1)} °C. Die Abluft tritt mit ${fmt(tb)} °C in die WRG ein. Berechnen Sie die Rückwärmzahl Φ.`,
+      given: [
+        { k: 'Aussenluft t₂₁', v: fmt(ta), u: '°C' },
+        { k: 'nach WRG t₂₂', v: tn.toFixed(1), u: '°C' },
+        { k: 'Abluft t₁₁', v: fmt(tb), u: '°C' }
+      ],
+      ask: 'Rückwärmzahl Φ', unit: '%', sol, round: 1, tol: { rel: 0.02, abs: 1 },
+      steps: [
+        { t: 'Formel', d: `Φ = (t₂₂ − t₂₁) / (t₁₁ − t₂₁) · 100 % – tatsächliche Erwärmung der Aussenluft im Verhältnis zur maximal möglichen.` },
+        { t: 'Einsetzen', d: `Φ = (${tn.toFixed(1)} − (${fmt(ta)})) / (${fmt(tb)} − (${fmt(ta)})) = ${(tn - ta).toFixed(1)} / ${(tb - ta).toFixed(0)}.` },
+        { t: 'Resultat', d: `<b>Φ = ${sol.toFixed(1)} %</b>. (SIA 382/1: Mindest-Rückwärmzahl prüfen.)` }
+      ],
+      traps: [
+        { v: 100 - sol, hint: 'Zähler ist die ERWÄRMUNG der Aussenluft (t₂₂ − t₂₁), Nenner die maximale Spannweite (t₁₁ − t₂₁).' },
+        { v: (tb - tn) / (tb - ta) * 100, hint: 'Du hast die Rest-Differenz gerechnet – gefragt ist, wie viel die WRG bereits liefert.' }
+      ]
+    };
+  },
+
+  wrg_t(rng){
+    const summer = rng() < 0.35;
+    const ta = summer ? R.int(rng, 28, 34) : R.int(rng, -12, 5);
+    const tb = summer ? R.int(rng, 22, 26) : R.int(rng, 20, 24);
+    const phi = R.step(rng, 0.6, 0.85, 0.05);
+    const sol = ta + phi * (tb - ta);
+    return {
+      cat: 'wrg', title: 'Temperatur nach WRG',
+      text: summer
+        ? `Im Sommer wird die Aussenluft (${fmt(ta)} °C) über die WRG mit der kühleren Abluft (${fmt(tb)} °C) vorgekühlt. Die Rückwärmzahl beträgt ${Math.round(phi * 100)} %. Welche Temperatur hat die Luft nach der WRG?`
+        : `Im Winter wird die Aussenluft (${fmt(ta)} °C) in der WRG durch die Abluft (${fmt(tb)} °C) erwärmt. Die Rückwärmzahl beträgt ${Math.round(phi * 100)} %. Welche Temperatur hat die Zuluft nach der WRG?`,
+      given: [
+        { k: 'Aussenluft t₂₁', v: fmt(ta), u: '°C' },
+        { k: 'Abluft t₁₁', v: fmt(tb), u: '°C' },
+        { k: 'Rückwärmzahl Φ', v: String(Math.round(phi * 100)), u: '%' }
+      ],
+      ask: 'Temperatur nach WRG', unit: '°C', sol, round: 1, tol: { rel: 0, abs: 0.3 },
+      steps: [
+        { t: 'Formel', d: `t₂₂ = t₂₁ + Φ · (t₁₁ − t₂₁). Die WRG schiebt die Aussenluft um den Anteil Φ Richtung Ablufttemperatur ${summer ? '(hier: Kühlung!)' : ''}.` },
+        { t: 'Einsetzen', d: `t₂₂ = ${fmt(ta)} + ${phi.toFixed(2)} · (${fmt(tb)} − (${fmt(ta)})) = ${fmt(ta)} + ${phi.toFixed(2)} · ${(tb - ta).toFixed(0)}.` },
+        { t: 'Resultat', d: `<b>t₂₂ = ${sol.toFixed(1)} °C</b>.` }
+      ],
+      traps: [
+        { v: tb - phi * (tb - ta), hint: 'Startpunkt ist die AUSSENLUFT: t₂₂ = t₂₁ + Φ·(t₁₁ − t₂₁).' },
+        { v: phi * tb, hint: 'Φ wirkt auf die DIFFERENZ (t₁₁ − t₂₁), nicht auf die Ablufttemperatur direkt.' }
+      ]
+    };
+  },
+
+  wrg_q(rng){
+    const V = R.step(rng, 2000, 12000, 500);
+    const rho = 1.20, c = 1.006;
+    const ta = R.int(rng, -12, 2), tb = R.int(rng, 20, 24);
+    const phi = R.step(rng, 0.6, 0.85, 0.05);
+    const tw = ta + phi * (tb - ta);
+    const tz = R.int(rng, 20, 22);
+    const askNE = rng() < 0.5 && tz > tw + 0.5;
+    const m = V * rho;
+    const Qwrg = m * c * (tw - ta) / 3600;
+    const Qne = m * c * (tz - tw) / 3600;
+    const sol = askNE ? Qne : Qwrg;
+    return {
+      cat: 'wrg', title: askNE ? 'Nacherwärmer nach WRG' : 'Leistung der WRG',
+      text: `Eine Lüftungsanlage (${fmt(V)} m³/h) saugt Aussenluft mit ${fmt(ta)} °C an. Die WRG (Φ = ${Math.round(phi * 100)} %, Abluft ${fmt(tb)} °C) erwärmt die Luft vor; danach hebt der Lufterhitzer auf ${fmt(tz)} °C Zulufttemperatur an. ${askNE ? 'Berechnen Sie die Leistung des Nacherwärmers.' : 'Berechnen Sie die von der WRG zurückgewonnene Leistung.'}`,
+      given: [
+        { k: 'Volumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Aussenluft', v: fmt(ta), u: '°C' },
+        { k: 'Abluft', v: fmt(tb), u: '°C' },
+        { k: 'Rückwärmzahl Φ', v: String(Math.round(phi * 100)), u: '%' },
+        { k: 'Zuluft-Soll', v: fmt(tz), u: '°C' },
+        { k: 'ρ / c', v: '1.20 / 1.006', u: 'kg/m³ / kJ/(kg·K)' }
+      ],
+      ask: askNE ? 'Leistung Nacherwärmer Q̇' : 'WRG-Leistung Q̇', unit: 'kW', sol, round: 1, tol: { rel: 0.02, abs: 0.05 },
+      steps: [
+        { t: 'Formel', d: `Zuerst Temperatur nach WRG: t₂₂ = t₂₁ + Φ·(t₁₁ − t₂₁). Dann Q̇ = ṁ · c · Δt / 3600 [kW] mit dem jeweiligen Δt.` },
+        { t: 'Temperatur nach WRG', d: `t₂₂ = ${fmt(ta)} + ${phi.toFixed(2)}·(${fmt(tb)} − (${fmt(ta)})) = ${tw.toFixed(1)} °C.` },
+        { t: 'Massenstrom', d: `ṁ = ${fmt(V)} · 1.20 = ${fmt(m)} kg/h.` },
+        { t: 'Resultat', d: askNE
+          ? `Q̇_NE = ${fmt(m)} · 1.006 · (${fmt(tz)} − ${tw.toFixed(1)}) / 3600 = <b>${fmt(sol, 1)} kW</b> – nur noch das Stück nach der WRG!`
+          : `Q̇_WRG = ${fmt(m)} · 1.006 · (${tw.toFixed(1)} − (${fmt(ta)})) / 3600 = <b>${fmt(sol, 1)} kW</b> gratis zurückgewonnen.` }
+      ],
+      traps: [
+        askNE
+          ? { v: m * c * (tz - ta) / 3600, hint: 'Die WRG hat schon vorgewärmt: Nacherwärmer nur von t nach WRG (' + tw.toFixed(1) + ' °C) bis Zuluft-Soll.' }
+          : { v: m * c * (tb - ta) / 3600, hint: 'Δt der WRG ist nur Φ·(t₁₁−t₂₁) – nicht die volle Differenz Abluft−Aussenluft.' },
+        { v: sol * 3600 / 1000, hint: 'Prüfe den Faktor 3600 (kg/h → kg/s) – P in kW = ṁ·c·Δt/3600.' },
+        { v: V * c * (askNE ? (tz - tw) : (tw - ta)) / 3600, hint: 'Massenstrom verwenden: ṁ = V̇·ρ.' }
+      ]
+    };
+  }
+};
+
+/* ---------- Task-Erzeugung ---------- */
+const ALL_SUBS = Object.keys(GENS);
+function tolWidth(task, ref){
+  const rel = task.tol && task.tol.rel !== undefined ? task.tol.rel : 0.02;
+  const abs = task.tol && task.tol.abs !== undefined ? task.tol.abs : 0;
+  return Math.max(rel * Math.abs(ref), abs);
+}
+function genTask(sub, seed){
+  const t = GENS[sub](makeRng(seed));
+  t.sub = sub; t.seed = seed;
+  t.subName = SUBNAME[sub];
+  t.catName = (CATS.find(c => c.id === t.cat) || {}).name || t.cat;
+  t.traps = (t.traps || []).filter(tr => tr && isFinite(tr.v) && Math.abs(tr.v - t.sol) > tolWidth(t, t.sol) * 1.5);
+  return t;
+}
+function randomTask(catFilter, rngSeed){
+  const seed = rngSeed !== undefined ? rngSeed : Math.floor(Math.random() * 4294967296);
+  const rng = makeRng(seed ^ 0x9e3779b9);
+  const pool = catFilter ? SUBS[catFilter] : ALL_SUBS;
+  const sub = pool[Math.floor(rng() * pool.length)];
+  return genTask(sub, seed);
+}
+
+/* ---------- Antwort-Pruefung ---------- */
+function checkAnswer(task, raw){
+  const val = typeof raw === 'number' ? raw : parseNum(raw);
+  if (!isFinite(val)) return { ok: false, invalid: true, hint: 'Bitte eine Zahl eingeben (Dezimalpunkt oder -komma).' };
+  const tw = tolWidth(task, task.sol);
+  if (Math.abs(val - task.sol) <= tw) return { ok: true, val };
+  for (const tr of task.traps || []){
+    const tt = Math.max(0.02 * Math.abs(tr.v), (task.tol && task.tol.abs) || 0, 1e-9);
+    if (Math.abs(val - tr.v) <= tt) return { ok: false, val, hint: tr.hint, trap: true };
+  }
+  let hint = null;
+  const sol = task.sol;
+  if (sol !== 0){
+    const r = val / sol;
+    if (r > 900 && r < 1100) hint = 'Grössenordnung: Faktor ~1000 zu gross – Einheiten prüfen (g↔kg, W↔kW, l↔m³, m↔mm).';
+    else if (r > 0.0009 && r < 0.0011) hint = 'Grössenordnung: Faktor ~1000 zu klein – Einheiten prüfen (g↔kg, W↔kW, l↔m³, m↔mm).';
+    else if (r > 3400 && r < 3800) hint = 'Faktor ~3600 zu gross – Umrechnung h ↔ s prüfen.';
+    else if (r > 1 / 3800 && r < 1 / 3400) hint = 'Faktor ~3600 zu klein – Umrechnung h ↔ s prüfen.';
+    else if (r > -1.05 && r < -0.95) hint = 'Vorzeichen prüfen!';
+    else if (Math.abs(val - sol) <= Math.max(0.06 * Math.abs(sol), tw * 2.5)) hint = 'Knapp daneben – vermutlich zu früh gerundet. Mit mehr Dezimalstellen durchrechnen.';
+  }
+  return { ok: false, val, hint };
+}
+/* ===== CORE-END ===== */
+
+</script>
+<script>
+'use strict';
+/* ================= Store ================= */
+const KEY = 'lapcalc_v1';
+let store = (function(){
+  try { return Object.assign({ stats: {}, wrong: [], exams: [] }, JSON.parse(localStorage.getItem(KEY) || '{}')); }
+  catch(e){ return { stats: {}, wrong: [], exams: [] }; }
+})();
+function save(){ localStorage.setItem(KEY, JSON.stringify(store)); }
+function recordAttempt(sub, ok, sec){
+  const s = store.stats[sub] || (store.stats[sub] = { n: 0, ok: 0, time: 0 });
+  s.n++; if (ok) s.ok++;
+  s.time += Math.min(sec, 600);
+  save();
+}
+function addWrong(sub, seed){
+  if (!store.wrong.some(w => w.sub === sub && w.seed === seed)){
+    store.wrong.push({ sub, seed });
+    if (store.wrong.length > 60) store.wrong.shift();
+    save();
+  }
+}
+function removeWrong(sub, seed){
+  store.wrong = store.wrong.filter(w => !(w.sub === sub && w.seed === seed));
+  save();
+}
+function catOfSub(sub){ for (const c in SUBS) if (SUBS[c].includes(sub)) return c; return null; }
+
+/* ================= Helpers ================= */
+const $ = id => document.getElementById(id);
+function fmtTime(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function renderGiven(table, t){
+  table.innerHTML = '<caption>Gegeben</caption>';
+  t.given.forEach(g => {
+    const tr = el('tr', g.warn ? 'warn' : '');
+    tr.innerHTML = `<td class="k">${g.k}</td><td class="v">${g.v}</td><td class="u">${g.u || ''}</td>`;
+    table.appendChild(tr);
+  });
+}
+function renderBadges(box, t){
+  box.innerHTML = '';
+  box.appendChild(el('span', 'badge cat', t.catName));
+  box.appendChild(el('span', 'badge', t.subName));
+  const pg = t.given.find(g => g.k === 'Luftdruck p');
+  if (pg) box.appendChild(el('span', 'badge ' + (pg.warn ? 'p-warn' : 'p-norm'), pg.warn ? '⚠ ' + pg.v + ' mbar' : pg.v + ' mbar'));
+}
+function swap(cardEl, fill){
+  cardEl.classList.add('swap-out');
+  setTimeout(() => {
+    fill();
+    cardEl.classList.remove('swap-out');
+    cardEl.classList.remove('swap-in'); void cardEl.offsetWidth;
+    cardEl.classList.add('swap-in');
+  }, 160);
+}
+
+/* ================= Views ================= */
+const VIEWS = ['practice', 'examsetup', 'exam', 'result', 'stats'];
+let view = 'practice';
+function setView(v){
+  view = v;
+  VIEWS.forEach(x => $('view-' + x).classList.toggle('show', x === v));
+  $('btnStats').classList.toggle('on', v === 'stats');
+  if (v === 'stats') renderStats();
+  window.scrollTo({ top: 0 });
+}
+
+/* ================= Übungsmodus ================= */
+let P = { filter: null, task: null, t0: 0, counted: false, hintStage: 0, solved: false, fromPool: false };
+
+function buildChips(){
+  const box = $('catChips'); box.innerHTML = '';
+  const all = el('button', 'chip' + (P.filter === null ? ' on' : ''), 'Alle');
+  all.onclick = () => { P.filter = null; buildChips(); newTask(); };
+  box.appendChild(all);
+  CATS.forEach(c => {
+    const b = el('button', 'chip' + (P.filter === c.id ? ' on' : ''), c.name);
+    b.onclick = () => { P.filter = c.id; buildChips(); newTask(); };
+    box.appendChild(b);
+  });
+  updatePoolInfo();
+}
+function updatePoolInfo(){
+  const n = store.wrong.length;
+  $('poolInfo').textContent = n ? `${n} falsche Aufgabe${n > 1 ? 'n' : ''} gemerkt` : '';
+}
+function pickWrongEntry(){
+  const pool = store.wrong.filter(w => !P.filter || SUBS[P.filter].includes(w.sub));
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function newTask(){
+  const useWrong = $('onlyWrong').checked;
+  let t = null, fromPool = false;
+  if (useWrong){
+    const w = pickWrongEntry();
+    if (w){ t = genTask(w.sub, w.seed); fromPool = true; }
+  }
+  if (!t) t = randomTask(P.filter);
+  P.task = t; P.t0 = Date.now(); P.counted = false; P.hintStage = 0; P.solved = false; P.fromPool = fromPool;
+  swap($('taskCard'), () => {
+    renderBadges($('taskBadges'), t);
+    $('taskText').innerHTML = t.text;
+    renderGiven($('givenTable'), t);
+  });
+  swap($('answerCard'), () => {
+    $('askWhat').innerHTML = t.ask;
+    $('unitTag').textContent = t.unit;
+    $('answer').value = '';
+    $('feedback').className = 'feedback'; $('feedback').innerHTML = '';
+    $('steps').innerHTML = '';
+    $('btnHint').disabled = false;
+    $('btnHint').textContent = '💡 Hinweis';
+    if (P.fromPool && $('onlyWrong').checked){
+      $('feedback').className = 'feedback show fb-info';
+      $('feedback').innerHTML = '🔁 Wiederholung einer falsch gelösten Aufgabe – diesmal klappt’s!';
+    }
+    setTimeout(() => $('answer').focus(), 60);
+  });
+}
+function countFirstAttempt(ok){
+  if (P.counted) return;
+  P.counted = true;
+  recordAttempt(P.task.sub, ok, (Date.now() - P.t0) / 1000);
+  if (!ok) addWrong(P.task.sub, P.task.seed);
+  else if (P.fromPool) removeWrong(P.task.sub, P.task.seed);
+  updatePoolInfo();
+}
+function doCheck(){
+  const t = P.task, fb = $('feedback');
+  const res = checkAnswer(t, $('answer').value);
+  if (res.invalid){
+    $('answer').classList.remove('shake'); void $('answer').offsetWidth; $('answer').classList.add('shake');
+    fb.className = 'feedback show fb-info'; fb.innerHTML = '✏️ ' + res.hint;
+    return;
+  }
+  if (res.ok){
+    const first = !P.counted;
+    countFirstAttempt(true);
+    P.solved = true;
+    fb.className = 'feedback show fb-ok';
+    fb.innerHTML = `✓ <b>Richtig!</b> ${t.ask} = <b>${fmt(t.sol, t.round)} ${t.unit}</b>` +
+      (first ? ` &nbsp;·&nbsp; ${fmtTime((Date.now() - P.t0) / 1000)} min` : '') +
+      `<br><span style="color:var(--mut);font-size:.85rem">⏎ für die nächste Aufgabe · H zeigt den Lösungsweg</span>`;
+  } else {
+    countFirstAttempt(false);
+    if (res.trap){
+      fb.className = 'feedback show fb-trap';
+      fb.innerHTML = `✗ Typischer Stolperstein erkannt:<br>💡 <b>${res.hint}</b>`;
+    } else {
+      fb.className = 'feedback show fb-no';
+      fb.innerHTML = '✗ Noch nicht richtig.' + (res.hint ? `<br>💡 ${res.hint}` : ' Versuch’s nochmals oder hole dir mit <b>H</b> einen Hinweis.');
+    }
+  }
+}
+function renderSteps(){
+  const t = P.task, box = $('steps'), st = P.hintStage;
+  box.innerHTML = '';
+  if (st < 1) return;
+  let list = [];
+  if (st >= 1) list.push(t.steps[0]);
+  if (st >= 2) list = list.concat(t.steps.slice(1, t.steps.length - 1));
+  if (st >= 3) list.push(t.steps[t.steps.length - 1]);
+  list.forEach((s, i) => {
+    const isResult = st >= 3 && i === list.length - 1;
+    const d = el('div', 'step' + (isResult ? ' result' : ''));
+    d.style.animationDelay = (i * 70) + 'ms';
+    d.innerHTML = `<div class="n">${isResult ? '✓' : i + 1}</div><div class="body"><div class="t">${s.t}</div>${s.d}</div>`;
+    box.appendChild(d);
+  });
+}
+function doHint(){
+  if (P.hintStage >= 3) return;
+  P.hintStage++;
+  if (P.hintStage >= 3 && !P.solved) countFirstAttempt(false); // Lösung angeschaut = zählt als falsch
+  renderSteps();
+  $('btnHint').textContent = P.hintStage >= 3 ? '💡 Lösungsweg sichtbar' : P.hintStage === 2 ? '💡 Endresultat zeigen (H)' : '💡 Zwischenschritte (H)';
+  $('btnHint').disabled = P.hintStage >= 3;
+}
+
+$('btnCheck').onclick = doCheck;
+$('btnHint').onclick = doHint;
+$('btnNext').onclick = () => newTask();
+$('onlyWrong').onchange = newTask;
+
+/* ================= Prüfungsmodus ================= */
+const EXAM_LEN = 6, EXAM_SECS = 80 * 60;
+let E = null;
+function startExam(){
+  const tasks = CATS.map(c => randomTask(c.id));
+  tasks.push(randomTask(null));
+  for (let i = tasks.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [tasks[i], tasks[j]] = [tasks[j], tasks[i]]; }
+  E = { tasks, answers: Array(EXAM_LEN).fill(''), times: Array(EXAM_LEN).fill(0), idx: 0, remain: EXAM_SECS, lastTick: Date.now(), timer: null, done: false };
+  setView('exam');
+  renderExamTask(true);
+  E.timer = setInterval(tick, 1000);
+  tick();
+}
+function tick(){
+  if (!E || E.done) return;
+  const now = Date.now();
+  const dt = (now - E.lastTick) / 1000; E.lastTick = now;
+  E.remain -= dt;
+  E.times[E.idx] += dt;
+  const C = 207.3;
+  $('ringFg').style.strokeDashoffset = (C * (1 - Math.max(0, E.remain) / EXAM_SECS)).toFixed(1);
+  $('ringTime').textContent = fmtTime(E.remain);
+  $('ringWrap').className = 'ring-wrap' + (E.remain < 600 ? ' crit' : E.remain < 1200 ? ' low' : '');
+  if (E.remain <= 0){ submitExam(true); }
+}
+function saveExamInput(){ if (E) E.answers[E.idx] = $('exAnswer').value; }
+function renderExamDots(){
+  const box = $('examDots'); box.innerHTML = '';
+  E.tasks.forEach((t, i) => {
+    const d = el('button', 'dot' + (E.answers[i].trim() !== '' ? ' filled' : '') + (i === E.idx ? ' cur' : ''), String(i + 1));
+    d.title = t.catName;
+    d.onclick = () => { saveExamInput(); E.idx = i; renderExamTask(); };
+    box.appendChild(d);
+  });
+}
+function renderExamTask(first){
+  const t = E.tasks[E.idx];
+  renderExamDots();
+  const fill = () => {
+    renderBadges($('exBadges'), t);
+    $('exText').innerHTML = t.text;
+    renderGiven($('exGiven'), t);
+  };
+  if (first) fill(); else swap($('exTaskCard'), fill);
+  $('exAsk').innerHTML = t.ask;
+  $('exUnit').textContent = t.unit;
+  $('exAnswer').value = E.answers[E.idx];
+  setTimeout(() => $('exAnswer').focus(), first ? 80 : 200);
+}
+function examNav(d){
+  saveExamInput();
+  const ni = E.idx + d;
+  if (ni < 0 || ni >= EXAM_LEN) return;
+  E.idx = ni; renderExamTask();
+}
+function submitExam(auto){
+  saveExamInput();
+  if (!auto){
+    const open = E.answers.filter(a => a.trim() === '').length;
+    if (open && !confirm(`${open} Aufgabe${open > 1 ? 'n' : ''} ohne Antwort – trotzdem abgeben?`)) return;
+  }
+  E.done = true; clearInterval(E.timer);
+  const rows = E.tasks.map((t, i) => {
+    const raw = E.answers[i];
+    const res = raw.trim() === '' ? { ok: false, empty: true } : checkAnswer(t, raw);
+    recordAttempt(t.sub, !!res.ok, E.times[i]);
+    if (!res.ok) addWrong(t.sub, t.seed);
+    return { t, raw, ok: !!res.ok, hint: res.hint, empty: !!res.empty, sec: E.times[i] };
+  });
+  const score = rows.filter(r => r.ok).length;
+  const note = Math.round((5 * score / EXAM_LEN + 1) * 10) / 10;
+  store.exams.push({ d: new Date().toISOString().slice(0, 10), score, note });
+  if (store.exams.length > 20) store.exams.shift();
+  save(); updatePoolInfo();
+  renderResult(rows, score, note);
+  setView('result');
+  E.lastRows = rows;
+}
+function renderResult(rows, score, note){
+  // Count-up
+  const target = score, eln = $('resScore');
+  const t0 = performance.now();
+  (function up(now){
+    const k = Math.min(1, (now - t0) / 900), e = 1 - Math.pow(1 - k, 3);
+    eln.textContent = String(Math.round(e * target));
+    if (k < 1) requestAnimationFrame(up);
+  })(t0);
+  const pass = note >= 4;
+  $('resNote').className = 'note ' + (pass ? 'pass' : 'fail');
+  $('resNote').innerHTML = `Note <span class="val">${note.toFixed(1)}</span>`;
+  $('resVerdict').textContent = pass
+    ? (score === 6 ? 'Perfekte Serie – prüfungsbereit! 🏆' : 'Bestanden – weiter so!')
+    : 'Noch nicht bestanden – unten siehst du, wo du ansetzen kannst.';
+  const tbl = $('resTable');
+  tbl.innerHTML = '<tr><th>#</th><th>Aufgabe</th><th>Deine Antwort</th><th>Lösung</th><th></th><th>Zeit</th></tr>';
+  rows.forEach((r, i) => {
+    const tr = el('tr');
+    tr.innerHTML = `<td>${i + 1}</td><td>${r.t.catName}<br><span style="color:var(--mut2);font-size:.8rem">${r.t.subName}</span></td>` +
+      `<td>${r.empty ? '–' : r.raw} ${r.empty ? '' : r.t.unit}</td>` +
+      `<td>${fmt(r.t.sol, r.t.round)} ${r.t.unit}</td>` +
+      `<td class="${r.ok ? 'st-ok' : 'st-no'}">${r.ok ? '✓' : '✗'}</td>` +
+      `<td>${fmtTime(r.sec)}</td>`;
+    tbl.appendChild(tr);
+  });
+  // Stärken / Schwächen
+  const byCat = {};
+  rows.forEach(r => { const c = r.t.cat; (byCat[c] = byCat[c] || []).push(r.ok); });
+  const good = [], bad = [];
+  for (const c in byCat){
+    const ok = byCat[c].filter(Boolean).length, n = byCat[c].length;
+    const name = CATS.find(x => x.id === c).name;
+    (ok === n ? good : bad).push(`<li>${ok === n ? '✓' : '✗'} ${name} <b>(${ok}/${n})</b></li>`);
+  }
+  $('swBox').innerHTML =
+    `<div class="sw-box"><h3>✓ Stärken</h3><ul>${good.join('') || '<li style="color:var(--mut2)">– heute keine –</li>'}</ul></div>` +
+    `<div class="sw-box"><h3>✗ Schwächen</h3><ul>${bad.join('') || '<li style="color:var(--mut2)">keine – stark!</li>'}</ul></div>`;
+  if (pass) confetti();
+}
+function confetti(){
+  const colors = ['#38bdf8', '#22c55e', '#f59e0b', '#e879f9', '#fb7185'];
+  for (let i = 0; i < 90; i++){
+    const c = el('div', 'cfx');
+    const s = 6 + Math.random() * 7;
+    c.style.cssText = `left:${Math.random() * 100}vw;width:${s}px;height:${s * (0.6 + Math.random())}px;background:${colors[i % colors.length]};animation-duration:${2.4 + Math.random() * 2}s;animation-delay:${Math.random() * .9}s`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 6000);
+  }
+}
+$('btnExam').onclick = () => setView(view === 'exam' ? 'exam' : 'examsetup');
+$('btnExamBack').onclick = () => setView('practice');
+$('btnStartExam').onclick = startExam;
+$('btnPrev').onclick = () => examNav(-1);
+$('btnNextEx').onclick = () => examNav(1);
+$('btnSubmit').onclick = () => submitExam(false);
+$('exAnswer').oninput = saveExamInput;
+$('exAnswer').addEventListener('change', renderExamDots);
+$('btnExamAgain').onclick = () => setView('examsetup');
+$('btnToPractice').onclick = () => setView('practice');
+$('btnTrainWrong').onclick = () => { $('onlyWrong').checked = store.wrong.length > 0; P.filter = null; buildChips(); setView('practice'); newTask(); };
+
+/* ================= Statistik ================= */
+function renderStats(){
+  const st = store.stats;
+  let n = 0, ok = 0, time = 0;
+  for (const s in st){ n += st[s].n; ok += st[s].ok; time += st[s].time; }
+  $('statCards').innerHTML = '';
+  const cards = [
+    [String(n), 'Aufgaben beantwortet'],
+    [n ? Math.round(100 * ok / n) + ' %' : '–', 'Trefferquote gesamt'],
+    [n ? fmtTime(time / n) + ' min' : '–', 'Ø-Zeit pro Aufgabe'],
+    [String(store.exams.length), 'Prüfungen abgelegt']
+  ];
+  cards.forEach(c => $('statCards').appendChild(el('div', 'stat-card', `<b>${c[0]}</b><span>${c[1]}</span>`)));
+
+  const bars = $('statBars'); bars.innerHTML = '';
+  const catData = CATS.map(c => {
+    let cn = 0, cok = 0, ct = 0;
+    SUBS[c.id].forEach(s => { if (st[s]){ cn += st[s].n; cok += st[s].ok; ct += st[s].time; } });
+    return { c, n: cn, ok: cok, t: ct, q: cn ? cok / cn : null };
+  });
+  catData.forEach(d => {
+    const pct = d.q === null ? 0 : Math.round(d.q * 100);
+    const cls = d.q === null ? '' : pct >= 80 ? 'g' : pct >= 55 ? '' : pct >= 35 ? 'y' : 'r';
+    const row = el('div', 'bar-row');
+    row.innerHTML = `<div class="lbl">${d.c.name}<small>${d.n ? d.n + ' Aufgaben · Ø ' + fmtTime(d.t / d.n) + ' min' : 'noch keine Daten'}</small></div>` +
+      `<div class="bar"><i class="${cls}"></i></div>` +
+      `<div class="meta">${d.q === null ? '–' : pct + ' % richtig'}</div>`;
+    bars.appendChild(row);
+    requestAnimationFrame(() => requestAnimationFrame(() => { row.querySelector('i').style.width = (d.q === null ? 0 : Math.max(4, pct)) + '%'; }));
+  });
+
+  // Empfehlung
+  const enough = catData.filter(d => d.n >= 3);
+  let reco;
+  if (!n){
+    reco = `<div class="txt">👋 Noch keine Daten. Starte mit ein paar Übungsaufgaben – die Empfehlung erscheint, sobald genug Statistik da ist.</div><button class="primary" id="recoBtn">Jetzt üben</button>`;
+  } else if (enough.length){
+    const worst = enough.sort((a, b) => a.q - b.q)[0];
+    reco = `<div class="txt">🎯 <b>Übe heute: ${worst.c.name}</b> – Trefferquote ${Math.round(worst.q * 100)} % bei ${worst.n} Aufgaben${store.wrong.length ? ` · ${store.wrong.length} gemerkte falsche Aufgaben warten` : ''}.</div><button class="primary" id="recoBtn" data-cat="${worst.c.id}">Jetzt üben</button>`;
+  } else {
+    const least = catData.sort((a, b) => a.n - b.n)[0];
+    reco = `<div class="txt">🎯 <b>Übe heute: ${least.c.name}</b> – hier hast du erst ${least.n ? least.n : 'keine'} Aufgabe${least.n === 1 ? '' : 'n'} gelöst.</div><button class="primary" id="recoBtn" data-cat="${least.c.id}">Jetzt üben</button>`;
+  }
+  $('recoBox').innerHTML = reco;
+  $('recoBtn').onclick = function(){
+    P.filter = this.dataset.cat || null;
+    buildChips(); setView('practice'); newTask();
+  };
+
+  const hist = $('examHistory');
+  hist.innerHTML = store.exams.length
+    ? store.exams.slice().reverse().map(e => `<li><span>${e.d}</span><span>${e.score}/6 · Note <b style="color:${e.note >= 4 ? 'var(--ok)' : 'var(--no)'}">${e.note.toFixed(1)}</b></span></li>`).join('')
+    : '<li style="color:var(--mut2)">noch keine Prüfung abgelegt</li>';
+}
+$('btnStats').onclick = () => setView(view === 'stats' ? 'practice' : 'stats');
+$('btnReset').onclick = () => {
+  if (confirm('Statistik, Fehlerliste und Prüfungshistorie wirklich löschen?')){
+    store = { stats: {}, wrong: [], exams: [] }; save();
+    renderStats(); updatePoolInfo();
+  }
+};
+
+/* ================= Tastatur ================= */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    if (view === 'stats' || view === 'examsetup') setView('practice');
+    return;
+  }
+  if (view === 'practice'){
+    const inInput = e.target === $('answer');
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      if (P.solved) newTask(); else doCheck();
+    } else if (e.key === 'h' || e.key === 'H'){
+      e.preventDefault(); doHint();
+    } else if (e.key === 'n' || e.key === 'N'){
+      e.preventDefault(); newTask();
+    } else if (!inInput && /^[\d.,-]$/.test(e.key)){
+      $('answer').focus();
+    }
+  } else if (view === 'exam'){
+    const inp = $('exAnswer');
+    if (e.key === 'Enter'){ e.preventDefault(); examNav(1); renderExamDots(); }
+    else if (e.key === 'ArrowRight'){
+      if (e.target !== inp || inp.selectionStart >= inp.value.length){ e.preventDefault(); examNav(1); }
+    } else if (e.key === 'ArrowLeft'){
+      if (e.target !== inp || inp.selectionEnd <= 0){ e.preventDefault(); examNav(-1); }
+    }
+  } else if (view === 'result' && e.key === 'Enter'){
+    setView('practice');
+  }
+});
+$('exAnswer').addEventListener('input', renderExamDots);
+
+/* ================= Start ================= */
+buildChips();
+newTask();
+</script>
+</body></html>
