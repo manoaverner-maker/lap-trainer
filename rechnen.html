@@ -18,10 +18,9 @@
 html{scrollbar-color:var(--line) var(--bg);background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg)}
 body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:transparent;color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
 /* ---------- Liquid Glass + Aurora: Hintergrund-Schichten ---------- */
-#bgPhoto{position:fixed;inset:-24px;z-index:-3;background:url("https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80") center/cover no-repeat;will-change:transform;transition:transform .12s ease-out;pointer-events:none}
+#bgPhoto{position:fixed;inset:0;z-index:-3;background:url("https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80") center/cover no-repeat;pointer-events:none}
 #bgOverlay{position:fixed;inset:0;z-index:-2;background:rgba(5,12,28,.68);pointer-events:none}
 .aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.bwrap{position:absolute;inset:0;will-change:transform;transition:transform .8s ease-out}
 .blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.18;will-change:transform}
 .blob-a{width:48vw;height:48vw;background:#0ea5e9;top:-14vw;left:-10vw;animation:blobA 11s ease-in-out infinite}
 .blob-b{width:52vw;height:52vw;background:#6366f1;bottom:-18vw;right:-12vw;animation:blobB 12s ease-in-out infinite}
@@ -52,7 +51,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 
 /* ---------- Übungsansicht ---------- */
 main{width:100%;max-width:1480px;display:none;flex-direction:column;gap:16px}
-main.show{display:flex}
+main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
+@keyframes viewIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .filters{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{font-size:.85rem;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:rgba(30,41,59,.6);color:var(--mut);transition:all .15s}
@@ -77,9 +77,9 @@ main.show{display:flex}
 @media(max-width:1080px){.grid{grid-template-columns:1fr}}
 .card{background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);padding:24px;transition:transform .2s ease,border-color .2s ease}
 .card:not(.swap-out):hover{transform:translateY(-2px);border-color:var(--glass-top)}
-.swap-out{opacity:0;transform:translateY(-8px);transition:opacity .16s ease,transform .16s ease}
-.swap-in{animation:cardIn .28s cubic-bezier(.2,.7,.3,1)}
-@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.swap-out{opacity:0;transform:translateY(-12px) scale(.99);filter:blur(3px);transition:opacity .18s ease,transform .18s ease,filter .18s ease}
+.swap-in{animation:cardIn .45s cubic-bezier(.22,.9,.3,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(4px)}55%{filter:blur(0)}to{opacity:1;transform:none;filter:none}}
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .badge{font-size:.72rem;font-weight:600;letter-spacing:.02em;border-radius:99px;padding:3px 11px;border:1px solid var(--line2);color:var(--mut)}
 .badge.cat{border-color:var(--acc);color:var(--acc)}
@@ -207,7 +207,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .cfx{position:fixed;top:-14px;border-radius:3px;pointer-events:none;z-index:99;animation:cfall linear forwards}
 @keyframes cfall{to{transform:translateY(108vh) rotate(660deg);opacity:.7}}
 
-/* ---------- Mobile: kein Glas-Blur, kein Parallax, Blobs statisch ---------- */
+/* ---------- Mobile: kein Glas-Blur, Blobs statisch ---------- */
 @media(max-width:768px){
   .card,.top,.stat-card,.reco{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}
   .reco{background:rgba(15,25,50,.92);border-color:rgba(56,189,248,.45)}
@@ -221,9 +221,9 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 <div id="bgPhoto"></div>
 <div id="bgOverlay"></div>
 <div class="aurora" aria-hidden="true">
-  <div class="bwrap"><div class="blob blob-a"></div></div>
-  <div class="bwrap"><div class="blob blob-b"></div></div>
-  <div class="bwrap"><div class="blob blob-c"></div></div>
+  <div class="blob blob-a"></div>
+  <div class="blob blob-b"></div>
+  <div class="blob blob-c"></div>
 </div>
 
 <header class="top">
@@ -384,7 +384,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
       <canvas id="hxCanvas"></canvas>
       <div class="readout" id="hxReadout"><span>Fadenkreuz: bewege die Maus über das Diagramm</span></div>
     </article>
-    <article class="card">
+    <article class="card" id="hxPanel">
       <div class="badges"><span class="badge cat">h,x-Diagramm</span><span class="badge" id="hxSubBadge"></span><span class="badge" id="hxPBadge"></span></div>
       <div class="task-text" id="hxText" style="font-size:1.02rem"></div>
       <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px">
@@ -1435,7 +1435,7 @@ function swap(cardEl, fill){
     cardEl.classList.remove('swap-out');
     cardEl.classList.remove('swap-in'); void cardEl.offsetWidth;
     cardEl.classList.add('swap-in');
-  }, 160);
+  }, 180);
 }
 
 /* ================= Views ================= */
@@ -2015,6 +2015,8 @@ const HXUI = (function(){
     $('hxText').innerHTML = task.text;
     $('hxFb').className = 'feedback'; $('hxFb').innerHTML = '';
     setPressureUI(); draw(); readout(null);
+    const p = $('hxPanel');
+    p.classList.remove('swap-in'); void p.offsetWidth; p.classList.add('swap-in');
   }
   function count(ok){
     if (counted) return;
@@ -2131,25 +2133,6 @@ document.addEventListener('keydown', e => {
   }
 });
 $('exAnswer').addEventListener('input', renderExamDots);
-
-/* ================= Maus-Parallax (Foto entgegen ±18px, Blobs mit ±8px) ================= */
-(function(){
-  const fine = window.matchMedia('(pointer: fine)').matches;
-  if (!fine || window.innerWidth <= 768) return;   // Touch/Mobile: deaktiviert
-  const photo = $('bgPhoto');
-  const wraps = document.querySelectorAll('.bwrap');
-  let mx = 0, my = 0, raf = null;
-  function apply(){
-    raf = null;
-    photo.style.transform = `translate(${(-mx * 36).toFixed(1)}px, ${(-my * 36).toFixed(1)}px)`;
-    wraps.forEach(w => { w.style.transform = `translate(${(mx * 16).toFixed(1)}px, ${(my * 16).toFixed(1)}px)`; });
-  }
-  window.addEventListener('mousemove', e => {
-    mx = e.clientX / window.innerWidth - 0.5;
-    my = e.clientY / window.innerHeight - 0.5;
-    if (!raf) raf = requestAnimationFrame(apply);
-  }, { passive: true });
-})();
 
 /* ================= Start ================= */
 buildChips();

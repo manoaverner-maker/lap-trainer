@@ -11,25 +11,38 @@
   --bg:#0f172a;--card:#1e293b;--card2:#233048;--line:#334155;--line2:#3e4f6b;
   --acc:#38bdf8;--acc-deep:#0ea5e9;--ok:#22c55e;--no:#ef4444;--warn:#f59e0b;
   --txt:#e2e8f0;--mut:#94a3b8;--mut2:#64748b;
-  --r:16px;--shadow:0 8px 30px rgba(0,0,0,.4);
+  --r:20px;--shadow:0 8px 32px rgba(0,0,0,.4);
+  --glass:rgba(255,255,255,.06);--glass-line:rgba(255,255,255,.12);--glass-top:rgba(255,255,255,.22);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scrollbar-color:var(--line) var(--bg);background:var(--bg)}
-body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
+html{scrollbar-color:var(--line) var(--bg);background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg)}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:transparent;color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
+/* ---------- Liquid Glass + Aurora: Hintergrund-Schichten ---------- */
+#bgPhoto{position:fixed;inset:0;z-index:-3;background:url("https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80") center/cover no-repeat;pointer-events:none}
+#bgOverlay{position:fixed;inset:0;z-index:-2;background:rgba(5,12,28,.68);pointer-events:none}
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.18;will-change:transform}
+.blob-a{width:48vw;height:48vw;background:#0ea5e9;top:-14vw;left:-10vw;animation:blobA 11s ease-in-out infinite}
+.blob-b{width:52vw;height:52vw;background:#6366f1;bottom:-18vw;right:-12vw;animation:blobB 12s ease-in-out infinite}
+.blob-c{width:32vw;height:32vw;background:#14b8a6;top:40%;right:4vw;animation:blobC 9s ease-in-out infinite}
+@keyframes blobA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(34px,46px) scale(1.12)}}
+@keyframes blobB{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-40px,-30px) scale(.96)}}
+@keyframes blobC{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,32px) scale(1.15)}}
 ::selection{background:rgba(56,189,248,.35)}
-button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:9px 16px;transition:background .15s,border-color .15s,transform .12s}
-button:hover{background:var(--card2);border-color:var(--line2)}
-button:active{transform:translateY(1px)}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:9px 16px;transition:background .15s,border-color .15s,box-shadow .15s,transform .18s cubic-bezier(.34,1.56,.64,1)}
+button:hover{background:var(--card2);border-color:var(--line2);transform:scale(1.04)}
+button:active{transform:scale(.96)}
 button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 button.primary{background:var(--acc);border-color:var(--acc);color:#082f49;font-weight:700}
-button.primary:hover{background:#5ecbfa}
-button:disabled{opacity:.45;cursor:default}
-.top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:16px 2px 14px;flex-wrap:wrap}
+button.primary:hover{background:#5ecbfa;box-shadow:0 0 20px rgba(56,189,248,.35)}
+button:disabled{opacity:.45;cursor:default;transform:none}
+.top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:12px 18px;flex-wrap:wrap;margin:14px 0;background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)}
 .brand{font-weight:800;font-size:1.06rem;white-space:nowrap}
 .brand small{color:var(--mut);font-weight:500}
-.tabs{display:flex;background:rgba(30,41,59,.75);border:1px solid var(--line);border-radius:99px;padding:4px;gap:2px}
-.tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s}
-.tabs a:hover{color:var(--txt)}
+.tabs{display:flex;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);border-radius:99px;padding:4px;gap:2px}
+.tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s,transform .18s cubic-bezier(.34,1.56,.64,1)}
+.tabs a:hover{color:var(--txt);transform:scale(1.06)}
+.tabs a:active{transform:scale(.94)}
 .tabs a.active{background:var(--acc);color:#082f49}
 .dueb{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:99px;background:var(--no);color:#fff;font-size:.66rem;font-weight:800;padding:0 5px;margin-left:7px;vertical-align:1px}
 .daily{font-size:.85rem;color:var(--mut);background:rgba(30,41,59,.6);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -37,10 +50,14 @@ button:disabled{opacity:.45;cursor:default}
 .daily.hit{border-color:rgba(245,158,11,.6);color:#fde68a}
 .top-actions{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:.85rem}
 .top-actions b{color:var(--txt)}
-main{width:100%;max-width:1480px;display:flex;flex-direction:column;gap:16px}
+main{width:100%;max-width:1480px;display:flex;flex-direction:column;gap:16px;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
+@keyframes viewIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .grid{display:grid;grid-template-columns:minmax(0,8.2fr) minmax(0,3.8fr);gap:18px;align-items:start}
 @media(max-width:1150px){.grid{grid-template-columns:1fr}}
-.card{background:linear-gradient(180deg,rgba(36,48,70,.5),rgba(30,41,59,.9)),var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+.card{background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);padding:20px;transition:transform .2s ease,border-color .2s ease}
+.card:hover{transform:translateY(-2px);border-color:var(--glass-top)}
+.anim-in{animation:cardIn .45s cubic-bezier(.22,.9,.3,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(4px)}55%{filter:blur(0)}to{opacity:1;transform:none;filter:none}}
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .badge{font-size:.72rem;font-weight:600;border-radius:99px;padding:3px 11px;border:1px solid var(--line2);color:var(--mut)}
 .badge.cat{border-color:var(--acc);color:var(--acc)}
@@ -107,7 +124,23 @@ svg.dragging .zone-lbl{opacity:.9}
 .done-summary{text-align:center;padding:8px 0 2px}
 .done-summary b{font-size:1.5rem}
 footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-align:center;line-height:1.8}
+
+/* ---------- Mobile: kein Glas-Blur, Blobs statisch ---------- */
+@media(max-width:768px){
+  .card,.top{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}
+  .blob{animation:none}
+  .card:hover{transform:none}
+}
 </style></head><body>
+
+<!-- Liquid Glass + Aurora: Hintergrund-Schichten (Foto → Overlay → Blobs) -->
+<div id="bgPhoto"></div>
+<div id="bgOverlay"></div>
+<div class="aurora" aria-hidden="true">
+  <div class="blob blob-a"></div>
+  <div class="blob blob-b"></div>
+  <div class="blob blob-c"></div>
+</div>
 
 <header class="top">
   <div class="brand">🎓 LAP Trainer <small>· Lüftung EFZ</small></div>
@@ -613,6 +646,8 @@ function newRound(){
     seqChecked = false; seqDone = false; seqCounted = false; seqT0 = Date.now();
     renderSeq(round.shuffled);
   }
+  const tc = $('taskCard');
+  tc.classList.remove('anim-in'); void tc.offsetWidth; tc.classList.add('anim-in');
 }
 function renderTray(){
   const tray = $('tray'); tray.innerHTML = '';
