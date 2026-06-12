@@ -70,18 +70,19 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .fcard ul{list-style:none;display:flex;flex-direction:column;gap:7px;font-size:.92rem;line-height:1.55}
 .fcard .key{color:#fbbf24;font-weight:800}
 .fcard .nt{color:var(--mut2);font-size:.82rem}
-/* ---------- Formeln & Bauteilvorlagen (Dropdown-Panels) ---------- */
+/* ---------- Formeln & Bauteilvorlagen (Liquid-Glass-Panels) ---------- */
 #view-for .key,#view-bau .key{color:#fbbf24;font-weight:800}
-.formel-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:4px}
-.formel-list li{padding:11px 14px;background:rgba(15,23,42,.5);border:1px solid var(--line);border-radius:12px;font-size:.92rem;line-height:1.5}
+.formel-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.formel-list li{padding:13px 16px;background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1);font-size:.92rem;line-height:1.5;transition:border-color .2s ease,transform .2s ease}
+.formel-list li:hover{border-color:var(--glass-top);transform:translateY(-1px)}
 .formel-list .fsym{font-weight:700}
-.formel-list .fnote{display:block;color:var(--mut2);font-size:.82rem;margin-top:4px;line-height:1.45}
-.beispiel{margin-top:16px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.32);border-radius:12px;padding:12px 15px;font-size:.9rem;line-height:1.55}
+.formel-list .fnote{display:block;color:var(--mut2);font-size:.82rem;margin-top:5px;line-height:1.45}
+.beispiel{margin-top:18px;background:rgba(56,189,248,.1);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(56,189,248,.4);border-top:1px solid rgba(125,211,252,.55);border-radius:14px;padding:13px 16px;font-size:.9rem;line-height:1.55;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
-.bauteil-formel{background:rgba(15,23,42,.5);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:.92rem;line-height:1.5;margin-bottom:14px}
+.bauteil-formel{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;padding:13px 16px;font-size:.92rem;line-height:1.5;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
 .filebtns{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
-.filebtn{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;text-decoration:none;color:var(--txt);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:9px 15px;transition:background .15s,border-color .15s,transform .12s}
-a.filebtn:hover{background:var(--card2);border-color:var(--acc);color:var(--acc);transform:translateY(-1px)}
+.filebtn{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;text-decoration:none;color:var(--txt);background:var(--glass);backdrop-filter:blur(14px) saturate(170%);-webkit-backdrop-filter:blur(14px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:12px;padding:10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.1);transition:border-color .15s,transform .12s,box-shadow .15s}
+a.filebtn:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-1px);box-shadow:0 6px 22px rgba(56,189,248,.28),inset 0 1px 0 rgba(255,255,255,.14)}
 .filebtn .ext{color:var(--mut2);font-size:.78rem;font-weight:500}
 .filebtn.off{opacity:.5;cursor:default}
 .switch{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--mut);cursor:pointer;user-select:none}
@@ -278,6 +279,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 @media(max-width:768px){
   .card,.top,.stat-card,.reco{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}
   .reco{background:rgba(15,25,50,.92);border-color:rgba(56,189,248,.45)}
+  .formel-list li,.bauteil-formel,.filebtn{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}
+  .beispiel{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(20,42,72,.93)}
   #answer,.exam-input{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,0,0,.45)}
   .blob{animation:none}
   .card:not(.swap-out):hover{transform:none}
