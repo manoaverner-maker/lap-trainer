@@ -1191,12 +1191,13 @@ function renderBauteil(){
   const box = $('bauteilBody');
   if (!b){ box.innerHTML = '<div class="empty">Wähle oben ein Bauteil, um Beschreibung, Auslegungsformel, Norm und Vorlagen zu sehen.</div>'; return; }
   const files = b.files.map(f => {
-    if (BT_IS_FILE) return `<a class="filebtn" href="${encodeURI(f.path)}" target="_blank" rel="noopener">📄 ${esc(f.label)} <span class="ext">↗</span></a>`;
-    return `<span class="filebtn off" title="nur in der Offline-Version (OneDrive-Ordner) verfügbar">📄 ${esc(f.label)} <span class="ext">· offline</span></span>`;
+    // offline (file://) → direkt aus dem Ordner; online → ins Repo gespiegelte Kopie unter vorlagen/
+    const href = BT_IS_FILE ? encodeURI(f.path) : encodeURI('vorlagen/' + f.path.replace(/^\.\.\//, ''));
+    return `<a class="filebtn" href="${href}" target="_blank" rel="noopener">📄 ${esc(f.label)} <span class="ext">↗</span></a>`;
   }).join('');
   const fileNote = BT_IS_FILE
     ? 'Dateien öffnen direkt aus den Ordnern 03_Auslegungen / 04_Lerndokus.'
-    : 'Vorlagen sind nur in der Offline-Version (OneDrive-Ordner) verlinkt – online aus Copyright-/Speichergründen nicht gehostet.';
+    : 'Dateien öffnen in einem neuen Tab.';
   box.innerHTML =
     `<div class="badges" style="margin:18px 0 12px"><span class="badge cat">🧩 ${esc(b.cat)}</span><span class="badge p-norm">${esc(b.norm)}</span></div>` +
     `<h3 style="font-size:1.05rem;margin:0 0 8px">${esc(b.name)}</h3>` +
