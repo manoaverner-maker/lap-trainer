@@ -191,22 +191,18 @@ footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-
             <rect class="comp" x="128" y="430" width="20" height="16" rx="3"/>
             <text class="lbl-sm" x="118" y="462">Klappe</text>
           </g>
-          <!-- Filter ZUL -->
+          <!-- Filter ZUL (SIA 410: Rechteck + Diagonale) -->
           <g>
             <rect class="comp" x="192" y="354" width="40" height="52"/>
-            <path class="comp-line" d="M198 360 L226 366 L198 374 L226 380 L198 388 L226 394 L198 400"/>
+            <line class="comp-line" x1="192" y1="406" x2="232" y2="354"/>
             <text class="lbl-sm" x="198" y="348">F7</text>
           </g>
-          <!-- WRG -->
-          <g>
-            <rect class="comp" x="300" y="130" width="120" height="300"/>
-            <line class="comp-line" x1="300" y1="130" x2="420" y2="430"/>
-            <line class="comp-line" x1="420" y1="130" x2="300" y2="430"/>
-            <text class="lbl" x="338" y="296">WRG</text>
-          </g>
+          <!-- WRG: Bauart wechselt pro Runde (PWT / Rotor / KVS), per JS gefüllt -->
+          <g id="gWrg"></g>
           <!-- Erhitzer -->
           <g>
             <rect class="comp" x="450" y="352" width="44" height="56" style="fill:rgba(239,68,68,.08)"/>
+            <line class="comp-line" x1="450" y1="408" x2="494" y2="352"/>
             <text class="lbl" x="465" y="386" style="fill:#fca5a5;font-size:18px">+</text>
             <line class="comp-line" x1="462" y1="408" x2="462" y2="452"/>
             <line class="comp-line" x1="482" y1="408" x2="482" y2="468"/>
@@ -218,6 +214,7 @@ footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-
           <!-- Kühler -->
           <g>
             <rect class="comp" x="588" y="352" width="44" height="56" style="fill:rgba(56,189,248,.07)"/>
+            <line class="comp-line" x1="588" y1="408" x2="632" y2="352"/>
             <text class="lbl" x="603" y="387" style="fill:#7dd3fc;font-size:18px">−</text>
             <path class="comp-line" d="M592 412 h36 v8 q0 6 -6 6 q-6 0 -6 -6 v-3"/>
             <text class="lbl-sm" x="585" y="444">Siphon</text>
@@ -231,22 +228,22 @@ footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-
             <circle class="zone-dot" cx="684" cy="364" r="1.6"/><circle class="zone-dot" cx="698" cy="364" r="1.6"/><circle class="zone-dot" cx="712" cy="364" r="1.6"/>
             <text class="lbl-sm" x="676" y="342">Dampf</text>
           </g>
-          <!-- Ventilator ZUL -->
+          <!-- Ventilator ZUL (SIA 410: Kreis + Dreieck in Strömungsrichtung) -->
           <g>
             <circle class="comp" cx="770" cy="380" r="26"/>
-            <path class="comp-line" d="M770 380 L788 366 M770 380 L752 366 M770 380 L770 404"/>
+            <polygon class="comp-line" points="758,369 758,391 784,380"/>
             <text class="lbl-sm" x="758" y="424">VZUL</text>
           </g>
-          <!-- Filter ABL -->
+          <!-- Filter ABL (SIA 410: Rechteck + Diagonale) -->
           <g>
             <rect class="comp" x="888" y="154" width="40" height="52"/>
-            <path class="comp-line" d="M894 160 L922 166 L894 174 L922 180 L894 188 L922 194 L894 200"/>
+            <line class="comp-line" x1="888" y1="206" x2="928" y2="154"/>
             <text class="lbl-sm" x="894" y="148">F5</text>
           </g>
           <!-- Ventilator ABL -->
           <g>
             <circle class="comp" cx="212" cy="180" r="26"/>
-            <path class="comp-line" d="M212 180 L230 166 M212 180 L194 166 M212 180 L212 204"/>
+            <polygon class="comp-line" points="224,169 224,191 198,180"/>
             <text class="lbl-sm" x="198" y="224">VABL</text>
           </g>
           <!-- Raum -->
@@ -593,6 +590,34 @@ ZONES.forEach(z => {
   gZones.appendChild(t);
 });
 
+/* ---------- WRG-Bauart (wechselt pro Runde): PWT / Rotor / KVS, Symbole n. SIA 410 ---------- */
+function renderWrg(type){
+  let h = '';
+  if (type === 'rotor'){
+    h = '<rect class="comp" x="332" y="130" width="56" height="300"/>' +
+        '<line class="comp-line" x1="332" y1="280" x2="388" y2="280"/>' +
+        '<path class="comp-line" d="M 344 158 A 36 20 0 0 1 376 158"/>' +
+        '<line class="comp-line" x1="360" y1="430" x2="360" y2="438"/>' +
+        '<circle class="comp" cx="360" cy="446" r="8"/>' +
+        '<text class="lbl-sm" x="326" y="122">Rotations-WT</text>';
+  } else if (type === 'kvs'){
+    h = '<rect class="comp" x="330" y="154" width="36" height="52"/><line class="comp-line" x1="330" y1="206" x2="366" y2="154"/>' +
+        '<rect class="comp" x="330" y="354" width="36" height="52"/><line class="comp-line" x1="330" y1="406" x2="366" y2="354"/>' +
+        '<line class="comp-line" x1="380" y1="198" x2="380" y2="366"/>' +
+        '<line class="comp-line" x1="394" y1="190" x2="394" y2="374"/>' +
+        '<line class="comp-line" x1="366" y1="198" x2="380" y2="198"/><line class="comp-line" x1="366" y1="190" x2="394" y2="190"/>' +
+        '<line class="comp-line" x1="366" y1="366" x2="380" y2="366"/><line class="comp-line" x1="366" y1="374" x2="394" y2="374"/>' +
+        '<circle class="comp" cx="380" cy="288" r="7"/><polygon points="377,284 377,292 385,288" fill="#94a3b8"/>' +
+        '<text class="lbl-sm" x="334" y="146">KVS-WRG</text>';
+  } else {
+    h = '<rect class="comp" x="300" y="130" width="120" height="300"/>' +
+        '<line class="comp-line" x1="300" y1="130" x2="420" y2="430"/>' +
+        '<line class="comp-line" x1="420" y1="130" x2="300" y2="430"/>' +
+        '<text class="lbl" x="326" y="296" style="font-size:12px">Platten-WT</text>';
+  }
+  document.getElementById('gWrg').innerHTML = h;
+}
+
 /* ---------- Runden-Logik ---------- */
 let round = null;     // {mode, scenario|sequence, ...}
 let prog = null;      // place: {status:{devId:'open'|'ok'|'no-pending'|'rev'}, firstTry:{}, t0:{}}
@@ -624,6 +649,7 @@ function newRound(){
     }
   }
   round.__due = fromDue;
+  renderWrg(['pwt', 'rotor', 'kvs'][seed % 3]);
   $('fb').className = 'feedback'; $('fb').innerHTML = '';
   gPlaced.innerHTML = '';
   document.querySelectorAll('.zone-c').forEach(c => c.classList.remove('target-pulse'));
