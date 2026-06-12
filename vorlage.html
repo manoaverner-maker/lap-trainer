@@ -75,8 +75,15 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .formel-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
 .formel-list li{padding:13px 16px;background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1);font-size:.92rem;line-height:1.5;transition:border-color .2s ease,transform .2s ease}
 .formel-list li:hover{border-color:var(--glass-top);transform:translateY(-1px)}
-.formel-list .fsym{font-weight:700}
-.formel-list .fnote{display:block;color:var(--mut2);font-size:.82rem;margin-top:5px;line-height:1.45}
+.formel-list .fsym,.formel-list .key{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",Cambria,"Times New Roman",Georgia,serif}
+.formel-list .fsym{font-weight:600;font-size:1.07rem;letter-spacing:.01em}
+.formel-list li{align-items:center}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .3em;text-align:center;line-height:1.16}
+.frac-n{padding:0 .5em .03em}
+.frac-d{padding:.05em .5em 0;border-top:1.6px solid currentColor}
+.formel-list .fsym sub,.formel-list .key sub{font-size:.7em;vertical-align:-.28em;line-height:0}
+.formel-list .fsym sup,.formel-list .key sup{font-size:.7em;vertical-align:.5em;line-height:0}
+.formel-list .fnote{display:block;color:var(--mut2);font-size:.82rem;margin-top:7px;line-height:1.45;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 .beispiel{margin-top:18px;background:rgba(56,189,248,.1);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(56,189,248,.4);border-top:1px solid rgba(125,211,252,.55);border-radius:14px;padding:13px 16px;font-size:.9rem;line-height:1.55;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
 .bauteil-formel{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;padding:13px 16px;font-size:.92rem;line-height:1.5;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -920,9 +927,9 @@ const FORMEL_DATA = [
     norm: '—',
     items: [
       { sym: 'ρ_Luft', val: '1.20 kg/m³', note: 'bei 20 °C / 1013 mbar (Normzustand)' },
-      { sym: 'ρ_Luft', val: '1.13 kg/m³', note: 'bei 20 °C / 955 mbar (Bern/Zürich-Höhe) ← LAP-Aufgaben!' },
+      { sym: 'ρ_Luft', val: '1.15 kg/m³', note: 'bei 20 °C, Höhenlage Zürich ← LAP-Aufgaben!' },
       { sym: 'c_p Luft', val: '1.006 kJ/(kg·K)', note: 'spez. Wärmekapazität trockene Luft' },
-      { sym: 'c_W Wasser', val: '4.19 kJ/(kg·K)', note: 'spez. Wärmekapazität Wasser' },
+      { sym: 'c_W Wasser', val: '4.17 kJ/(kg·K)', note: 'spez. Wärmekapazität Wasser' },
       { sym: 'r Wasser', val: '2500 kJ/kg', note: 'Verdampfungswärme bei 0 °C' },
       { sym: 'ρ·c_p', val: '0.34 Wh/(m³·K)', note: '← Schlüsselzahl! Q[W] = V̇[m³/h] · 0.34 · ΔT[K]' },
       { sym: 'v Hauptkanal', val: '4–6 m/s', note: 'Richtwert Kanalauslegung' },
@@ -937,7 +944,7 @@ const FORMEL_DATA = [
     norm: 'SIA 2024, SIA 382/1',
     items: [
       { sym: 'V̇ = A · w', val: '[m³/s]', note: '× 3600 → m³/h' },
-      { sym: 'n = V̇ / V_Raum', val: '[1/h]', note: 'Luftwechsel' },
+      { sym: 'n = frac{V̇}{V_Raum}', val: '[1/h]', note: 'Luftwechsel' },
       { sym: 'V̇ = n_Pers · v̇_Pers', val: '[m³/h]', note: 'personenbezogen nach SIA 2024' },
       { sym: 'V̇ = A_Raum · v̇_Fläche', val: '[m³/h]', note: 'flächenbezogen' },
       { sym: 'Massgebend', val: 'MAX(Person, Fläche, LW)', note: 'immer den grössten Wert nehmen!' },
@@ -949,8 +956,8 @@ const FORMEL_DATA = [
     intro: 'Aussenluftmenge aus CO₂-Bilanz — typische Prüfungsaufgabe.',
     norm: 'SIA 382/1, SIA 2024',
     items: [
-      { sym: 'V̇_AU = V̇_CO₂ / (c_i − c_a)', val: '[m³/h pro Person]', note: 'Aussenluftbedarf' },
-      { sym: 'V̇_CO₂', val: '≈ 20 l/h pro Person', note: 'sitzende Tätigkeit (leichte Arbeit)' },
+      { sym: 'V̇_AU = frac{V̇_CO2}{c_i − c_a}', val: '[m³/h pro Person]', note: 'Aussenluftbedarf' },
+      { sym: 'V̇_CO2', val: '≈ 20 l/h pro Person', note: 'sitzende Tätigkeit (leichte Arbeit)' },
       { sym: 'c_a', val: '≈ 400 ppm', note: 'CO₂-Konzentration Aussenluft' },
       { sym: 'c_i', val: 'z.B. 1000 ppm', note: 'Sollwert Innenraum (SIA: Stufe II)' },
       { sym: 'Einheiten', val: 'ppm = ml/m³', note: 'konsistent halten!' },
@@ -964,7 +971,7 @@ const FORMEL_DATA = [
     items: [
       { sym: 'Q̇ = V̇ · ρ · c_p · ΔT', val: '[kW]', note: 'allgemeine Form' },
       { sym: 'Q̇ [W] = V̇ [m³/h] · 0.34 · ΔT [K]', val: '← Kurzform!', note: 'mit ρ·c_p = 0.34 Wh/(m³·K)' },
-      { sym: 'ϑ_m = (V̇₁·ϑ₁ + V̇₂·ϑ₂) / (V̇₁+V̇₂)', val: '[°C]', note: 'Mischlufttemperatur' },
+      { sym: 'ϑ_m = frac{V̇₁·ϑ₁ + V̇₂·ϑ₂}{V̇₁+V̇₂}', val: '[°C]', note: 'Mischlufttemperatur' },
     ],
     beispiel: 'V̇ = 3600 m³/h, T_ZUL = 22°C, T_ABL = 26°C → Q̇ = 3600 · 0.34 · 4 = 4896 W ≈ 4.9 kW'
   },
@@ -978,7 +985,7 @@ const FORMEL_DATA = [
       { sym: 'Dampfbefeuchtung', val: 'ϑ ≈ konst., x↑', note: 'isotherm' },
       { sym: 'Adiabat. Befeuchtung', val: 'h ≈ konst., ϑ↓, x↑', note: 'isenthalp' },
       { sym: 'Kühlen + Entfeuchten', val: 'unter Taupunkt: x↓', note: 'Kondensat entsteht' },
-      { sym: 'Kondensat', val: 'ṁ_K = V̇·ρ·(x_ein−x_aus)/1000', val2: '[l/h]', note: 'Siphon dimensionieren!' },
+      { sym: 'Kondensat', val: 'ṁ_K = frac{V̇·ρ·(x_ein−x_aus)}{1000}', val2: '[l/h]', note: 'Siphon dimensionieren!' },
     ],
     beispiel: 'x = 8 g/kg, ϑ = 20°C → h = 1.006·20 + 0.008·(2500+1.86·20) = 20.12 + 20.30 = 40.4 kJ/kg'
   },
@@ -987,12 +994,12 @@ const FORMEL_DATA = [
     intro: 'Systemwiderstand im Kanalnetz — massgebend für Ventilatorwahl.',
     norm: 'SIA 382/1',
     items: [
-      { sym: 'p_dyn = ρ/2 · w²', val: '[Pa]', note: 'dynamischer Druck' },
-      { sym: 'Δp_R = λ · (l/d) · ρ/2 · w²', val: '[Pa]', note: 'Reibungsverlust' },
-      { sym: 'Δp_E = ζ · ρ/2 · w²', val: '[Pa]', note: 'Einzelwiderstand (Bögen, T-Stücke, etc.)' },
+      { sym: 'p_dyn = frac{ρ}{2} · w²', val: '[Pa]', note: 'dynamischer Druck' },
+      { sym: 'Δp_R = λ · frac{l}{d} · frac{ρ}{2} · w²', val: '[Pa]', note: 'Reibungsverlust' },
+      { sym: 'Δp_E = ζ · frac{ρ}{2} · w²', val: '[Pa]', note: 'Einzelwiderstand (Bögen, T-Stücke, etc.)' },
       { sym: 'Δp_ges = ΣΔp_R + ΣΔp_E', val: '[Pa]', note: 'Gesamtwiderstand ungünstigster Strang' },
-      { sym: 'd_h = 2ab/(a+b)', val: '[m]', note: 'hydraulischer Durchmesser Rechteckkanal' },
-      { sym: 'Re = w·d/ν', val: '[-]', note: 'turbulent ab Re > 2300, ν_Luft ≈ 15·10⁻⁶ m²/s' },
+      { sym: 'd_h = frac{2ab}{a+b}', val: '[m]', note: 'hydraulischer Durchmesser Rechteckkanal' },
+      { sym: 'Re = frac{w·d}{ν}', val: '[-]', note: 'turbulent ab Re > 2300, ν_Luft ≈ 15·10⁻⁶ m²/s' },
       { sym: 'Δp ~ V̇²', val: '', note: 'Systemkennlinie (quadratisch!)' },
     ],
     beispiel: 'v = 4 m/s, ρ = 1.2 kg/m³ → p_dyn = 1.2/2 · 16 = 9.6 Pa; Bogen ζ=0.3 → Δp_E = 0.3·9.6 = 2.9 Pa'
@@ -1002,12 +1009,12 @@ const FORMEL_DATA = [
     intro: 'Leistung, Effizienz und Ähnlichkeitsgesetze — häufige Prüfungsthemen.',
     norm: 'SIA 382/1, EN ISO 5801',
     items: [
-      { sym: 'P = V̇ · Δp_t / η', val: '[W]', note: 'V̇ in m³/s, Δp_t in Pa' },
-      { sym: 'SFP = P_el / V̇', val: '[W·s/m³]', note: 'SIA 382/1: ZUL+ABL ≤ 1250 W·s/m³' },
+      { sym: 'P = V̇ · frac{Δp_t}{η}', val: '[W]', note: 'V̇ in m³/s, Δp_t in Pa' },
+      { sym: 'SFP = frac{P_el}{V̇}', val: '[W·s/m³]', note: 'SIA 382/1: ZUL+ABL ≤ 1250 W·s/m³' },
       { sym: 'V̇ ∝ n', val: '', note: 'Ähnlichkeitsgesetz Volumenstrom ∝ Drehzahl' },
       { sym: 'Δp ∝ n²', val: '', note: 'Druck ∝ Drehzahl²' },
       { sym: 'P ∝ n³', val: '', note: 'Leistung ∝ Drehzahl³ ← Energiesparpotenzial!' },
-      { sym: 'h_S = Δp/(ρ_W·g)·1000·1.5', val: '[mm]', note: 'Siphonhöhe (Faktor 1.5 = Sicherheit)' },
+      { sym: 'h_S = frac{Δp}{ρ_W·g}·1000·1.5', val: '[mm]', note: 'Siphonhöhe (Faktor 1.5 = Sicherheit)' },
     ],
     beispiel: 'Drehzahl von 1000 auf 800 U/min → V̇: ×0.8, Δp: ×0.64, P: ×0.512 → Energieeinsparung 48.8%!'
   },
@@ -1016,7 +1023,7 @@ const FORMEL_DATA = [
     intro: 'Rückwärmzahl und zurückgewonnene Energie.',
     norm: 'SIA 382/1, SWKI VA300-01, EN 308',
     items: [
-      { sym: 'φ = (ϑ_ZUL − ϑ_AUL) / (ϑ_ABL − ϑ_AUL)', val: '[-]', note: 'Temperatur-Rückwärmzahl' },
+      { sym: 'φ = frac{ϑ_ZUL − ϑ_AUL}{ϑ_ABL − ϑ_AUL}', val: '[-]', note: 'Temperatur-Rückwärmzahl' },
       { sym: 'Q̇_WRG = V̇ · ρ · c_p · φ · (ϑ_ABL − ϑ_AUL)', val: '[kW]', note: 'rückgewonnene Leistung' },
       { sym: 'Rotation', val: 'φ = 75–85%', note: 'Feuchteübertragung möglich, nicht für Küche/Labor' },
       { sym: 'Platte Kreuzstrom', val: 'φ = 50–65%', note: 'kein Feuchtetransfer, hygienisch sicher' },
@@ -1031,20 +1038,20 @@ const FORMEL_DATA = [
     norm: 'SIA 382/1, EN 60534',
     items: [
       { sym: 'Q̇ = ṁ_W · c_W · Δϑ_W', val: '[kW]', note: 'Wärmeleistung Wasser' },
-      { sym: 'ṁ_W = Q̇ / (c_W · Δϑ_W)', val: '[kg/s]', note: 'Massenstrom Wasser' },
-      { sym: 'KVS = V̇_W / √Δp', val: '[m³/h bei Δp=1 bar]', note: 'Ventilkennwert' },
-      { sym: 'P_v = Δp_Ventil / Δp_System', val: '≥ 0.3', note: 'Ventilautorität — bei <0.3: schlechte Regelung' },
+      { sym: 'ṁ_W = frac{Q̇}{c_W · Δϑ_W}', val: '[kg/s]', note: 'Massenstrom Wasser' },
+      { sym: 'KVS = frac{V̇_W}{√Δp}', val: '[m³/h bei Δp=1 bar]', note: 'Ventilkennwert' },
+      { sym: 'P_v = frac{Δp_Ventil}{Δp_System}', val: '≥ 0.3', note: 'Ventilautorität — bei <0.3: schlechte Regelung' },
       { sym: 'Spreizung Heizreg.', val: '70/50°C oder 60/40°C', note: 'Vorlauf/Rücklauf' },
       { sym: 'Spreizung Kühlreg.', val: '6/12°C', note: 'Vorlauf/Rücklauf (Kaltwasser)' },
     ],
-    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.19·10) = 0.239 kg/s = 0.239 l/s = 860 l/h = 0.86 m³/h'
+    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.17·10) = 0.240 kg/s = 0.240 l/s = 863 l/h = 0.86 m³/h'
   },
   {
     id: 'schall', name: 'Schall & Akustik',
     intro: 'Pegeladdition und Schalldämpfung — Einheiten in dB immer logarithmisch!',
     norm: 'SIA 181, EN ISO 7235',
     items: [
-      { sym: 'L_ges = 10·log(Σ 10^(Li/10))', val: '[dB]', note: 'energetische Addition' },
+      { sym: 'L_ges = 10·log(Σ 10^{Li/10})', val: '[dB]', note: 'energetische Addition' },
       { sym: '2 gleiche Quellen', val: '+3 dB', note: 'z.B. 2× 60 dB → 63 dB' },
       { sym: '10 gleiche Quellen', val: '+10 dB', note: 'z.B. 10× 60 dB → 70 dB' },
       { sym: 'D_e = L_vor − L_nach', val: '[dB]', note: 'Einfügungsdämpfung Schalldämpfer' },
@@ -1057,7 +1064,7 @@ const FORMEL_DATA = [
     intro: 'Siphon bei Unterdruckgeräten (Kühler, Befeuchter) zwingend!',
     norm: 'SIA 382/1',
     items: [
-      { sym: 'h_S = Δp_stat / (ρ_W · g) · 1000 · 1.5', val: '[mm WS]', note: 'Siphonhöhe' },
+      { sym: 'h_S = frac{Δp_stat}{ρ_W · g} · 1000 · 1.5', val: '[mm WS]', note: 'Siphonhöhe' },
       { sym: 'Faktor 1.5', val: 'Sicherheitsfaktor', note: 'immer einrechnen' },
       { sym: 'ρ_W', val: '1000 kg/m³', note: 'Dichte Wasser' },
       { sym: 'g', val: '9.81 m/s²', note: 'Erdbeschleunigung' },
@@ -1066,15 +1073,50 @@ const FORMEL_DATA = [
     beispiel: 'Δp_stat = 300 Pa → h_S = 300/(1000·9.81)·1000·1.5 = 45.9 mm → mind. 50 mm Siphon verwenden'
   },
 ];
+/* Formel-Renderer: frac{Zähler}{Nenner} → Bruchstrich, _x/_{…} → Index, ^x/^{…} → Hochzahl */
+function fmtFormula(src){
+  src = String(src == null ? '' : src);
+  function subsup(t){
+    t = esc(t);
+    t = t.replace(/_\{([^}]*)\}/g, (m, g) => '<sub>' + g + '</sub>');
+    t = t.replace(/_([A-Za-z0-9ßäöüÄÖÜ]+)/g, (m, g) => '<sub>' + g + '</sub>');
+    t = t.replace(/\^\{([^}]*)\}/g, (m, g) => '<sup>' + g + '</sup>');
+    t = t.replace(/\^([A-Za-z0-9.]+)/g, (m, g) => '<sup>' + g + '</sup>');
+    return t;
+  }
+  function readBrace(s, p){ // s[p] === '{'
+    let d = 0;
+    for (let i = p; i < s.length; i++){
+      if (s[i] === '{') d++;
+      else if (s[i] === '}'){ d--; if (d === 0) return [s.slice(p + 1, i), i + 1]; }
+    }
+    return [s.slice(p + 1), s.length];
+  }
+  function build(s){
+    let out = '', i = 0;
+    while (i < s.length){
+      const j = s.indexOf('frac{', i);
+      if (j === -1){ out += subsup(s.slice(i)); break; }
+      out += subsup(s.slice(i, j));
+      const [num, a] = readBrace(s, j + 4);
+      let den = '', b = a;
+      if (s[a] === '{'){ [den, b] = readBrace(s, a); }
+      out += '<span class="frac"><span class="frac-n">' + build(num) + '</span><span class="frac-d">' + build(den) + '</span></span>';
+      i = b;
+    }
+    return out;
+  }
+  return build(src);
+}
 function renderFormel(){
   const f = FORMEL_DATA.find(x => x.id === $('formelSelect').value);
   const box = $('formelBody');
   if (!f){ box.innerHTML = '<div class="empty">Wähle oben eine Kategorie, um Formelzeichen, Beispielrechnung und Normen zu sehen.</div>'; return; }
   const rows = f.items.map(it => {
-    const val  = it.val  ? ` <span class="key">${esc(it.val)}</span>`  : '';
-    const val2 = it.val2 ? ` <span class="key">${esc(it.val2)}</span>` : '';
+    const val  = it.val  ? ` <span class="key">${fmtFormula(it.val)}</span>`  : '';
+    const val2 = it.val2 ? ` <span class="key">${fmtFormula(it.val2)}</span>` : '';
     const note = it.note ? `<span class="fnote">${esc(it.note)}</span>` : '';
-    return `<li><span class="fsym">${esc(it.sym)}</span>${val}${val2}${note}</li>`;
+    return `<li><span class="fsym">${fmtFormula(it.sym)}</span>${val}${val2}${note}</li>`;
   }).join('');
   const normBadge = (f.norm && f.norm !== '—') ? `<span class="badge p-norm">${esc(f.norm)}</span>` : '';
   box.innerHTML =
