@@ -249,7 +249,10 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .acc .acc-body{padding:2px 16px 16px;animation:accIn .25s ease}
 @keyframes accIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .falle{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:.92rem;line-height:1.5}
-.falle li{padding-left:22px;position:relative}
+.falle li{padding-left:22px;position:relative;display:flex;justify-content:space-between;gap:14px;align-items:baseline}
+.falle li>span:first-child{flex:1 1 auto;min-width:0}
+.qsrc{flex:0 0 auto;color:var(--mut2);font-size:.76rem;text-align:right}
+.qsrc .flink{color:var(--mut2)}
 .falle li::before{content:'⚠';position:absolute;left:0;color:var(--warn);font-size:.85rem}
 .flist{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
 .flist li{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
@@ -351,10 +354,10 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
       </div>
     </div>
     <div class="legend">
-      <span><i style="background:#bae6fd"></i>Aussenluft AUL</span>
-      <span><i style="background:#38bdf8"></i>Zuluft ZUL</span>
-      <span><i style="background:#86efac"></i>Abluft ABL</span>
-      <span><i style="background:#94a3b8"></i>Fortluft FOL</span>
+      <span><i style="background:#4ade80"></i>Aussenluft AUL</span>
+      <span><i style="background:#f87171"></i>Zuluft ZUL</span>
+      <span><i style="background:#fbbf24"></i>Abluft ABL</span>
+      <span><i style="background:#cd853f"></i>Fortluft FOL</span>
       <span><i style="background:#f87171"></i>Heizung VL</span>
       <span><i style="background:#60a5fa"></i>RL / Kaltwasser</span>
       <span><i style="background:#e879f9"></i>Regulierung</span>
@@ -426,57 +429,123 @@ const BT_CATS = {
 const BT_DATA = [
   { id: 'buero', name: 'Büro', cat: 'wohnen', folder: 'Buero', schemaVar: 'v2',
     kenn: { proPers: '29', proM2: '2.1 Büro · 2.9 Grossraum · 9.7 Sitzungszimmer', zulTemp: '≈ 16–21 (Kühl-ΔT über Luft max. 8–10 K)', raumTemp: '21 / 26 · rF 30–60 %', ueber: 'Kaskade Büro → Korridor → WC-Zonen', norm: 'SIA 2024 (3.01–3.03) · SIA 382/1 · SWKI VA104-01', schall: '28 dB(A) Einzelbüro · 33 Grossraum/Sitzung', lw: 'VAV CO₂/Präsenz · Quickcheck 36-m²-Büro ≈ 80 m³/h' },
-    fallen: ['28 dB(A) im Einzelbüro → Schalldämpfer + tiefe Kanalgeschwindigkeit (Haupt ~5–7, Anschluss ~3 m/s)', 'Innere Lasten (Personen 84 W/P + IT + Licht) dominieren die Kühllast – nicht die Lüftung', 'Kühlung über Luft begrenzt (ΔT ~8–10 K) → grosse Lasten über TABS/Kühldecke', 'Sitzungszimmer: Faktor 4 höhere Personendichte → VAV mit CO₂-/Präsenzregelung', 'Überström-/Nachströmkonzept, BSK an Brandabschnitten, Steigzonen-Schottung', 'Zugluft am Arbeitsplatz: Auslasswahl, Wurfweite, Coanda-Effekt'],
+    fallen: [
+      { t: '28 dB(A) im Einzelbüro → Schalldämpfer + tiefe Kanalgeschwindigkeit (Haupt ~5–7, Anschluss ~3 m/s)', q: 'SIA 2024, Bl. 3.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Innere Lasten (Personen 84 W/P + IT + Licht) dominieren die Kühllast – nicht die Lüftung', q: 'SIA 2024, Bl. 3.01–3.03', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Kühlung über Luft begrenzt (ΔT ~8–10 K) → grosse Lasten über TABS/Kühldecke', q: 'SIA 382/1' },
+      { t: 'Sitzungszimmer: Faktor 4 höhere Personendichte → VAV mit CO₂-/Präsenzregelung', q: 'SIA 2024, Bl. 3.03', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Überström-/Nachströmkonzept, BSK an Brandabschnitten, Steigzonen-Schottung', q: 'VKF 25-15' },
+      { t: 'Zugluft am Arbeitsplatz: Auslasswahl, Wurfweite, Coanda-Effekt', q: 'SIA 382/1' }],
     src: 'Quelle: Steckbrief Büro · SIA 2024:2021 Blätter 3.01–3.03',
     files: ['00_Steckbrief_Buero.pdf', 'Norm/SIA_2024.pdf'] },
   { id: 'gastro', name: 'Gastronomie / Küche', cat: 'gewerbe', folder: 'Gastronomie_Kueche', schemaVar: 'v8',
     kenn: { proPers: '29 Restaurant · 48 Küche', proM2: '14.5 Restaurant · 9.7 + 80 Prozessluft Küche', zulTemp: 'zugfrei – darf Erfassung der Hauben nicht stören', raumTemp: '21/26 Rest. · 20/28 Küche · rF bis 70 %', ueber: 'Küche im Unterdruck zum Gastraum (Geruch!)', norm: 'SWKI VA102-01 (massgebend) · SIA 2024 (6.01–6.04) · LRV', schall: '– (SIA 2024 Blatt 6.01 prüfen)', lw: 'Küche über Kochgeräte n. VA102-01 → Excel-Tool 02_Berechnungen' },
-    fallen: ['Fettabluftkanal: nichtbrennbar, dicht, Reinigungsöffnungen, eigene Abschottung – BSK in Fettabluft = Spezialausführung', 'Erfassung an der Quelle: Haube/Lüftungsdecke mit flammendurchschlagsicheren Fettabscheidern', 'WRG bei fettbelasteter Abluft: geeignete Systeme (z. B. KVS), Reinigbarkeit/Bypass', 'Gastraum 14.5 m³/(m²·h) ist sehr viel → VAV nach Belegung', 'Küche Sommer 28 °C zulässig – keine Vollklimatisierung nötig', 'Fortluft über Dach: LRV/Geruch zur Nachbarschaft, kurze Fettabluftwege'],
+    fallen: [
+      { t: 'Fettabluftkanal: nichtbrennbar, dicht, Reinigungsöffnungen, eigene Abschottung – BSK in Fettabluft = Spezialausführung', q: 'SWKI VA102-01', file: 'Norm/SWKI VA102-01 Raumlufttechnische Anlagen in Gastwirtschaftsbetrieben.pdf' },
+      { t: 'Erfassung an der Quelle: Haube/Lüftungsdecke mit flammendurchschlagsicheren Fettabscheidern', q: 'SWKI VA102-01', file: 'Norm/SWKI VA102-01 Raumlufttechnische Anlagen in Gastwirtschaftsbetrieben.pdf' },
+      { t: 'WRG bei fettbelasteter Abluft: geeignete Systeme (z. B. KVS), Reinigbarkeit/Bypass', q: 'SWKI VA102-01', file: 'Norm/SWKI VA102-01 Raumlufttechnische Anlagen in Gastwirtschaftsbetrieben.pdf' },
+      { t: 'Gastraum 14.5 m³/(m²·h) ist sehr viel → VAV nach Belegung', q: 'SIA 2024, Bl. 6.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Küche Sommer 28 °C zulässig – keine Vollklimatisierung nötig', q: 'SIA 2024, Bl. 6.03', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Fortluft über Dach: LRV/Geruch zur Nachbarschaft, kurze Fettabluftwege', q: 'LRV' }],
     src: 'Quelle: Steckbrief Gastronomie/Küche · SWKI VA102-01 · SIA 2024 (6.01/6.03)',
     files: ['00_Steckbrief_Gastronomie_Kueche.pdf', 'Norm/SWKI VA102-01 Raumlufttechnische Anlagen in Gastwirtschaftsbetrieben.pdf', 'Norm/SWKI_VA_102_01_Restaurant.pdf', 'Norm/SIA_2024.pdf'] },
   { id: 'hallenbad', name: 'Hallenbad', cat: 'wasser', folder: 'Hallenbad', schemaVar: 'v7',
     kenn: { proPers: '– (Entfeuchtung massgebend, nicht Personen)', proM2: 'Garderobe/Dusche 20 (SIA 2024 12.08)', zulTemp: 'Zuluft entlang Glasfassade von unten (Kondensat!)', raumTemp: 'Wassertemp. + 2 K, max. ~34 °C · rF 50–64 %', ueber: 'Halle im Unterdruck zu Nebenräumen (Chloramine)', norm: 'SWKI 2004-1 · VDI 2089 Blatt 1 · SIA 382/1', schall: '– (Korrosion/Feuchte dominieren die Planung)', lw: 'aus Verdunstung n. VDI 2089 (Becken, Temperaturen, Belegung)' },
-    fallen: ['Entfeuchtung ist massgebend – Verdunstungsmassenstrom nach VDI 2089 rechnen, nicht Luftwechsel raten', 'Korrosion: kein blankes Zink/Alu; Edelstahl nur geeignete Qualität (Spannungsrisskorrosion!), Kanäle PP/PVC/beschichtet', 'Kondensat an kalten Bauteilen/Wärmebrücken – Zuluft spült die Glasfassaden', 'Behaglichkeit am Beckenrand: zugfrei (nasse Haut!)', 'WRG zwingend (hohe Abluftenthalpie) · Betriebszustände Tag/Nacht, Abdeckung', 'Winter rF tiefer fahren (Kondensatrisiko Fassade) · Aufheizverhalten nach Revision'],
+    fallen: [
+      { t: 'Entfeuchtung ist massgebend – Verdunstungsmassenstrom nach VDI 2089 rechnen, nicht Luftwechsel raten', q: 'VDI 2089 Bl. 1', file: 'VDI_2089_Blatt_1.pdf' },
+      { t: 'Korrosion: kein blankes Zink/Alu; Edelstahl nur geeignete Qualität (Spannungsrisskorrosion!), Kanäle PP/PVC/beschichtet', q: 'SWKI 2004-1', file: 'Norm/SWKI_2004-1_Hallenbad.pdf' },
+      { t: 'Kondensat an kalten Bauteilen/Wärmebrücken – Zuluft spült die Glasfassaden', q: 'SWKI 2004-1', file: 'Norm/SWKI_2004-1_Hallenbad.pdf' },
+      { t: 'Behaglichkeit am Beckenrand: zugfrei (nasse Haut!)', q: 'SWKI 2004-1', file: 'Norm/SWKI_2004-1_Hallenbad.pdf' },
+      { t: 'WRG zwingend (hohe Abluftenthalpie) · Betriebszustände Tag/Nacht, Abdeckung', q: 'SWKI 2004-1', file: 'Norm/SWKI_2004-1_Hallenbad.pdf' },
+      { t: 'Winter rF tiefer fahren (Kondensatrisiko Fassade) · Aufheizverhalten nach Revision', q: 'SWKI 2004-1', file: 'Norm/SWKI_2004-1_Hallenbad.pdf' }],
     src: 'Quelle: Steckbrief Hallenbad · SWKI 2004-1 · VDI 2089 · Hallenbad_Berechnung.xlsx',
     files: ['00_Steckbrief_Hallenbad.pdf', 'Berechnung Schwimmbad.xlsx', 'Hallenbad_Berechnung.xlsx', '50-Meter-Schwimmhalle und Neu.pdf', '50-Meter-Schwimmhalle und Neu_A4.pdf', 'Raumlufttechnik-oeffentliche-Schwimmhallen.pdf', 'VDI_2089_Blatt_1.pdf', 'Norm/SWKI_2004-1_Hallenbad.pdf'] },
   { id: 'industrie', name: 'Industrie / Gewerbe', cat: 'gewerbe', folder: 'Industrie_Gewerbe', schemaVar: 'v4',
     kenn: { proPers: '– (prozess-/schadstoffbestimmt)', proM2: 'V̇ = Emission / (MAK − c_Zuluft) – SUVA-Werte', zulTemp: 'Winter vorwärmen (grosse Mengen → WRG prüfen)', raumTemp: 'prozessabhängig', ueber: 'Unterdruck vorsichtig: stört Prozesse & Feuerungen', norm: 'LRV · SWKI 91-1 · EN 1507 · SUVA-Grenzwerte · ggf. ATEX', schall: 'LSV-Nachweis Fortluft/Aussengeräte', lw: 'Quellabsaugung vor Hallenverdünnung (Erfassungsgrad!)' },
-    fallen: ['Ex-Schutz: ATEX-Zonen → ex-geschützte Ventilatoren/Komponenten, keine Zündquellen im Luftstrom', 'Luftmenge prozessbestimmt: Verdünnung V̇ = Emission/(MAK − c_Zu) – besser Quellabsaugung an der Entstehungsstelle', 'Unterdruck stört Prozesse und Feuerungen; Türen/Tore im Konzept berücksichtigen', 'Heizraum: Zu-/Abluftöffnungen nach SWKI 91-1 (Verbrennungsluft!)', 'WRG-Verschmutzung durch Öl-/Staubnebel → Wartungskonzept, evtl. KVS', 'Fortluft: LRV-konforme Abluftreinigung je Stoff, Ausblashöhe/-geschwindigkeit für Verdünnung'],
+    fallen: [
+      { t: 'Ex-Schutz: ATEX-Zonen → ex-geschützte Ventilatoren/Komponenten, keine Zündquellen im Luftstrom', q: 'ATEX (RL 2014/34/EU)' },
+      { t: 'Luftmenge prozessbestimmt: Verdünnung V̇ = Emission/(MAK − c_Zu) – besser Quellabsaugung an der Entstehungsstelle', q: 'SUVA MAK-Werte 2021' },
+      { t: 'Unterdruck stört Prozesse und Feuerungen; Türen/Tore im Konzept berücksichtigen', q: 'SWKI 91-1', file: 'Norm/SWKI 91-1 Heizraumbelueftung.pdf' },
+      { t: 'Heizraum: Zu-/Abluftöffnungen nach SWKI 91-1 (Verbrennungsluft!)', q: 'SWKI 91-1', file: 'Norm/SWKI 91-1 Heizraumbelueftung.pdf' },
+      { t: 'WRG-Verschmutzung durch Öl-/Staubnebel → Wartungskonzept, evtl. KVS', q: 'SIA 382/1' },
+      { t: 'Fortluft: LRV-konforme Abluftreinigung je Stoff, Ausblashöhe/-geschwindigkeit für Verdünnung', q: 'LRV', file: 'Norm/LRV - Kernpunkte.pdf' }],
     src: 'Quelle: Steckbrief Industrie/Gewerbe · LRV · SWKI 91-1 · SUVA',
     files: ['00_Steckbrief_Industrie_Gewerbe.pdf', 'Norm/SWKI 91-1 Heizraumbelueftung.pdf', 'Norm/LRV - Kernpunkte.pdf', 'Norm/EN 1507 - 2006-06-01.pdf'] },
   { id: 'parking', name: 'Parking / Garage', cat: 'verkehr', folder: 'Parking_Garage', schemaVar: 'v1',
     kenn: { proPers: '–', proM2: '2.0 prozessbedingt (SIA 2024 12.09)', zulTemp: '– (unbeheizt)', raumTemp: 'keine Anforderung (unbeheizt)', ueber: 'Nachströmung über Einfahrt/Fassadenöffnungen', norm: 'SWKI VA103-01 (massgebend) · VKF 25-15 · LRV', schall: 'LSV zur Nachbarschaft (Fortluft über Dach)', lw: 'CO-geführt mehrstufig/stufenlos (CO-/NO₂-Fühler zonenweise)' },
-    fallen: ['Betriebs- und Brandfall sauber trennen – zwei Nachweise!', 'Entrauchung nach VKF oft grösser dimensioniert als die Betriebslüftung; Brandfallsteuerung mit Feuerwehrbedienstelle', 'Brandgasventilatoren temperaturklassifiziert (z. B. F400), E/EI-Klappen statt normaler BSK', 'Jet-/Schubventilatoren (Impulslüftung): Strömungsnachweis statt Kanalnetz', 'CO-Anlage: Wartung/Kalibrierung, Alarmierung', 'Frostschutz bei offener Einfahrt · robuste Komponenten in befahrbaren Bereichen'],
+    fallen: [
+      { t: 'Betriebs- und Brandfall sauber trennen – zwei Nachweise!', q: 'SWKI VA103-01' },
+      { t: 'Entrauchung nach VKF oft grösser dimensioniert als die Betriebslüftung; Brandfallsteuerung mit Feuerwehrbedienstelle', q: 'VKF 25-15', file: 'Norm/VKF_25-15_Luftechnische_Anlagen.pdf' },
+      { t: 'Brandgasventilatoren temperaturklassifiziert (z. B. F400), E/EI-Klappen statt normaler BSK', q: 'VKF 25-15', file: 'Norm/VKF_25-15_Luftechnische_Anlagen.pdf' },
+      { t: 'Jet-/Schubventilatoren (Impulslüftung): Strömungsnachweis statt Kanalnetz', q: 'SWKI VA103-01' },
+      { t: 'CO-Anlage: Wartung/Kalibrierung, Alarmierung', q: 'SWKI VA103-01' },
+      { t: 'Frostschutz bei offener Einfahrt · robuste Komponenten in befahrbaren Bereichen', q: 'SWKI VA103-01' }],
     src: 'Quelle: Steckbrief Parking/Garage · SWKI VA103-01 · SIA 2024 Blatt 12.09 · VKF',
     files: ['00_Steckbrief_Parking_Garage.pdf', 'Norm/VKF_25-15_Luftechnische_Anlagen.pdf', 'Norm/LRV - Kernpunkte.pdf', 'Norm/SIA_2024.pdf', 'Norm/BSPUB-1394520214-57.pdf'] },
   { id: 'schule', name: 'Schule / Bildung', cat: 'bildung', folder: 'Schule_Bildung', schemaVar: 'v3',
     kenn: { proPers: '29', proM2: '7.3 Schulzimmer · 9.7 Hörsaal · 5.8 Fachraum', zulTemp: 'zugfrei einbringen (mehrere Auslässe, Wurfweite prüfen)', raumTemp: '21 / 26 · rF 30–60 %', ueber: 'Garderobe/WC konstante Abluft · Fachräume separat', norm: 'SIA 2024 (4.01–4.05) · SIA 382/1 · SWKI VA104-01', schall: '28 dB(A) Schulzimmer & Hörsaal', lw: 'CO₂ Leitgrösse ≤ 1000–1400 ppm · Quickcheck 25 P ≈ 725 m³/h' },
-    fallen: ['Hohe Personendichte schlägt Fläche: 25 × 29 = 725 m³/h massgebend (nicht 70 m² × 7.3 ≈ 510)', 'Spitzenbelegung vs. Teilnutzung → Regelstrategie im Fachgespräch zeigen!', '28 dB(A) bei 700+ m³/h → Schalldämpfer zwingend · Telefonieschall zwischen Zimmern', 'VAV CO₂-geführt + Zeitprogramm Stundenplan (Pausen = Stosslüftungsreserve)', 'Sommer: Nachtauskühlung über die Anlage einplanen', 'Turnhalle/Aula sind eigene Nutzungstypen (separate Nachweise)'],
+    fallen: [
+      { t: 'Hohe Personendichte schlägt Fläche: 25 × 29 = 725 m³/h massgebend (nicht 70 m² × 7.3 ≈ 510)', q: 'SIA 2024, Bl. 4.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Spitzenbelegung vs. Teilnutzung → Regelstrategie im Fachgespräch zeigen!', q: 'SIA 382/1' },
+      { t: '28 dB(A) bei 700+ m³/h → Schalldämpfer zwingend · Telefonieschall zwischen Zimmern', q: 'SIA 2024, Bl. 4.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'VAV CO₂-geführt + Zeitprogramm Stundenplan (Pausen = Stosslüftungsreserve)', q: 'SIA 382/1' },
+      { t: 'Sommer: Nachtauskühlung über die Anlage einplanen', q: 'SIA 382/1' },
+      { t: 'Turnhalle/Aula sind eigene Nutzungstypen (separate Nachweise)', q: 'SIA 2024, Bl. 11.01 / 7.01', file: 'Norm/SIA_2024.pdf' }],
     src: 'Quelle: Steckbrief Schule/Bildung · SIA 2024:2021 Blätter 4.01–4.05',
     files: ['00_Steckbrief_Schule_Bildung.pdf', 'Norm/SIA_2024.pdf'] },
   { id: 'spital', name: 'Spital / Medizin', cat: 'gesundheit', folder: 'Spital_Medizin', schemaVar: 'v6',
     kenn: { proPers: 'Betten ≈ 29 (wie Hotel, SIA 2024 2.01)', proM2: 'Betten 1.9 · OP/kritische Räume nach VA105-01', zulTemp: 'OP: TAV-Decke, konstante Volumenströme, Monitoring', raumTemp: 'raumklassenabhängig – Werte aus VA105-01 belegen!', ueber: 'Druckkaskade OP (+) → Schleuse → Flur (−)', norm: 'SWKI VA105-01 (massgebend) · SWKI 99-3 · VA104-01 · ISO 14644', schall: 'tiefe Werte in Patientenbereichen', lw: 'OP konstant · 3 Filterstufen, endständig HEPA H13' },
-    fallen: ['Raumklassen & Werte direkt aus VA105-01 belegen – nicht raten!', 'Druckhaltung bei Türöffnung / Schleusenlogik · Messnachweis bei Abnahme', 'Hygieneabnahme nach VA104/105 zusätzlich zur technischen Abnahme', 'Redundanz & Notstrom: Anlagenausfall = Betriebsausfall OP', 'Befeuchtung hygienisch (Dampf), keine Umlaufsprühbefeuchter in kritischen Bereichen', 'HEPA: Filterüberwachung (Δp), Wechselintervalle, Dichtsitzprüfung'],
+    fallen: [
+      { t: 'Raumklassen & Werte direkt aus VA105-01 belegen – nicht raten!', q: 'SWKI VA105-01', file: 'Norm/SWKI-VA105-01 medizinisch genutzte Räume.pdf' },
+      { t: 'Druckhaltung bei Türöffnung / Schleusenlogik · Messnachweis bei Abnahme', q: 'SWKI VA105-01', file: 'Norm/SWKI-VA105-01 medizinisch genutzte Räume.pdf' },
+      { t: 'Hygieneabnahme nach VA104/105 zusätzlich zur technischen Abnahme', q: 'SWKI VA104-01', file: 'Norm/SWKI VA 104-01 Hygiene-Anforderungen an Raumlufttechnische Anlagen und Geräte.pdf' },
+      { t: 'Redundanz & Notstrom: Anlagenausfall = Betriebsausfall OP', q: 'SWKI 99-3', file: 'Norm/SWKI-99-3_Spitalbauten.pdf' },
+      { t: 'Befeuchtung hygienisch (Dampf), keine Umlaufsprühbefeuchter in kritischen Bereichen', q: 'SWKI VA104-01', file: 'Norm/SWKI VA 104-01 Hygiene-Anforderungen an Raumlufttechnische Anlagen und Geräte.pdf' },
+      { t: 'HEPA: Filterüberwachung (Δp), Wechselintervalle, Dichtsitzprüfung', q: 'SWKI VA105-01', file: 'Norm/SWKI-VA105-01 medizinisch genutzte Räume.pdf' }],
     src: 'Quelle: Steckbrief Spital/Medizin · SWKI VA105-01 · SWKI 99-3',
     files: ['00_Steckbrief_Spital_Medizin.pdf', 'Norm/SWKI-99-3_Spitalbauten.pdf', 'Norm/SWKI-99-3-Beiblatt.pdf', 'Norm/SWKI VA 104-01 Hygiene-Anforderungen an Raumlufttechnische Anlagen und Geräte.pdf', 'Norm/SWKI-VA105-01 medizinisch genutzte Räume.pdf'] },
   { id: 'turnhalle', name: 'Turnhalle / Sport', cat: 'versammlung', folder: 'Turnhalle_Sport', schemaVar: 'v3',
     kenn: { proPers: '29 – aber met 4–6: deutlich mehr CO₂/Feuchte pro Person', proM2: 'Garderobe/Dusche 20 (12.08) – heimlicher Mengentreiber!', zulTemp: 'Weitwurfdüsen/Drallauslässe – zugfrei aufs Spielfeld', raumTemp: '17–20 (Sport)', ueber: 'Duschen separat abführen, Nachströmung aus Halle/Korridor', norm: 'SIA 2024 (11.01/11.02 + 12.08) · SIA 382/1 · DIN 18032-3', schall: 'moderat – aber Nachhall beachten', lw: 'VAV nach Belegung (Schulsport / Training / Anlass)' },
-    fallen: ['Anlassbetrieb mit Bestuhlung = Versammlungsnutzung → höhere Personenzahl, ggf. eigener Nachweis', 'Garderobe/Dusche 20 m³/(m²·h) (SIA 2024 12.08) nicht vergessen', 'Ballwurfsichere Gitter/Komponenten in Wurfhöhe (DIN 18032-3)', 'Duschen-Feuchte: Abluft direkt, kein Übertrag in die Halle (Kondensat/Korrosion)', 'Grosse Tore / schnelle Lastwechsel · Nachtauskühlung Sommer', 'Akustik: harte Oberflächen → Schallleistung der Auslässe kritisch'],
+    fallen: [
+      { t: 'Anlassbetrieb mit Bestuhlung = Versammlungsnutzung → höhere Personenzahl, ggf. eigener Nachweis', q: 'SIA 2024, Bl. 7.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Garderobe/Dusche 20 m³/(m²·h) (SIA 2024 12.08) nicht vergessen', q: 'SIA 2024, Bl. 12.08', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Ballwurfsichere Gitter/Komponenten in Wurfhöhe (DIN 18032-3)', q: 'DIN 18032-3' },
+      { t: 'Duschen-Feuchte: Abluft direkt, kein Übertrag in die Halle (Kondensat/Korrosion)', q: 'SIA 2024, Bl. 12.08', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Grosse Tore / schnelle Lastwechsel · Nachtauskühlung Sommer', q: 'SIA 382/1' },
+      { t: 'Akustik: harte Oberflächen → Schallleistung der Auslässe kritisch', q: 'SIA 382/1' }],
     src: 'Quelle: Steckbrief Turnhalle/Sport · SIA 2024 (11.01/12.08)',
     files: ['00_Steckbrief_Turnhalle_Sport.pdf', 'Norm/SIA_2024.pdf'] },
   { id: 'verkauf', name: 'Verkauf / Laden', cat: 'gewerbe', folder: 'Verkauf_Laden', schemaVar: 'v5',
     kenn: { proPers: '29', proM2: '3.6 Lebensmittel/Fachgeschäft · 1.9 Möbel/Bau/Garten', zulTemp: 'Mischlüftung über Deckenauslässe (flexibles Raster)', raumTemp: '20 / 26', ueber: 'Mall/Center: Druckverhältnisse Läden ↔ Mall klären', norm: 'SIA 2024 (5.01–5.03) · SIA 382/1 · SWKI VA104-01', schall: '33 dB(A)', lw: 'VAV nach Kundenfrequenz/CO₂ (Samstags-Spitzen)' },
-    fallen: ['Beleuchtungs- und Kühlmöbellasten dominieren die Kühllast', 'Lebensmittel: Kühlmöbel entfeuchten ↔ Lüftung koordinieren (hohe rF = Vereisung/Energie)', 'Backstation/Take-away: eigene Abluft nach Gastro-Regeln (Geruch/Fett)', 'Grosse Brandabschnitte → Entrauchung/Sprinkler/BSK-Positionen abstimmen (VKF)', 'Eingangszone: Infiltration → Türluftschleier/Windfang', 'Anlieferung/Lager separat (Abgase, Temperatur)'],
+    fallen: [
+      { t: 'Beleuchtungs- und Kühlmöbellasten dominieren die Kühllast', q: 'SIA 2024, Bl. 5.01–5.03', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Lebensmittel: Kühlmöbel entfeuchten ↔ Lüftung koordinieren (hohe rF = Vereisung/Energie)', q: 'SIA 2024, Bl. 5.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Backstation/Take-away: eigene Abluft nach Gastro-Regeln (Geruch/Fett)', q: 'SWKI VA102-01' },
+      { t: 'Grosse Brandabschnitte → Entrauchung/Sprinkler/BSK-Positionen abstimmen (VKF)', q: 'VKF 25-15' },
+      { t: 'Eingangszone: Infiltration → Türluftschleier/Windfang', q: 'SIA 382/1' },
+      { t: 'Anlieferung/Lager separat (Abgase, Temperatur)', q: 'SIA 382/1' }],
     src: 'Quelle: Steckbrief Verkauf/Laden · SIA 2024:2021 Blätter 5.01–5.03',
     files: ['00_Steckbrief_Verkauf_Laden.pdf', 'Konzeptskizze_Autoausstellhalle.pdf', 'Norm/SIA_2024.pdf'] },
   { id: 'versammlung', name: 'Versammlung / Saal', cat: 'versammlung', folder: 'Versammlung_Saal', schemaVar: 'v5',
     kenn: { proPers: '29', proM2: '9.7 (Personendichte 3 m²/P!)', zulTemp: 'Quelllüftung unter Sitzreihen, v ≤ 0.2 m/s', raumTemp: '21 / 26', ueber: 'Foyer als Nachström-/Pufferzone', norm: 'SIA 2024 (7.01) · SIA 382/1 · VKF (Entrauchung!)', schall: '28 dB(A) – bei tausenden m³/h!', lw: 'Quickcheck 300 m² / 100 P ≈ 3000 m³/h · VAV CO₂ + Szenarien' },
-    fallen: ['28 dB(A) bei grossen Mengen → grosse Querschnitte, tiefe Geschwindigkeiten, Schalldämpfer-Kaskade, Körperschall AHU', 'Personenwärme = Kühllast-Spitze (100 P ≈ 8.4 kW sensibel)', 'Entrauchung Versammlungsstätte nach VKF = separater Nachweis, nicht mit Komfortlüftung vermischen', 'Teilbelegung: CO₂-Trägheit → Präsenz-/Buchungssignal, Vorlauf vor Veranstaltung', 'Quell-/Verdrängungslüftung: Auslässe unter Sitzreihen/Stufen', 'Bühne/Technik ggf. separat (Scheinwerferlasten)'],
+    fallen: [
+      { t: '28 dB(A) bei grossen Mengen → grosse Querschnitte, tiefe Geschwindigkeiten, Schalldämpfer-Kaskade, Körperschall AHU', q: 'SIA 2024, Bl. 7.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Personenwärme = Kühllast-Spitze (100 P ≈ 8.4 kW sensibel)', q: 'SIA 2024, Bl. 7.01', file: 'Norm/SIA_2024.pdf' },
+      { t: 'Entrauchung Versammlungsstätte nach VKF = separater Nachweis, nicht mit Komfortlüftung vermischen', q: 'VKF 25-15' },
+      { t: 'Teilbelegung: CO₂-Trägheit → Präsenz-/Buchungssignal, Vorlauf vor Veranstaltung', q: 'SIA 382/1' },
+      { t: 'Quell-/Verdrängungslüftung: Auslässe unter Sitzreihen/Stufen', q: 'SIA 382/1' },
+      { t: 'Bühne/Technik ggf. separat (Scheinwerferlasten)', q: 'SIA 382/1' }],
     src: 'Quelle: Steckbrief Versammlung/Saal · SIA 2024:2021 Blatt 7.01',
     files: ['00_Steckbrief_Versammlung_Saal.pdf', 'Norm/SIA_2024.pdf'] },
   { id: 'wohnbau', name: 'Wohnbau', cat: 'wohnen', folder: 'Wohnbau', schemaVar: 'v3',
     kenn: { proPers: '29 · Zuluft nach Zimmern (Bsp. 4 Zi / 4 P = 115 m³/h)', proM2: '0.8 MFH · 0.6 EFH', zulTemp: 'nach WRG (Gegenstrom η ≈ 0.73 Standard / 0.78 Ziel)', raumTemp: '21 / 26 · rF 30/60 %', ueber: 'Kaskade: Zimmer → ÜS-Elemente → Küche/Bad/WC', norm: 'SIA 2023 · SIA 382/5 · 382/201/202 · SIA 2024 (1.01/1.02)', schall: '28 dB(A) Nachtruhe · SIA 181', lw: 'ABL Küche/Bad/WC-Du. je 40 m³/h · massgebend max(ZUL, ABL)' },
-    fallen: ['Massgebend = grösserer Wert ZUL/ABL (Norm-Beispiel: ABL 120 > ZUL 115 → 120 m³/h)', 'Überströmöffnungen nicht vergessen – dichte Türen = Konzept tot', 'Telefonieschall zwischen Wohnungen → Schalldämpfer pro Wohnung (SIA 181)', 'Steigschächte: BSK oder Abschottung nach VKF 25-15', 'Dunstabzug (Umluft/Abluft) nicht der Grundlüftung anrechnen · Cheminée: Unterdruck begrenzen!', 'Feuchteschutz: Grundlüftung auch bei Abwesenheit'],
+    fallen: [
+      { t: 'Massgebend = grösserer Wert ZUL/ABL (Norm-Beispiel: ABL 120 > ZUL 115 → 120 m³/h)', q: 'SIA 2023, Ziff. 6.1.3 · Tab. 9/11', file: 'Norm/2023_Lüftung in Wohnbauten.pdf' },
+      { t: 'Überströmöffnungen nicht vergessen – dichte Türen = Konzept tot', q: 'SIA 2023', file: 'Norm/2023_Lüftung in Wohnbauten.pdf' },
+      { t: 'Telefonieschall zwischen Wohnungen → Schalldämpfer pro Wohnung (SIA 181)', q: 'SIA 181' },
+      { t: 'Steigschächte: BSK oder Abschottung nach VKF 25-15', q: 'VKF 25-15' },
+      { t: 'Dunstabzug (Umluft/Abluft) nicht der Grundlüftung anrechnen · Cheminée: Unterdruck begrenzen!', q: 'SIA 2023', file: 'Norm/2023_Lüftung in Wohnbauten.pdf' },
+      { t: 'Feuchteschutz: Grundlüftung auch bei Abwesenheit', q: 'SIA 382/5', file: 'Norm/382_5_LA Wohnbauten_ab 1.5.21.pdf' }],
     src: 'Quelle: Steckbrief Wohnbau · SIA 2023 · SIA 382/5 · SIA 2024 (1.01/1.02)',
     files: ['00_Steckbrief_Wohnbau.pdf', 'Norm/2023_Lüftung in Wohnbauten.pdf', 'Norm/382_5_LA Wohnbauten_ab 1.5.21.pdf', 'Norm/382_201_Lüftung von Gebäuden - Berechnungsverfahren zur Bestimmung von Luftvolumenströmen in Wohnungen.pdf', 'Norm/382_202_Lüftung von Gebäuden - Leistungsprüfung und Einbaukontrollen von Lüftungsanlagen von Wohnungen.pdf', 'Norm/SIA_2024.pdf'] }
 ];
@@ -509,6 +578,21 @@ const BT_PUB = new Set([
   'Versammlung_Saal/00_Steckbrief_Versammlung_Saal.pdf',
   'Wohnbau/00_Steckbrief_Wohnbau.pdf'
 ]);
+/* Quelle pro Fall: q = Label (Norm + Blatt/Seite), file = Norm-PDF im Typ-Ordner (offline verlinkt,
+   online nur falls in BT_PUB), url = Web-Quelle. Norm-PDFs bleiben online ungehostet (Copyright). */
+function btSrc(f, folder){
+  if (!f.q && !f.url) return '';
+  const lbl = f.q || f.url;
+  let inner = lbl;
+  if (f.url) inner = `<a class="flink" href="${f.url}" target="_blank" rel="noopener">${lbl}</a>`;
+  else if (f.file){
+    const rel = folder + '/' + f.file;
+    const href = BT_IS_FILE ? encodeURI('../01_Gebäudetypen/' + rel)
+               : (BT_PUB.has(rel) ? encodeURI('vorlagen/' + rel) : null);
+    if (href) inner = `<a class="flink" href="${href}" target="_blank" rel="noopener">${lbl}</a>`;
+  }
+  return `<span class="qsrc">${inner}</span>`;
+}
 function renderBT(){
   const t = BT_DATA.find(x => x.id === $('btSelect').value);
   const box = $('btBody');
@@ -522,7 +606,9 @@ function renderBT(){
     const u = unit && /^[\d≈~]/.test(v) ? unit : '';
     return `<tr><td class="k">${lbl}</td><td class="v">${v}</td><td class="u">${u}</td></tr>`;
   }).join('');
-  const fallen = t.fallen.map(f => `<li>${f}</li>`).join('');
+  const fallen = t.fallen.map(f => typeof f === 'string'
+    ? `<li><span>${f}</span></li>`
+    : `<li><span>${f.t}</span>${btSrc(f, t.folder)}</li>`).join('');
   let offlineOnly = 0;
   const files = t.files.map(f => {
     const ix = f.lastIndexOf('/');
@@ -601,9 +687,7 @@ const SCH_INFO = {
   dampf: { n: 'Dampfbefeuchter', f: 'Befeuchtet die Zuluft isotherm (ϑ ≈ konstant, x steigt) – hygienisch und schnell regelbar.', p: 'ṁ_W = V̇·ρ·Δx · Nachlaufstrecke für Dampfaufnahme beachten', norm: 'SWKI VA104-01' },
   ventZul: { n: 'Zuluftventilator (EC, Radial)', f: 'Fördert die Zuluft durch Gerät und Kanalnetz bis in den Raum; EC-Motor stufenlos drehzahlgeregelt.', p: 'P = V̇·Δp_t/η · SFP-Kategorie einhalten · Ventilatorennachlauf min. 60 s · V̇∝n, Δp∝n², P∝n³', norm: 'SIA 382/1 (SFP) · ErP' },
   ventAbl: { n: 'Abluftventilator (EC, Radial)', f: 'Saugt die Abluft aus dem Raum und fördert sie über die WRG zur Fortluft.', p: 'P = V̇·Δp_t/η · SFP-Kategorie einhalten', norm: 'SIA 382/1 (SFP) · ErP' },
-  sd: { n: 'Schalldämpfer (Kulissen)', f: 'Reduziert Ventilator- und Strömungsschall in Richtung Raum bzw. Fassade.', p: 'Einfügungsdämpfung De je Oktavband · Druckverlust beachten', norm: 'LSV · SIA 181' },
-  bsk: { n: 'Brandschutzklappe (BSK)', f: 'Schliesst im Brandfall an der Brandabschnittsgrenze – thermisch (Schmelzlot 72 °C) oder über BMA.', p: 'an jeder Brandabschnitts-Durchdringung · periodische Revision mit Protokoll', norm: 'VKF 25-15' },
-  vsr: { n: 'Volumenstromregler (VSR) mit Stellantrieb', f: 'Hält den Volumenstrom je Strang/Raum konstant bzw. variabel nach Bedarf (VAV).', p: 'Auslegung auf Nennvolumenstrom · v ≈ 2–4 m/s · Schallleistung prüfen', norm: 'SIA 382/1' },
+  sd: { n: 'Schalldämpfer (Kulissen)', f: 'Reduziert Ventilator- und Strömungsschall in Richtung Raum bzw. Fassade.', p: 'Einfügungsdämpfung De je Oktavband · Druckverlust beachten', norm: 'LSV · SIA 181' },  vsr: { n: 'Volumenstromregler (VSR) mit Stellantrieb', f: 'Hält den Volumenstrom je Strang/Raum konstant bzw. variabel nach Bedarf (VAV).', p: 'Auslegung auf Nennvolumenstrom · v ≈ 2–4 m/s · Schallleistung prüfen', norm: 'SIA 382/1' },
   zulOut: { n: 'Zuluft-Auslass', f: 'Bringt die Zuluft zugfrei in den Aufenthaltsbereich (Drall-, Quell- oder Schlitzauslass).', p: 'Wurfweite und Schallleistung prüfen · v im Aufenthaltsbereich ≤ 0.2 m/s', norm: 'SIA 382/1' },
   ablIn: { n: 'Abluft-Einlass', f: 'Erfasst die belastete Raumluft möglichst nahe bei den Lastquellen (Wärme, Feuchte, Geruch).', p: 'Anordnung oben bei Wärmelasten · Gitter-Anströmung ≤ 2–3 m/s', norm: 'SIA 382/1' },
   haube: { n: 'Typ-B-Ablufthaube', f: 'Erfasst Wrasen und Fett direkt über dem Kochfeld; flammendurchschlagsicherer Fettabscheider Typ B in der Haube.', p: 'Erfassungsstrom nach Kochgeräten (SWKI VA102-01) · Fettfilter reinigbar', norm: 'SWKI VA102-01' },
@@ -620,15 +704,15 @@ function schBuild(V, reg){
   const g = (k, inner) => s.push(`<g class="sc" data-k="${k}">${inner}</g>`);
   const hit = (x, y, w, h) => `<rect class="hit" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
   const mk = (id, c) => `<marker id="m_${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${c}"/></marker>`;
-  s.push('<defs>' + mk('aul', '#bae6fd') + mk('zul', '#38bdf8') + mk('abl', '#86efac') + mk('fol', '#94a3b8') + mk('cl', '#94a3b8') + '</defs>');
+  s.push('<defs>' + mk('aul', '#4ade80') + mk('zul', '#f87171') + mk('abl', '#fbbf24') + mk('fol', '#cd853f') + mk('cl', '#94a3b8') + '</defs>');
   /* Kanäle + Luftart-Tönung */
   s.push(`<rect class="duct" x="70" y="${TOP}" width="960" height="36"/>`);
   s.push(`<rect class="duct" x="70" y="${BOT}" width="960" height="36"/>`);
   const spl = V.wrg ? [296, 434] : [360, 360];
-  s.push(`<rect x="71" y="${BOT + 1}" width="${spl[0] - 71}" height="34" fill="#bae6fd" opacity=".1"/>`);
-  s.push(`<rect x="${spl[1]}" y="${BOT + 1}" width="${1029 - spl[1]}" height="34" fill="#38bdf8" opacity=".12"/>`);
-  s.push(`<rect x="${spl[1]}" y="${TOP + 1}" width="${1029 - spl[1]}" height="34" fill="#86efac" opacity=".1"/>`);
-  s.push(`<rect x="71" y="${TOP + 1}" width="${spl[0] - 71}" height="34" fill="#94a3b8" opacity=".1"/>`);
+  s.push(`<rect x="71" y="${BOT + 1}" width="${spl[0] - 71}" height="34" fill="#4ade80" opacity=".1"/>`);
+  s.push(`<rect x="${spl[1]}" y="${BOT + 1}" width="${1029 - spl[1]}" height="34" fill="#f87171" opacity=".12"/>`);
+  s.push(`<rect x="${spl[1]}" y="${TOP + 1}" width="${1029 - spl[1]}" height="34" fill="#fbbf24" opacity=".1"/>`);
+  s.push(`<rect x="71" y="${TOP + 1}" width="${spl[0] - 71}" height="34" fill="#cd853f" opacity=".1"/>`);
   /* Geräterahmen (Lüftungsgerät) */
   s.push(`<rect x="108" y="118" width="858" height="306" rx="6" fill="none" stroke="#475569" stroke-width="1.2"/>`);
   s.push(`<text class="lbs" x="850" y="112">Lüftungsgerät L01</text>`);
@@ -636,20 +720,20 @@ function schBuild(V, reg){
   s.push(`<rect class="comp" x="1030" y="110" width="260" height="350" rx="10" style="fill:rgba(30,41,59,.55)"/>`);
   s.push(`<rect x="1056" y="372" width="190" height="20" fill="rgba(148,163,184,.15)" stroke="#475569" stroke-width="1"/>`);
   s.push(`<text class="lbs" x="1064" y="386">Raum</text>`);
-  s.push(`<rect x="1056" y="392" width="190" height="20" fill="rgba(56,189,248,.18)" stroke="#475569" stroke-width="1"/>`);
-  s.push(`<text class="lbs" x="1064" y="406" style="fill:#7dd3fc">Zuluft</text><text class="lbs" x="1200" y="406" style="fill:#7dd3fc">m³/h</text>`);
-  s.push(`<rect x="1056" y="412" width="190" height="20" fill="rgba(134,239,172,.15)" stroke="#475569" stroke-width="1"/>`);
-  s.push(`<text class="lbs" x="1064" y="426" style="fill:#86efac">Abluft</text><text class="lbs" x="1200" y="426" style="fill:#86efac">m³/h</text>`);
+  s.push(`<rect x="1056" y="392" width="190" height="20" fill="rgba(248,113,113,.18)" stroke="#475569" stroke-width="1"/>`);
+  s.push(`<text class="lbs" x="1064" y="406" style="fill:#f87171">Zuluft</text><text class="lbs" x="1200" y="406" style="fill:#f87171">m³/h</text>`);
+  s.push(`<rect x="1056" y="412" width="190" height="20" fill="rgba(251,191,36,.15)" stroke="#475569" stroke-width="1"/>`);
+  s.push(`<text class="lbs" x="1064" y="426" style="fill:#fbbf24">Abluft</text><text class="lbs" x="1200" y="426" style="fill:#fbbf24">m³/h</text>`);
   s.push(`<text class="lb" x="1090" y="450">${V.room || 'Raum / Zone'}</text>`);
   /* Luftart-Labels + Strömungspfeile */
-  s.push(`<text class="lb" x="6" y="${BOT + 23}" style="fill:#bae6fd">AUL ▷</text>`);
-  s.push(`<text class="lb" x="6" y="${TOP + 23}" style="fill:#94a3b8">◁ FOL</text>`);
-  s.push(`<text class="lb" x="988" y="${BOT - 8}" style="fill:#38bdf8">ZUL</text>`);
-  s.push(`<text class="lb" x="988" y="${TOP - 8}" style="fill:#86efac">ABL</text>`);
-  s.push(`<line x1="244" y1="${BOT + 18}" x2="276" y2="${BOT + 18}" stroke="#bae6fd" stroke-width="1.8" marker-end="url(#m_aul)"/>`);
-  s.push(`<line x1="438" y1="${BOT + 18}" x2="464" y2="${BOT + 18}" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#m_zul)"/>`);
-  s.push(`<line x1="540" y1="${TOP + 18}" x2="510" y2="${TOP + 18}" stroke="#86efac" stroke-width="1.8" marker-end="url(#m_abl)"/>`);
-  s.push(`<line x1="232" y1="${TOP + 18}" x2="200" y2="${TOP + 18}" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#m_fol)"/>`);
+  s.push(`<text class="lb" x="6" y="${BOT + 23}" style="fill:#4ade80">AUL ▷</text>`);
+  s.push(`<text class="lb" x="6" y="${TOP + 23}" style="fill:#cd853f">◁ FOL</text>`);
+  s.push(`<text class="lb" x="988" y="${BOT - 8}" style="fill:#f87171">ZUL</text>`);
+  s.push(`<text class="lb" x="988" y="${TOP - 8}" style="fill:#fbbf24">ABL</text>`);
+  s.push(`<line x1="244" y1="${BOT + 18}" x2="276" y2="${BOT + 18}" stroke="#4ade80" stroke-width="2.2" marker-end="url(#m_aul)"/>`);
+  s.push(`<line x1="438" y1="${BOT + 18}" x2="464" y2="${BOT + 18}" stroke="#f87171" stroke-width="2.2" marker-end="url(#m_zul)"/>`);
+  s.push(`<line x1="540" y1="${TOP + 18}" x2="510" y2="${TOP + 18}" stroke="#fbbf24" stroke-width="2.2" marker-end="url(#m_abl)"/>`);
+  s.push(`<line x1="232" y1="${TOP + 18}" x2="200" y2="${TOP + 18}" stroke="#cd853f" stroke-width="2.2" marker-end="url(#m_fol)"/>`);
   /* --- Symbol-Helfer (nach SIA 410 / Schemas-Vorlage) --- */
   const mbox = (x, y) =>
     `<rect class="comp" x="${x}" y="${y}" width="16" height="15" rx="3"/>` +
@@ -763,9 +847,9 @@ function schBuild(V, reg){
       `<text class="lbs" x="413" y="172" style="font-size:9px;fill:#60a5fa">RL</text>` +
       `<text class="lbs" x="332" y="452">KVS-WRG</text>`);
   }
-  if (V.bypass){
+  if (V.wrg === 'pwt' || V.bypass){
     g('bypass', hit(270, 386, 200, 92) +
-      `<path d="M285 386 V446 H445 V386" fill="none" stroke="#bae6fd" stroke-width="2" opacity=".5"/>` +
+      `<path d="M285 386 V446 H445 V386" fill="none" stroke="#4ade80" stroke-width="2" opacity=".5"/>` +
       `<rect class="comp" x="352" y="434" width="24" height="24"/>` +
       `<line class="cl" x1="355" y1="455" x2="373" y2="437"/>` +
       `<ellipse cx="364" cy="446" rx="6" ry="3" transform="rotate(-45 364 446)" style="fill:#94a3b8"/>` +
@@ -790,13 +874,13 @@ function schBuild(V, reg){
     g('kvsventil', hit(574, 452, 48, 50) + ventil3w(590, 470, 1) +
       `<text class="lbs" x="556" y="530">KVS-Ventil</text>`);
   }
-  /* Dampfbefeuchter */
+  /* Dampfbefeuchter — nach Ventilator (Befeuchtungsstrecke, in der frei gewordenen Lücke) */
   if (V.dampf){
-    g('dampf', hit(632, 322, 60, 92) +
-      `<rect class="comp" x="640" y="338" width="44" height="62"/>` +
-      [650, 662, 674].map(x => `<line class="cl" x1="${x}" y1="396" x2="${x}" y2="352"/>`).join('') +
-      [650, 662, 674].map(x => `<circle cx="${x}" cy="${BOT + 6}" r="1.6" style="fill:#94a3b8"/>`).join('') +
-      `<text class="lbs" x="616" y="330">Dampfbefeuchter</text>`);
+    g('dampf', hit(858, 322, 60, 92) +
+      `<rect class="comp" x="864" y="338" width="44" height="62"/>` +
+      [874, 886, 898].map(x => `<line class="cl" x1="${x}" y1="396" x2="${x}" y2="352"/>`).join('') +
+      [874, 886, 898].map(x => `<circle cx="${x}" cy="${BOT + 6}" r="1.6" style="fill:#94a3b8"/>`).join('') +
+      `<text class="lbs" x="840" y="330">Dampfbefeuchter</text>`);
   }
   fan('ventZul', 730, BOT + 18, 1);
   g('tzul', hit(764, 312, 24, 44) +
@@ -809,12 +893,6 @@ function schBuild(V, reg){
     `<line class="cl" x1="${x + 13}" y1="${y - 9}" x2="${x + 13}" y2="${y + 45}"/>` +
     `<text class="lbs" x="${x + 3}" y="${lblBelow ? y + 68 : y - 24}">SD</text>`);
   sd('sd', 826, BOT, true);
-  const bskSym = (x, y, lblAbove) => g('bsk', hit(x - 10, y - 24, 38, 86) +
-    `<rect class="comp" x="${x}" y="${y - 4}" width="16" height="44"/>` +
-    `<line class="cl" x1="${x + 3}" y1="${y + 34}" x2="${x + 13}" y2="${y + 2}"/>` +
-    `<circle cx="${x + 8}" cy="${y + 18}" r="3" style="fill:#f59e0b"/>` +
-    `<text class="lbs" x="${x - 6}" y="${lblAbove ? y - 12 : y + 58}">BSK</text>`);
-  bskSym(896, BOT, true);
   const vsr = (y, mUp) => g('vsr', hit(930, mUp ? y - 36 : y - 8, 60, 84) +
     `<rect class="comp" x="938" y="${y + 2}" width="44" height="32"/>` +
     `<path class="cl" d="M946 ${y + 4} Q960 ${y + 18} 946 ${y + 32}"/>` +
@@ -824,7 +902,7 @@ function schBuild(V, reg){
     `<text class="lbs" x="948" y="${mUp ? y + 50 : y - 14}">VSR</text>`);
   vsr(BOT, true);
   g('zulOut', hit(990, 336, 70, 62) +
-    `<line x1="996" y1="${BOT + 18}" x2="1048" y2="${BOT + 18}" stroke="#38bdf8" stroke-width="2" marker-end="url(#m_zul)"/>` +
+    `<line x1="996" y1="${BOT + 18}" x2="1048" y2="${BOT + 18}" stroke="#f87171" stroke-width="2" marker-end="url(#m_zul)"/>` +
     `<path class="cl" d="M1034 ${BOT + 6} L1046 ${BOT} M1034 ${BOT + 30} L1046 ${BOT + 36}"/>` +
     `<text class="lbs" x="1052" y="${BOT + 8}">Zuluft-Auslass</text>`);
   /* --- Abluftstrang (oben, rechts → links) --- */
@@ -833,17 +911,16 @@ function schBuild(V, reg){
       `<path class="comp" d="M1056 240 L1170 240 L1148 204 L1078 204 Z"/>` +
       `<path class="cl" d="M1086 232 L1098 212 L1110 232 L1122 212 L1134 232"/>` +
       `<path class="cl" d="M1113 204 L1113 ${TOP + 18} L1032 ${TOP + 18}"/>` +
-      `<line x1="1090" y1="${TOP + 18}" x2="1042" y2="${TOP + 18}" stroke="#86efac" stroke-width="2" marker-end="url(#m_abl)"/>` +
+      `<line x1="1090" y1="${TOP + 18}" x2="1042" y2="${TOP + 18}" stroke="#fbbf24" stroke-width="2" marker-end="url(#m_abl)"/>` +
       `<rect class="comp" x="1078" y="268" width="70" height="22" rx="3"/>` +
       [1092, 1112, 1132].map(x => `<circle class="cl" cx="${x}" cy="279" r="6"/>`).join('') +
       `<text class="lbs" x="1052" y="312">Typ-B-Haube über Kochfeld</text>`);
   } else {
     g('ablIn', hit(990, 138, 76, 62) +
-      `<line x1="1048" y1="${TOP + 18}" x2="996" y2="${TOP + 18}" stroke="#86efac" stroke-width="2" marker-end="url(#m_abl)"/>` +
+      `<line x1="1048" y1="${TOP + 18}" x2="996" y2="${TOP + 18}" stroke="#fbbf24" stroke-width="2" marker-end="url(#m_abl)"/>` +
       `<text class="lbs" x="1036" y="${TOP + 44}">Abluft-Einlass</text>`);
   }
   vsr(TOP, false);
-  bskSym(896, TOP, false);
   sd('sd', 826, TOP, false);
   g('tabl', hit(764, 122, 24, 44) +
     `<line class="cl" x1="775" y1="${TOP}" x2="775" y2="${TOP - 10}"/>` +
@@ -870,9 +947,9 @@ function schBuild(V, reg){
     lines.push(`M620 540 V486 H524 V479`);
     if (V.kuehler || V.entf) lines.push(`M612 486 V479`);
     if (V.wrg === 'rotor') lines.push(`M600 552 H365 V433`);
-    if (V.wrg === 'pwt' && V.bypass) lines.push(`M600 552 H390 V455`);
+    if (V.wrg === 'pwt') lines.push(`M600 552 H390 V455`);
     if (V.wrg === 'kvs') lines.push(`M600 552 H368 V250`);
-    if (V.dampf) lines.push(`M662 540 V404`);
+    if (V.dampf) lines.push(`M695 540 V520 H886 V402`);
     g('regler', lines.map(d => `<path d="${d}" ${dash}/>`).join('') +
       hit(576, 536, 130, 40) +
       `<rect class="comp" x="580" y="540" width="120" height="32" rx="6" style="stroke:${RC}"/>` +
@@ -1254,7 +1331,8 @@ const BAUTEIL_DATA = [
     desc:'Drallauslass mit rotierender Luftführung. Hohe Induktion, grosse Wurfweite, gut für hohe Räume.',
     formel:'Ausblasgeschwindigkeit 2–5 m/s · Induktionszahl je nach Typ', norm:'SIA 382/1',
     files:[{label:'Hinweis & Auslegung', path:'../03_Auslegungen/Auslässe/Draller/Hinweis.pdf'},
-           {label:'Übung Deckendraller', path:'../03_Auslegungen/Auslässe/Draller/Kapitel_8_Übung_Deckendraller.pdf'}] },
+           {label:'Übung Deckendraller', path:'../03_Auslegungen/Auslässe/Draller/Kapitel_8_Übung_Deckendraller.pdf'},
+           {label:'Auslegung Durrer', path:'../03_Auslegungen/Auslässe/Draller/Auslegung Durrer.pdf'}] },
   { cat:'Auslässe', id:'queller', name:'Quelldurchlass',
     desc:'Bodennaher Auslass mit sehr geringer Ausblasgeschwindigkeit. Luftqualität im Aufenthaltsbereich optimal.',
     formel:'v_Auslass = 0.1–0.3 m/s · ΔT = 2–4 K unter Raumtemperatur', norm:'SIA 382/1, VDI 3804',
