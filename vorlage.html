@@ -92,6 +92,13 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 a.filebtn:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-1px);box-shadow:0 6px 22px rgba(56,189,248,.28),inset 0 1px 0 rgba(255,255,255,.14)}
 .filebtn .ext{color:var(--mut2);font-size:.78rem;font-weight:500}
 .filebtn.off{opacity:.5;cursor:default}
+.legende{margin-top:16px;background:rgba(250,204,21,.08);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(250,204,21,.32);border-top:1px solid rgba(250,204,21,.5);border-radius:14px;padding:13px 16px;box-shadow:0 4px 18px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.08)}
+.leg-h{color:#facc15;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:9px}
+.leg-row{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:3px 0;font-size:.86rem;line-height:1.45;align-items:baseline}
+.leg-row+.leg-row{border-top:1px solid rgba(250,204,21,.12)}
+.leg-s{color:#facc15;font-weight:700;font-family:"Cambria Math","STIX Two Math",Cambria,"Times New Roman",Georgia,serif;text-align:right}
+.leg-s sub{font-size:.7em;vertical-align:-.28em}
+.leg-d{color:var(--txt)}
 .switch{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--mut);cursor:pointer;user-select:none}
 .switch input{accent-color:var(--acc);width:16px;height:16px;cursor:pointer}
 .pool-info{font-size:.8rem;color:var(--mut2)}
@@ -288,6 +295,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   .reco{background:rgba(15,25,50,.92);border-color:rgba(56,189,248,.45)}
   .formel-list li,.bauteil-formel,.filebtn{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}
   .beispiel{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(20,42,72,.93)}
+  .legende{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(40,36,12,.92)}
   #answer,.exam-input{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,0,0,.45)}
   .blob{animation:none}
   .card:not(.swap-out):hover{transform:none}
@@ -936,7 +944,14 @@ const FORMEL_DATA = [
       { sym: 'v Nebenkanal', val: '2–4 m/s', note: 'Richtwert' },
       { sym: 'v Auslass', val: '1–3 m/s', note: 'Richtwert Raumdurchlass' },
     ],
-    beispiel: 'Gegeben: V̇ = 2000 m³/h, ΔT = 8 K → Q = 2000 · 0.34 · 8 = 5440 W = 5.44 kW'
+    beispiel: 'Gegeben: V̇ = 2000 m³/h, ΔT = 8 K → Q = 2000 · 0.34 · 8 = 5440 W = 5.44 kW',
+    legende: [
+      ['ρ', 'Dichte Luft [kg/m³]'],
+      ['c_p', 'Wärmekapazität Luft [kJ/(kg·K)]'],
+      ['c_W', 'Wärmekapazität Wasser [kJ/(kg·K)]'],
+      ['r', 'Verdampfungswärme Wasser [kJ/kg]'],
+      ['v', 'Strömungsgeschwindigkeit [m/s]'],
+    ]
   },
   {
     id: 'volumenstrom', name: 'Volumenstrom & Luftwechsel',
@@ -949,7 +964,17 @@ const FORMEL_DATA = [
       { sym: 'V̇ = A_Raum · v̇_Fläche', val: '[m³/h]', note: 'flächenbezogen' },
       { sym: 'Massgebend', val: 'MAX(Person, Fläche, LW)', note: 'immer den grössten Wert nehmen!' },
     ],
-    beispiel: 'Büro, 10 Pers., 50 m², n_min = 2/h, V_Raum = 150 m³ → Person: 10×40=400, Fläche: 50×3=150, LW: 2×150=300 → massgebend: 400 m³/h'
+    beispiel: 'Büro, 10 Pers., 50 m², n_min = 2/h, V_Raum = 150 m³ → Person: 10×40=400, Fläche: 50×3=150, LW: 2×150=300 → massgebend: 400 m³/h',
+    legende: [
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['A', 'freier Querschnitt [m²]'],
+      ['w', 'Fliessgeschwindigkeit [m/s]'],
+      ['n', 'Luftwechselzahl [1/h]'],
+      ['V_Raum', 'Raumvolumen [m³]'],
+      ['n_Pers', 'Anzahl Personen [–]'],
+      ['v̇_Pers', 'Aussenluft pro Person [m³/h]'],
+      ['v̇_Fläche', 'Aussenluft pro Fläche [m³/(h·m²)]'],
+    ]
   },
   {
     id: 'co2', name: 'CO₂-Berechnung',
@@ -962,7 +987,13 @@ const FORMEL_DATA = [
       { sym: 'c_i', val: 'z.B. 1000 ppm', note: 'Sollwert Innenraum (SIA: Stufe II)' },
       { sym: 'Einheiten', val: 'ppm = ml/m³', note: 'konsistent halten!' },
     ],
-    beispiel: 'V̇ = 20 l/h ÷ (1000−400) ppm = 20/600 m³/h × 1000 = 33.3 m³/h pro Person'
+    beispiel: 'V̇ = 20 l/h ÷ (1000−400) ppm = 20/600 m³/h × 1000 = 33.3 m³/h pro Person',
+    legende: [
+      ['V̇_AU', 'Aussenluft-Volumenstrom [m³/h]'],
+      ['V̇_CO2', 'CO₂-Abgabe pro Person [l/h]'],
+      ['c_i', 'CO₂-Konzentration innen [ppm]'],
+      ['c_a', 'CO₂-Konzentration aussen [ppm]'],
+    ]
   },
   {
     id: 'leistung', name: 'Sensible Leistung (Heizen/Kühlen)',
@@ -973,7 +1004,17 @@ const FORMEL_DATA = [
       { sym: 'Q̇ [W] = V̇ [m³/h] · 0.34 · ΔT [K]', val: '← Kurzform!', note: 'mit ρ·c_p = 0.34 Wh/(m³·K)' },
       { sym: 'ϑ_m = frac{V̇₁·ϑ₁ + V̇₂·ϑ₂}{V̇₁+V̇₂}', val: '[°C]', note: 'Mischlufttemperatur' },
     ],
-    beispiel: 'V̇ = 3600 m³/h, T_ZUL = 22°C, T_ABL = 26°C → Q̇ = 3600 · 0.34 · 4 = 4896 W ≈ 4.9 kW'
+    beispiel: 'V̇ = 3600 m³/h, T_ZUL = 22°C, T_ABL = 26°C → Q̇ = 3600 · 0.34 · 4 = 4896 W ≈ 4.9 kW',
+    legende: [
+      ['Q̇', 'Heiz-/Kühlleistung [kW]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['ρ', 'Dichte Luft [kg/m³]'],
+      ['c_p', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
+      ['ΔT', 'Temperaturdifferenz [K]'],
+      ['ϑ_m', 'Mischlufttemperatur [°C]'],
+      ['V̇₁, V̇₂', 'Volumenstrom Teilstrom 1/2 [m³/h]'],
+      ['ϑ₁, ϑ₂', 'Temperatur Teilstrom 1/2 [°C]'],
+    ]
   },
   {
     id: 'feuchte', name: 'Feuchte & h,x-Diagramm',
@@ -987,7 +1028,17 @@ const FORMEL_DATA = [
       { sym: 'Kühlen + Entfeuchten', val: 'unter Taupunkt: x↓', note: 'Kondensat entsteht' },
       { sym: 'Kondensat', val: 'ṁ_K = frac{V̇·ρ·(x_ein−x_aus)}{1000}', val2: '[l/h]', note: 'Siphon dimensionieren!' },
     ],
-    beispiel: 'x = 8 g/kg, ϑ = 20°C → h = 1.006·20 + 0.008·(2500+1.86·20) = 20.12 + 20.30 = 40.4 kJ/kg'
+    beispiel: 'x = 8 g/kg, ϑ = 20°C → h = 1.006·20 + 0.008·(2500+1.86·20) = 20.12 + 20.30 = 40.4 kJ/kg',
+    legende: [
+      ['h', 'spez. Enthalpie [kJ/kg]'],
+      ['ϑ', 'Lufttemperatur [°C]'],
+      ['x', 'Wasserdampfgehalt [g/kg]'],
+      ['Δx', 'Differenz Wasserdampfgehalt [g/kg]'],
+      ['ṁ_W', 'Wassermenge Befeuchtung [kg/s]'],
+      ['ṁ_K', 'Kondenswassermenge [l/h]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['ρ', 'Dichte Luft [kg/m³]'],
+    ]
   },
   {
     id: 'druck', name: 'Druckverlust',
@@ -1002,7 +1053,21 @@ const FORMEL_DATA = [
       { sym: 'Re = frac{w·d}{ν}', val: '[-]', note: 'turbulent ab Re > 2300, ν_Luft ≈ 15·10⁻⁶ m²/s' },
       { sym: 'Δp ~ V̇²', val: '', note: 'Systemkennlinie (quadratisch!)' },
     ],
-    beispiel: 'v = 4 m/s, ρ = 1.2 kg/m³ → p_dyn = 1.2/2 · 16 = 9.6 Pa; Bogen ζ=0.3 → Δp_E = 0.3·9.6 = 2.9 Pa'
+    beispiel: 'v = 4 m/s, ρ = 1.2 kg/m³ → p_dyn = 1.2/2 · 16 = 9.6 Pa; Bogen ζ=0.3 → Δp_E = 0.3·9.6 = 2.9 Pa',
+    legende: [
+      ['p_dyn', 'dynamischer Druck [Pa]'],
+      ['ρ', 'Dichte Luft [kg/m³]'],
+      ['w', 'Strömungsgeschwindigkeit [m/s]'],
+      ['λ', 'Rohrreibungszahl [–]'],
+      ['l', 'Kanallänge [m]'],
+      ['d', 'Durchmesser [m]'],
+      ['ζ', 'Einzelwiderstandsbeiwert [–]'],
+      ['d_h', 'hydraulischer Durchmesser [m]'],
+      ['a, b', 'Kanal-Seitenlängen [m]'],
+      ['Re', 'Reynoldszahl [–]'],
+      ['ν', 'kinematische Viskosität [m²/s]'],
+      ['Δp_R, Δp_E', 'Reibungs- / Einzeldruckverlust [Pa]'],
+    ]
   },
   {
     id: 'ventilator', name: 'Ventilator & SFP',
@@ -1016,7 +1081,19 @@ const FORMEL_DATA = [
       { sym: 'P ∝ n³', val: '', note: 'Leistung ∝ Drehzahl³ ← Energiesparpotenzial!' },
       { sym: 'h_S = frac{Δp}{ρ_W·g}·1000·1.5', val: '[mm]', note: 'Siphonhöhe (Faktor 1.5 = Sicherheit)' },
     ],
-    beispiel: 'Drehzahl von 1000 auf 800 U/min → V̇: ×0.8, Δp: ×0.64, P: ×0.512 → Energieeinsparung 48.8%!'
+    beispiel: 'Drehzahl von 1000 auf 800 U/min → V̇: ×0.8, Δp: ×0.64, P: ×0.512 → Energieeinsparung 48.8%!',
+    legende: [
+      ['P', 'Ventilatorleistung [W]'],
+      ['V̇', 'Volumenstrom [m³/s]'],
+      ['Δp_t', 'Totaldruckerhöhung [Pa]'],
+      ['η', 'Wirkungsgrad [–]'],
+      ['SFP', 'spez. Ventilatorleistung [W·s/m³]'],
+      ['P_el', 'elektrische Leistung [W]'],
+      ['n', 'Drehzahl [U/min]'],
+      ['h_S', 'Siphonhöhe [mm]'],
+      ['ρ_W', 'Wasserdichte [kg/m³]'],
+      ['g', 'Erdbeschleunigung (9.81) [m/s²]'],
+    ]
   },
   {
     id: 'wrg', name: 'Wärmerückgewinnung (WRG)',
@@ -1030,7 +1107,17 @@ const FORMEL_DATA = [
       { sym: 'Platte Gegenstrom', val: 'φ = 70–85%', note: 'höherer Druckverlust' },
       { sym: 'Umlaufsystem', val: 'φ = 40–60%', note: 'räumliche Trennung möglich' },
     ],
-    beispiel: 'ϑ_AUL = -5°C, ϑ_ABL = 22°C, φ = 0.80 → ϑ_ZUL = -5 + 0.80·(22-(-5)) = -5 + 21.6 = 16.6°C'
+    beispiel: 'ϑ_AUL = -5°C, ϑ_ABL = 22°C, φ = 0.80 → ϑ_ZUL = -5 + 0.80·(22-(-5)) = -5 + 21.6 = 16.6°C',
+    legende: [
+      ['φ', 'Temperatur-Rückwärmzahl [–]'],
+      ['ϑ_ZUL', 'Zulufttemperatur [°C]'],
+      ['ϑ_AUL', 'Aussenlufttemperatur [°C]'],
+      ['ϑ_ABL', 'Ablufttemperatur [°C]'],
+      ['Q̇_WRG', 'rückgewonnene Leistung [kW]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['ρ', 'Dichte Luft [kg/m³]'],
+      ['c_p', 'Wärmekapazität Luft [kJ/(kg·K)]'],
+    ]
   },
   {
     id: 'hydraulik', name: 'Hydraulik (wasserseitig)',
@@ -1044,7 +1131,17 @@ const FORMEL_DATA = [
       { sym: 'Spreizung Heizreg.', val: '70/50°C oder 60/40°C', note: 'Vorlauf/Rücklauf' },
       { sym: 'Spreizung Kühlreg.', val: '6/12°C', note: 'Vorlauf/Rücklauf (Kaltwasser)' },
     ],
-    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.17·10) = 0.240 kg/s = 0.240 l/s = 863 l/h = 0.86 m³/h'
+    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.17·10) = 0.240 kg/s = 0.240 l/s = 863 l/h = 0.86 m³/h',
+    legende: [
+      ['Q̇', 'Wärmeleistung [kW]'],
+      ['ṁ_W', 'Wassermassenstrom [kg/s]'],
+      ['c_W', 'Wärmekapazität Wasser [kJ/(kg·K)]'],
+      ['Δϑ_W', 'Spreizung Wasser (VL−RL) [K]'],
+      ['KVS', 'Ventil-Durchflusskennwert [m³/h]'],
+      ['V̇_W', 'Wasservolumenstrom [m³/h]'],
+      ['Δp', 'Druckdifferenz am Ventil [bar]'],
+      ['P_v', 'Ventilautorität [–]'],
+    ]
   },
   {
     id: 'schall', name: 'Schall & Akustik',
@@ -1057,7 +1154,15 @@ const FORMEL_DATA = [
       { sym: 'D_e = L_vor − L_nach', val: '[dB]', note: 'Einfügungsdämpfung Schalldämpfer' },
       { sym: 'NR-Grenzwerte', val: 'Büro NR 35, Wohnen NR 30, OP NR 25', note: 'nach SIA 181' },
     ],
-    beispiel: 'Ventilator 65 dB + gleicher Kanal 65 dB → L_ges = 10·log(2·10^6.5) = 65+3 = 68 dB'
+    beispiel: 'Ventilator 65 dB + gleicher Kanal 65 dB → L_ges = 10·log(2·10^6.5) = 65+3 = 68 dB',
+    legende: [
+      ['L_ges', 'Gesamt-Schallpegel [dB]'],
+      ['L_i', 'Einzel-Schallpegel [dB]'],
+      ['n', 'Anzahl Schallquellen [–]'],
+      ['D_e', 'Einfügungsdämpfung Schalldämpfer [dB]'],
+      ['L_vor, L_nach', 'Pegel vor / nach Schalldämpfer [dB]'],
+      ['NR', 'Noise-Rating-Grenzkurve [–]'],
+    ]
   },
   {
     id: 'siphon', name: 'Siphon & Kondensatableitung',
@@ -1070,7 +1175,13 @@ const FORMEL_DATA = [
       { sym: 'g', val: '9.81 m/s²', note: 'Erdbeschleunigung' },
       { sym: 'Δp_stat', val: 'Unterdruck im Gerät [Pa]', note: 'aus Ventilatordruckverlust' },
     ],
-    beispiel: 'Δp_stat = 300 Pa → h_S = 300/(1000·9.81)·1000·1.5 = 45.9 mm → mind. 50 mm Siphon verwenden'
+    beispiel: 'Δp_stat = 300 Pa → h_S = 300/(1000·9.81)·1000·1.5 = 45.9 mm → mind. 50 mm Siphon verwenden',
+    legende: [
+      ['h_S', 'Siphonhöhe [mm WS]'],
+      ['Δp_stat', 'statischer Unterdruck im Gerät [Pa]'],
+      ['ρ_W', 'Wasserdichte (1000) [kg/m³]'],
+      ['g', 'Erdbeschleunigung (9.81) [m/s²]'],
+    ]
   },
 ];
 /* Formel-Renderer: frac{Zähler}{Nenner} → Bruchstrich, _x/_{…} → Index, ^x/^{…} → Hochzahl */
@@ -1119,11 +1230,17 @@ function renderFormel(){
     return `<li><span class="fsym">${fmtFormula(it.sym)}</span>${val}${val2}${note}</li>`;
   }).join('');
   const normBadge = (f.norm && f.norm !== '—') ? `<span class="badge p-norm">${esc(f.norm)}</span>` : '';
+  const leg = (f.legende && f.legende.length)
+    ? `<div class="legende"><div class="leg-h">Legende – Formelzeichen</div>` +
+      f.legende.map(p => `<div class="leg-row"><span class="leg-s">${fmtFormula(p[0])}</span><span class="leg-d">${esc(p[1])}</span></div>`).join('') +
+      `</div>`
+    : '';
   box.innerHTML =
     `<div class="badges" style="margin:18px 0 12px"><span class="badge cat">📖 ${esc(f.name)}</span>${normBadge}</div>` +
     `<p style="color:var(--mut);font-size:.9rem;line-height:1.5;margin:0 0 10px">${esc(f.intro)}</p>` +
     `<ul class="formel-list">${rows}</ul>` +
-    `<div class="beispiel"><span class="bsp-k">Beispiel</span> ${esc(f.beispiel)}</div>`;
+    `<div class="beispiel"><span class="bsp-k">Beispiel</span> ${esc(f.beispiel)}</div>` +
+    leg;
 }
 
 /* ================= Bauteilvorlagen (Modul D): Daten ================= */
