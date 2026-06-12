@@ -223,8 +223,11 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .falle li{padding-left:22px;position:relative}
 .falle li::before{content:'⚠';position:absolute;left:0;color:var(--warn);font-size:.85rem}
 .flist{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
-.flist li{display:flex;gap:9px;align-items:baseline}
+.flist li{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
 .flist .sub{color:var(--mut2);font-size:.78rem}
+.flist li.dim{opacity:.6}
+.flink{color:var(--txt);text-decoration:none;border-bottom:1px dotted var(--mut2);transition:color .15s,border-color .15s}
+.flink:hover{color:var(--acc);border-bottom-color:var(--acc)}
 .ph-note{color:var(--mut2);font-size:.78rem;font-style:italic;margin-top:10px}
 
 /* ---------- Gebäudetypen Vorlage: Anlagenschema ---------- */
@@ -2270,6 +2273,25 @@ const KENN_ROWS = [
   ['schall', 'Schallschutz', ''],
   ['lw', 'Auslegung / Regelung', '']
 ];
+/* Datei-Links: Offline-Kopie (file://) verlinkt direkt in den OneDrive-Ordner;
+   online (GitHub Pages) sind nur die eigenen Unterlagen unter vorlagen/ gehostet –
+   Norm-PDFs (SIA/SWKI/VDI) bleiben aus Copyright-Gründen offline. */
+const BT_IS_FILE = location.protocol === 'file:';
+const BT_PUB = new Set([
+  'Buero/00_Steckbrief_Buero.pdf',
+  'Gastronomie_Kueche/00_Steckbrief_Gastronomie_Kueche.pdf',
+  'Hallenbad/00_Steckbrief_Hallenbad.pdf',
+  'Hallenbad/Berechnung Schwimmbad.xlsx',
+  'Hallenbad/Hallenbad_Berechnung.xlsx',
+  'Industrie_Gewerbe/00_Steckbrief_Industrie_Gewerbe.pdf',
+  'Parking_Garage/00_Steckbrief_Parking_Garage.pdf',
+  'Schule_Bildung/00_Steckbrief_Schule_Bildung.pdf',
+  'Spital_Medizin/00_Steckbrief_Spital_Medizin.pdf',
+  'Turnhalle_Sport/00_Steckbrief_Turnhalle_Sport.pdf',
+  'Verkauf_Laden/00_Steckbrief_Verkauf_Laden.pdf',
+  'Versammlung_Saal/00_Steckbrief_Versammlung_Saal.pdf',
+  'Wohnbau/00_Steckbrief_Wohnbau.pdf'
+]);
 function renderBT(){
   const t = BT_DATA.find(x => x.id === $('btSelect').value);
   const box = $('btBody');
@@ -2284,13 +2306,25 @@ function renderBT(){
     return `<tr><td class="k">${lbl}</td><td class="v">${v}</td><td class="u">${u}</td></tr>`;
   }).join('');
   const fallen = t.fallen.map(f => `<li>${f}</li>`).join('');
+  let offlineOnly = 0;
   const files = t.files.map(f => {
     const ix = f.lastIndexOf('/');
     const name = ix < 0 ? f : f.slice(ix + 1);
     const sub = ix < 0 ? '' : `<span class="sub">${f.slice(0, ix)}\\</span> `;
     const icon = /\.xlsx?$/i.test(name) ? '📊' : '📄';
-    return `<li>${icon} ${sub}${name}</li>`;
+    const rel = t.folder + '/' + f;
+    let href = null;
+    if (BT_IS_FILE) href = encodeURI('../01_Gebäudetypen/' + rel);
+    else if (BT_PUB.has(rel)) href = encodeURI('vorlagen/' + rel);
+    if (href) return `<li>${icon} <a class="flink" href="${href}" target="_blank" rel="noopener">${sub}${name}</a> <span class="sub">↗</span></li>`;
+    offlineOnly++;
+    return `<li class="dim">${icon} ${sub}${name} <span class="sub">· offline im Ordner</span></li>`;
   }).join('');
+  const fileNote = BT_IS_FILE
+    ? 'Links öffnen die Dateien direkt aus dem Ordner 01_Gebäudetypen.'
+    : (offlineOnly
+      ? 'Eigene Unterlagen sind direkt verlinkt – Norm-PDFs (SIA/SWKI/VDI) sind urheberrechtlich geschützt und nur in der Offline-Version bzw. im OneDrive-Ordner verfügbar.'
+      : 'Links öffnen die Dateien in einem neuen Tab.');
   box.innerHTML = `
     <div class="hilfe-bar" style="margin:16px 0 2px">
       <span class="bt-badge" style="color:${cat.c};border-color:${cat.c};background:${cat.c}1f">${cat.label}</span>
@@ -2302,7 +2336,8 @@ function renderBT(){
     <details class="acc"><summary>⚠️ Besonderheiten &amp; Fallen<span class="arr">▼</span></summary>
       <div class="acc-body"><ul class="falle">${fallen}</ul></div></details>
     <details class="acc"><summary>📁 Vorlagen im Ordner<span class="arr">▼</span></summary>
-      <div class="acc-body"><ul class="flist">${files}</ul></div></details>`;
+      <div class="acc-body"><ul class="flist">${files}</ul>
+      <div class="ph-note">${fileNote}</div></div></details>`;
   /* Schema-Sektion mitziehen: gleicher Typ, empfohlene Variante */
   $('schemaBt').value = t.id;
   $('schemaVar').value = t.schemaVar;
@@ -2378,21 +2413,31 @@ function schBuild(V, reg){
   s.push(`<rect x="${spl[1]}" y="${TOP + 1}" width="${1029 - spl[1]}" height="34" fill="#86efac" opacity=".1"/>`);
   s.push(`<rect x="71" y="${TOP + 1}" width="${spl[0] - 71}" height="34" fill="#94a3b8" opacity=".1"/>`);
   /* Geräterahmen (Lüftungsgerät) */
-  s.push(`<rect x="108" y="118" width="858" height="306" rx="6" fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="2 0"/>`);
-  s.push(`<text class="lbs" x="118" y="112">Lüftungsgerät</text>`);
-  /* Raum */
+  s.push(`<rect x="108" y="118" width="858" height="306" rx="6" fill="none" stroke="#475569" stroke-width="1.2"/>`);
+  s.push(`<text class="lbs" x="850" y="112">Lüftungsgerät L01</text>`);
+  /* Raum mit Tabelle (wie Schemas-Vorlage) */
   s.push(`<rect class="comp" x="1030" y="110" width="260" height="350" rx="10" style="fill:rgba(30,41,59,.55)"/>`);
-  s.push(`<text class="lb" x="1090" y="442">${V.room || 'Raum / Zone'}</text>`);
+  s.push(`<rect x="1056" y="372" width="190" height="20" fill="rgba(148,163,184,.15)" stroke="#475569" stroke-width="1"/>`);
+  s.push(`<text class="lbs" x="1064" y="386">Raum</text>`);
+  s.push(`<rect x="1056" y="392" width="190" height="20" fill="rgba(56,189,248,.18)" stroke="#475569" stroke-width="1"/>`);
+  s.push(`<text class="lbs" x="1064" y="406" style="fill:#7dd3fc">Zuluft</text><text class="lbs" x="1200" y="406" style="fill:#7dd3fc">m³/h</text>`);
+  s.push(`<rect x="1056" y="412" width="190" height="20" fill="rgba(134,239,172,.15)" stroke="#475569" stroke-width="1"/>`);
+  s.push(`<text class="lbs" x="1064" y="426" style="fill:#86efac">Abluft</text><text class="lbs" x="1200" y="426" style="fill:#86efac">m³/h</text>`);
+  s.push(`<text class="lb" x="1090" y="450">${V.room || 'Raum / Zone'}</text>`);
   /* Luftart-Labels + Strömungspfeile */
   s.push(`<text class="lb" x="6" y="${BOT + 23}" style="fill:#bae6fd">AUL ▷</text>`);
   s.push(`<text class="lb" x="6" y="${TOP + 23}" style="fill:#94a3b8">◁ FOL</text>`);
   s.push(`<text class="lb" x="988" y="${BOT - 8}" style="fill:#38bdf8">ZUL</text>`);
   s.push(`<text class="lb" x="988" y="${TOP - 8}" style="fill:#86efac">ABL</text>`);
-  s.push(`<line x1="238" y1="${BOT + 18}" x2="272" y2="${BOT + 18}" stroke="#bae6fd" stroke-width="1.8" marker-end="url(#m_aul)"/>`);
+  s.push(`<line x1="244" y1="${BOT + 18}" x2="276" y2="${BOT + 18}" stroke="#bae6fd" stroke-width="1.8" marker-end="url(#m_aul)"/>`);
   s.push(`<line x1="438" y1="${BOT + 18}" x2="464" y2="${BOT + 18}" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#m_zul)"/>`);
-  s.push(`<line x1="528" y1="${TOP + 18}" x2="494" y2="${TOP + 18}" stroke="#86efac" stroke-width="1.8" marker-end="url(#m_abl)"/>`);
-  s.push(`<line x1="232" y1="${TOP + 18}" x2="198" y2="${TOP + 18}" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#m_fol)"/>`);
-  /* --- Symbol-Helfer --- */
+  s.push(`<line x1="540" y1="${TOP + 18}" x2="510" y2="${TOP + 18}" stroke="#86efac" stroke-width="1.8" marker-end="url(#m_abl)"/>`);
+  s.push(`<line x1="232" y1="${TOP + 18}" x2="200" y2="${TOP + 18}" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#m_fol)"/>`);
+  /* --- Symbol-Helfer (nach SIA 410 / Schemas-Vorlage) --- */
+  const mbox = (x, y) =>
+    `<rect class="comp" x="${x}" y="${y}" width="16" height="15" rx="3"/>` +
+    `<circle class="cl" cx="${x + 8}" cy="${y + 7.5}" r="5.5"/>` +
+    `<text class="lbs" x="${x + 5}" y="${y + 11}" style="font-size:8px">M</text>`;
   const gitter = (k, y, lbl) => g(k, hit(56, y - 22, 50, 80) +
     `<rect class="comp" x="70" y="${y}" width="26" height="36"/>` +
     [0, 1, 2, 3].map(i => `<line class="cl" x1="73" y1="${y + 5 + i * 8}" x2="93" y2="${y + 9 + i * 8}"/>`).join('') +
@@ -2400,64 +2445,92 @@ function schBuild(V, reg){
   const klappe = (y, mUp) => g('klappe', hit(116, mUp ? y - 40 : y - 8, 44, mUp ? 80 : 84) +
     `<rect class="comp" x="124" y="${y}" width="22" height="36"/>` +
     `<line class="cl" x1="127" y1="${y + 33}" x2="143" y2="${y + 3}"/>` +
-    `<line class="cl" x1="135" y1="${mUp ? y : y + 36}" x2="135" y2="${mUp ? y - 14 : y + 50}"/>` +
-    `<rect class="comp" x="127" y="${mUp ? y - 28 : y + 50}" width="16" height="14" rx="3"/>` +
-    `<text class="lbs" x="129" y="${mUp ? y - 17 : y + 61}" style="font-size:9px">M</text>`);
-  const filter = (k, x, yTop, lbl) => g(k, hit(x - 4, yTop - 20, 46, 96) +
-    `<rect class="comp" x="${x}" y="${yTop}" width="36" height="68"/>` +
-    `<line class="cl" x1="${x}" y1="${yTop + 68}" x2="${x + 36}" y2="${yTop}"/>` +
-    `<text class="lbs" x="${x - 14}" y="${yTop - 8}">${lbl}</text>`);
-  const pdiff = (x, y) => g('pdiff', hit(x - 10, y - 10, 20, 20) +
-    `<circle class="comp" cx="${x}" cy="${y}" r="8"/>` +
-    `<text class="lbs" x="${x - 3}" y="${y + 3.5}" style="font-size:9px;fill:#94a3b8">p</text>`);
-  const fan = (k, cx, cy, dir, lbl, lblY) => g(k, hit(cx - 28, cy - 28, 56, 56 + 14) +
+    `<ellipse cx="135" cy="${y + 18}" rx="7" ry="3.5" transform="rotate(-58 135 ${y + 18})" style="fill:#94a3b8"/>` +
+    `<line class="cl" x1="135" y1="${mUp ? y : y + 36}" x2="135" y2="${mUp ? y - 15 : y + 50}"/>` +
+    mbox(127, mUp ? y - 30 : y + 50));
+  /* Filter: Trichter-Symbol + Gitterkassette + Δp-Messschleife (wie Vorlage) */
+  const filter = (k, x, yTop, lbl, dir, dpY, lblPos) => {
+    const gx = dir > 0 ? x + 36 : x - 28;
+    const xl = Math.min(x, gx) - 8, xr = Math.max(x + 30, gx + 22) + 8;
+    const cx = (xl + xr) / 2;
+    const ductY = dir > 0 ? BOT : TOP;
+    const funnel = dir > 0
+      ? `<path class="cl" d="M${x} ${yTop} L${x + 30} ${yTop + 34} L${x} ${yTop + 68}"/>`
+      : `<path class="cl" d="M${x + 30} ${yTop} L${x} ${yTop + 34} L${x + 30} ${yTop + 68}"/>`;
+    g(k, hit(xl - 4, Math.min(dpY, yTop) - 6, xr - xl + 8, yTop + 68 - Math.min(dpY, yTop) + 12) +
+      `<rect class="comp" x="${x}" y="${yTop}" width="30" height="68"/>` + funnel +
+      `<rect class="comp" x="${gx}" y="${yTop}" width="22" height="68"/>` +
+      `<line class="cl" x1="${gx + 11}" y1="${yTop}" x2="${gx + 11}" y2="${yTop + 68}"/>` +
+      [17, 34, 51].map(d => `<line class="cl" x1="${gx}" y1="${yTop + d}" x2="${gx + 22}" y2="${yTop + d}"/>`).join('') +
+      `<text class="lbs" x="${lblPos[0]}" y="${lblPos[1]}">${lbl}</text>`);
+    g('pdiff', hit(cx - 18, dpY - 4, 36, 26) +
+      `<path class="cl" d="M${xl} ${ductY} V${dpY + 8} H${xr} V${ductY}"/>` +
+      `<rect class="comp" x="${cx - 14}" y="${dpY}" width="28" height="16" rx="3"/>` +
+      `<text class="lbs" x="${cx - 9}" y="${dpY + 12}" style="font-size:9px">Δp</text>`);
+  };
+  const fan = (k, cx, cy, dir) => g(k, hit(cx - 28, cy - 28, 56, 80) +
     `<circle class="comp" cx="${cx}" cy="${cy}" r="24"/>` +
     (dir > 0
-      ? `<polygon points="${cx - 12},${cy - 11} ${cx - 12},${cy + 11} ${cx + 14},${cy}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`
-      : `<polygon points="${cx + 12},${cy - 11} ${cx + 12},${cy + 11} ${cx - 14},${cy}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`) +
-    `<text class="lbs" x="${cx - 9}" y="${lblY}">EC</text>`);
-  const register = (k, x, sign, col, tint, extra, lbl) => g(k, hit(x - 8, 320, 56, 110) +
-    `<rect class="comp" x="${x}" y="342" width="40" height="52" style="fill:${tint}"/>` +
-    `<line class="cl" x1="${x}" y1="394" x2="${x + 40}" y2="342"/>` +
-    `<text x="${x + 13}" y="376" style="fill:${col};font-size:17px;font-weight:700">${sign}</text>` +
-    (extra || '') +
-    `<text class="lbs" x="${x - 8}" y="330">${lbl}</text>`);
-  const ventilSym = (x, y, m3w) =>
-    `<path class="comp" d="M${x - 8} ${y - 10} L${x} ${y} L${x - 8} ${y + 10} Z"/>` +
-    `<path class="comp" d="M${x + 8} ${y - 10} L${x} ${y} L${x + 8} ${y + 10} Z"/>` +
-    (m3w ? `<path class="comp" d="M${x - 8} ${y + 18} L${x} ${y} L${x + 8} ${y + 18} Z" transform="rotate(0)"/>` : '') +
-    `<line class="cl" x1="${x}" y1="${y}" x2="${x + 16}" y2="${y}"/>` +
-    `<rect class="comp" x="${x + 16}" y="${y - 7}" width="15" height="14" rx="3"/>` +
-    `<text class="lbs" x="${x + 19.5}" y="${y + 3.5}" style="font-size:9px">M</text>`;
+      ? `<polygon points="${cx - 13},${cy - 12} ${cx - 13},${cy + 12} ${cx + 15},${cy}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`
+      : `<polygon points="${cx + 13},${cy - 12} ${cx + 13},${cy + 12} ${cx - 15},${cy}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`) +
+    `<text class="lbs" x="${cx + (dir > 0 ? -22 : 8)}" y="${cy + 5}" style="font-size:8.5px">EC</text>` +
+    `<line class="cl" x1="${cx}" y1="${cy + 24}" x2="${cx}" y2="${cy + 33}"/>` +
+    mbox(cx - 8, cy + 33));
+  /* 3-Weg-Ventil (Ports oben/unten/links) mit Stellantrieb */
+  const ventil3w = (cx, cy, mSide) =>
+    `<path class="comp" d="M${cx - 14} ${cy - 9} L${cx} ${cy} L${cx - 14} ${cy + 9} Z"/>` +
+    `<path class="comp" d="M${cx - 9} ${cy - 14} L${cx} ${cy} L${cx + 9} ${cy - 14} Z"/>` +
+    `<path class="comp" d="M${cx - 9} ${cy + 14} L${cx} ${cy} L${cx + 9} ${cy + 14} Z"/>` +
+    `<line class="cl" x1="${cx}" y1="${cy}" x2="${cx + mSide * 14}" y2="${cy}"/>` +
+    mbox(mSide > 0 ? cx + 14 : cx - 30, cy - 7);
   const pumpe = (x, y) =>
     `<circle class="comp" cx="${x}" cy="${y}" r="8"/>` +
-    `<polygon points="${x - 4},${y - 5} ${x - 4},${y + 5} ${x + 6},${y}" fill="#94a3b8"/>`;
-  const wanne = (x) =>
-    `<path class="cl" d="M${x} 398 h32 v6 q0 5 -5 5 q-5 0 -5 -5 v-2"/>`;
+    `<polygon points="${x - 5},${y + 5} ${x + 5},${y + 5} ${x},${y - 6}" fill="#94a3b8"/>`;
+  /* Register mit Wasserseite: VL→Pumpe→3-Weg-Ventil, RL mit Beimisch-Stub (wie Vorlage) */
+  const register = (k, x, sign, col, tint, lbl, hyd, extra) => g(k,
+    hit(x - 10, 326, 60, hyd ? 200 : 80) +
+    `<rect class="comp" x="${x}" y="342" width="40" height="52" style="fill:${tint}"/>` +
+    `<line class="cl" x1="${x}" y1="394" x2="${x + 40}" y2="342"/>` +
+    `<text x="${x + 24}" y="358" style="fill:${col};font-size:15px;font-weight:700">${sign}</text>` +
+    (extra || '') +
+    (hyd ?
+      `<line x1="${x + 32}" y1="394" x2="${x + 32}" y2="424" stroke="${hyd[0]}" stroke-width="1.6"/>` +
+      pumpe(x + 32, 432) +
+      `<line x1="${x + 32}" y1="440" x2="${x + 32}" y2="456" stroke="${hyd[0]}" stroke-width="1.6"/>` +
+      `<line x1="${x + 32}" y1="484" x2="${x + 32}" y2="504" stroke="${hyd[0]}" stroke-width="1.6"/>` +
+      `<line x1="${x + 8}" y1="394" x2="${x + 8}" y2="504" stroke="${hyd[1]}" stroke-width="1.6"/>` +
+      `<line x1="${x + 8}" y1="470" x2="${x + 18}" y2="470" stroke="${hyd[1]}" stroke-width="1.6"/>` +
+      `<text class="lbs" x="${x + 28}" y="516" style="font-size:9px;fill:${hyd[0]}">VL</text>` +
+      `<text class="lbs" x="${x + 2}" y="516" style="font-size:9px;fill:${hyd[1]}">RL</text>`
+      : '') +
+    `<text class="lbs" x="${x - 8}" y="330">${lbl}</text>`);
   /* --- Zuluftstrang (unten, links → rechts) --- */
   gitter('gitterAul', BOT, 'Wetterschutz');
   klappe(BOT, false);
-  filter('f7', 170, BOT - 8, 'ISO ePM1 50%');
-  pdiff(188, BOT - 30);
+  filter('f7', 166, BOT - 8, 'ISO ePM1 50%', 1, 288, [150, 420]);
   /* WRG */
   if (V.wrg === 'rotor'){
-    g('rotor', hit(326, 124, 80, 312) +
+    g('rotor', hit(326, 124, 80, 316) +
       `<rect class="comp" x="336" y="130" width="58" height="276" style="fill:rgba(56,189,248,.05)"/>` +
       `<line class="cl" x1="336" y1="268" x2="394" y2="268"/>` +
       `<path class="cl" d="M 350 156 A 38 22 0 0 1 382 156" marker-end="url(#m_cl)"/>` +
-      `<line class="cl" x1="365" y1="406" x2="365" y2="418"/>` +
-      `<circle class="comp" cx="365" cy="426" r="8"/>` +
-      `<text class="lbs" x="361.5" y="430" style="font-size:9px">M</text>` +
+      `<line class="cl" x1="365" y1="406" x2="365" y2="416"/>` +
+      mbox(357, 416) +
       `<text class="lbs" x="330" y="452">Rotations-WT</text>`);
   } else if (V.wrg === 'pwt'){
-    g('pwt', hit(298, 124, 134, 300) +
+    g('pwt', hit(298, 124, 134, 306) +
       `<rect class="comp" x="305" y="130" width="120" height="276" style="fill:rgba(56,189,248,.05)"/>` +
       `<line class="cl" x1="305" y1="130" x2="425" y2="406"/>` +
       `<line class="cl" x1="425" y1="130" x2="305" y2="406"/>` +
-      wanne(349) +
+      `<line class="cl" x1="305" y1="268" x2="365" y2="406"/>` +
+      `<line class="cl" x1="365" y1="130" x2="425" y2="268"/>` +
+      `<line class="cl" x1="425" y1="268" x2="365" y2="406"/>` +
+      `<line class="cl" x1="365" y1="130" x2="305" y2="268"/>` +
+      `<path class="cl" d="M313 412 V422 H417 V412"/>` +
+      `<path class="cl" d="M360 422 v5 h8 v-5 h6 v9"/>` +
       `<text class="lb" x="343" y="276">PWT</text>`);
   } else if (V.wrg === 'kvs'){
-    g('kvswrg', hit(330, 130, 120, 270) +
+    g('kvswrg', hit(330, 130, 122, 270) +
       `<rect class="comp" x="340" y="142" width="40" height="52"/>` +
       `<line class="cl" x1="340" y1="194" x2="380" y2="142"/>` +
       `<rect class="comp" x="340" y="342" width="40" height="52"/>` +
@@ -2466,43 +2539,39 @@ function schBuild(V, reg){
       `<line x1="410" y1="178" x2="410" y2="360" stroke="#60a5fa" stroke-width="1.6"/>` +
       `<line class="cl" x1="380" y1="186" x2="394" y2="186"/><line class="cl" x1="380" y1="178" x2="410" y2="178"/>` +
       `<line class="cl" x1="380" y1="350" x2="394" y2="350"/><line class="cl" x1="380" y1="360" x2="410" y2="360"/>` +
-      pumpe(394, 300) + ventilSym(394, 240, true) +
+      pumpe(394, 300) + ventil3w(394, 240, -1) +
       `<line class="cl" x1="410" y1="318" x2="428" y2="318"/>` +
       `<circle class="comp" cx="436" cy="318" r="8"/><line class="cl" x1="428" y1="318" x2="444" y2="318"/>` +
-      `<text class="lbs" x="386" y="206" style="font-size:9px;fill:#f87171">VL</text>` +
+      `<text class="lbs" x="384" y="206" style="font-size:9px;fill:#f87171">VL</text>` +
       `<text class="lbs" x="413" y="172" style="font-size:9px;fill:#60a5fa">RL</text>` +
       `<text class="lbs" x="332" y="452">KVS-WRG</text>`);
   }
   if (V.bypass){
-    g('bypass', hit(270, 386, 200, 84) +
-      `<path class="cl" d="M285 386 V446 H445 V386" stroke-dasharray="6 5"/>` +
+    g('bypass', hit(270, 386, 200, 92) +
+      `<path d="M285 386 V446 H445 V386" fill="none" stroke="#bae6fd" stroke-width="2" opacity=".5"/>` +
       `<rect class="comp" x="352" y="434" width="24" height="24"/>` +
       `<line class="cl" x1="355" y1="455" x2="373" y2="437"/>` +
-      `<text class="lbs" x="386" y="462">Bypass</text>`);
+      `<ellipse cx="364" cy="446" rx="6" ry="3" transform="rotate(-45 364 446)" style="fill:#94a3b8"/>` +
+      `<line class="cl" x1="376" y1="446" x2="382" y2="446"/>` +
+      mbox(382, 438) +
+      `<text class="lbs" x="306" y="464">Bypass</text>`);
   }
-  /* Erhitzer mit VL/RL, Pumpe, Ventil */
-  register('erhitzer', 470, '+', '#fca5a5', 'rgba(239,68,68,.08)',
-    `<line x1="478" y1="394" x2="478" y2="470" stroke="#f87171" stroke-width="1.6"/>` +
-    `<line x1="500" y1="394" x2="500" y2="470" stroke="#60a5fa" stroke-width="1.6"/>` +
-    pumpe(478, 446) + ventilSym(500, 466, false) +
-    `<text class="lbs" x="470" y="486" style="font-size:9px;fill:#f87171">VL</text>` +
-    `<text class="lbs" x="494" y="486" style="font-size:9px;fill:#60a5fa">RL</text>`,
-    'Erhitzer');
-  g('fs', hit(514, 316, 24, 40) +
-    `<line class="cl" x1="524" y1="350" x2="524" y2="340"/>` +
-    `<circle class="comp" cx="524" cy="330" r="9"/>` +
-    `<text class="lbs" x="517" y="334" style="font-size:8px">FS</text>`);
-  /* Kühler / Entfeuchter */
+  /* Erhitzer mit VL/RL, Pumpe, 3-Weg-Ventil */
+  register('erhitzer', 470, '+', '#fca5a5', 'rgba(239,68,68,.08)', 'Erhitzer', ['#f87171', '#60a5fa']);
+  g('kvsventil', hit(486, 452, 48, 36) + ventil3w(502, 470, 1));
+  g('fs', hit(522, 384, 30, 42) +
+    `<line class="cl" x1="537" y1="386" x2="537" y2="404"/>` +
+    `<rect class="comp" x="526" y="404" width="22" height="17" rx="3"/>` +
+    `<text class="lbs" x="530" y="416" style="font-size:8.5px">FS</text>`);
+  /* Kühler / Entfeuchter mit KVS-Ventil */
   if (V.kuehler || V.entf){
-    const extra =
-      `<line x1="566" y1="394" x2="566" y2="452" stroke="#22d3ee" stroke-width="1.6"/>` +
-      `<line x1="586" y1="394" x2="586" y2="430" stroke="#60a5fa" stroke-width="1.6"/>` +
-      wanne(560) +
-      (V.entf ? `<path class="cl" d="M606 346 L613 358 L606 370 L613 382 L606 392"/>` : '');
-    register(V.entf ? 'entf' : 'kuehler', 558, '−', '#7dd3fc', 'rgba(56,189,248,.07)', extra, V.entf ? 'Entfeuchter' : 'Kühler');
-    g('kvsventil', hit(548, 440, 80, 60) +
-      ventilSym(566, 466, !V.entf) +
-      `<text class="lbs" x="540" y="496">KVS-Ventil</text>`);
+    const extra = V.entf
+      ? `<path class="cl" d="M606 346 L613 358 L606 370 L613 382 L606 392"/>` +
+        [0, 1, 2].map(i => `<circle cx="${566 + i * 12}" cy="400" r="2" style="fill:#7dd3fc"/>`).join('')
+      : '';
+    register(V.entf ? 'entf' : 'kuehler', 558, '−', '#7dd3fc', 'rgba(56,189,248,.07)', V.entf ? 'Entfeuchter' : 'Kühler', ['#22d3ee', '#60a5fa'], extra);
+    g('kvsventil', hit(574, 452, 48, 50) + ventil3w(590, 470, 1) +
+      `<text class="lbs" x="556" y="530">KVS-Ventil</text>`);
   }
   /* Dampfbefeuchter */
   if (V.dampf){
@@ -2512,35 +2581,35 @@ function schBuild(V, reg){
       [650, 662, 674].map(x => `<circle cx="${x}" cy="${BOT + 6}" r="1.6" style="fill:#94a3b8"/>`).join('') +
       `<text class="lbs" x="616" y="330">Dampfbefeuchter</text>`);
   }
-  fan('ventZul', 730, BOT + 18, 1, 'EC', BOT + 58);
+  fan('ventZul', 730, BOT + 18, 1);
   g('tzul', hit(764, 312, 24, 44) +
     `<line class="cl" x1="775" y1="350" x2="775" y2="340"/>` +
     `<circle class="comp" cx="775" cy="331" r="9"/>` +
     `<text class="lbs" x="771.5" y="335" style="font-size:9px">T</text>`);
-  const sd = (k, x, y, lblBelow) => g(k, hit(x - 4, y - 6, 88, 62) +
-    `<rect class="comp" x="${x}" y="${y}" width="80" height="36"/>` +
-    [9, 18, 27].map(d => `<line class="cl" x1="${x + 6}" y1="${y + d}" x2="${x + 74}" y2="${y + d}"/>`).join('') +
-    `<text class="lbs" x="${x + 30}" y="${lblBelow ? y + 52 : y - 10}">SD</text>`);
-  sd('sd', 795, BOT, true);
+  /* Schalldämpfer: schlanke Kulisse (wie Vorlage) */
+  const sd = (k, x, y, lblBelow) => g(k, hit(x - 6, y - 22, 38, 96) +
+    `<rect class="comp" x="${x}" y="${y - 16}" width="26" height="68"/>` +
+    `<line class="cl" x1="${x + 13}" y1="${y - 9}" x2="${x + 13}" y2="${y + 45}"/>` +
+    `<text class="lbs" x="${x + 3}" y="${lblBelow ? y + 68 : y - 24}">SD</text>`);
+  sd('sd', 826, BOT, true);
   const bskSym = (x, y, lblAbove) => g('bsk', hit(x - 10, y - 24, 38, 86) +
     `<rect class="comp" x="${x}" y="${y - 4}" width="16" height="44"/>` +
     `<line class="cl" x1="${x + 3}" y1="${y + 34}" x2="${x + 13}" y2="${y + 2}"/>` +
     `<circle cx="${x + 8}" cy="${y + 18}" r="3" style="fill:#f59e0b"/>` +
     `<text class="lbs" x="${x - 6}" y="${lblAbove ? y - 12 : y + 58}">BSK</text>`);
   bskSym(896, BOT, true);
-  const vsr = (y, mUp) => g('vsr', hit(930, mUp ? y - 36 : y - 8, 60, mUp ? 78 : 78) +
+  const vsr = (y, mUp) => g('vsr', hit(930, mUp ? y - 36 : y - 8, 60, 84) +
     `<rect class="comp" x="938" y="${y + 2}" width="44" height="32"/>` +
     `<path class="cl" d="M946 ${y + 4} Q960 ${y + 18} 946 ${y + 32}"/>` +
     `<path class="cl" d="M974 ${y + 4} Q960 ${y + 18} 974 ${y + 32}"/>` +
-    `<line class="cl" x1="960" y1="${mUp ? y + 2 : y + 34}" x2="960" y2="${mUp ? y - 12 : y + 48}"/>` +
-    `<rect class="comp" x="952" y="${mUp ? y - 26 : y + 48}" width="16" height="14" rx="3"/>` +
-    `<text class="lbs" x="954" y="${mUp ? y - 15 : y + 59}" style="font-size:9px">M</text>` +
+    `<line class="cl" x1="960" y1="${mUp ? y + 2 : y + 34}" x2="960" y2="${mUp ? y - 13 : y + 49}"/>` +
+    mbox(952, mUp ? y - 28 : y + 49) +
     `<text class="lbs" x="948" y="${mUp ? y + 50 : y - 14}">VSR</text>`);
   vsr(BOT, true);
   g('zulOut', hit(990, 336, 70, 62) +
     `<line x1="996" y1="${BOT + 18}" x2="1048" y2="${BOT + 18}" stroke="#38bdf8" stroke-width="2" marker-end="url(#m_zul)"/>` +
     `<path class="cl" d="M1034 ${BOT + 6} L1046 ${BOT} M1034 ${BOT + 30} L1046 ${BOT + 36}"/>` +
-    `<text class="lbs" x="1022" y="${BOT + 54}">Zuluft-Auslass</text>`);
+    `<text class="lbs" x="1052" y="${BOT + 8}">Zuluft-Auslass</text>`);
   /* --- Abluftstrang (oben, rechts → links) --- */
   if (V.haube){
     g('haube', hit(1036, 150, 160, 170) +
@@ -2552,25 +2621,24 @@ function schBuild(V, reg){
       [1092, 1112, 1132].map(x => `<circle class="cl" cx="${x}" cy="279" r="6"/>`).join('') +
       `<text class="lbs" x="1052" y="312">Typ-B-Haube über Kochfeld</text>`);
   } else {
-    g('ablIn', hit(990, 138, 70, 58) +
+    g('ablIn', hit(990, 138, 76, 62) +
       `<line x1="1048" y1="${TOP + 18}" x2="996" y2="${TOP + 18}" stroke="#86efac" stroke-width="2" marker-end="url(#m_abl)"/>` +
-      `<text class="lbs" x="1018" y="${TOP - 6}">Abluft-Einlass</text>`);
+      `<text class="lbs" x="1036" y="${TOP + 44}">Abluft-Einlass</text>`);
   }
   vsr(TOP, false);
   bskSym(896, TOP, false);
-  sd('sd', 795, TOP, false);
+  sd('sd', 826, TOP, false);
   g('tabl', hit(764, 122, 24, 44) +
     `<line class="cl" x1="775" y1="${TOP}" x2="775" y2="${TOP - 10}"/>` +
     `<circle class="comp" cx="775" cy="${TOP - 19}" r="9"/>` +
     `<text class="lbs" x="771.5" y="${TOP - 15}" style="font-size:9px">T</text>`);
-  g('rauch', hit(698, 130, 30, 60) +
-    `<rect class="comp" x="704" y="${TOP + 40}" width="18" height="12" rx="2"/>` +
-    `<line class="cl" x1="713" y1="${TOP + 36}" x2="713" y2="${TOP + 40}"/>` +
-    `<circle cx="713" cy="${TOP + 46}" r="2.5" style="fill:#f59e0b"/>` +
-    `<text class="lbs" x="700" y="${TOP + 66}" style="font-size:9px">RM</text>`);
-  filter('g4', 648, TOP - 8, 'ISO ePM10 50%');
-  pdiff(666, TOP + 60);
-  fan('ventAbl', 580, TOP + 18, -1, 'EC', TOP + 58);
+  g('rauch', hit(698, 182, 30, 50) +
+    `<line class="cl" x1="713" y1="${TOP + 36}" x2="713" y2="${TOP + 42}"/>` +
+    `<rect class="comp" x="704" y="${TOP + 42}" width="18" height="12" rx="2"/>` +
+    `<circle cx="713" cy="${TOP + 48}" r="2.5" style="fill:#f59e0b"/>` +
+    `<text class="lbs" x="700" y="${TOP + 68}" style="font-size:9px">RM</text>`);
+  filter('g4', 646, TOP - 8, 'ISO ePM10 50%', -1, 120, [600, TOP + 82]);
+  fan('ventAbl', 580, TOP + 18, -1);
   klappe(TOP, true);
   gitter('gitterFol', TOP, 'FOL über Dach');
   /* --- Regulierung (magenta, Strichschema) --- */
@@ -2579,14 +2647,14 @@ function schBuild(V, reg){
     const dash = `stroke="${RC}" stroke-width="1.5" stroke-dasharray="5 4" fill="none"`;
     const lines = [];
     if (reg === 'zuluft') lines.push(`M775 340 V520 H660 V540`);
-    if (reg === 'abluft') lines.push(`M775 ${TOP - 10} V132 H758 V520 H660 V540`);
-    if (reg === 'raum') lines.push(`M1252 308 V600 H700 V572`);
-    lines.push(`M524 339 V510 H640 V540`);
-    lines.push(`M620 540 V470 H510 V462`);
-    if (V.kuehler || V.entf) lines.push(`M620 470 H596 V472`);
-    if (V.wrg === 'rotor') lines.push(`M600 552 H365 V434`);
-    if (V.wrg === 'pwt' && V.bypass) lines.push(`M600 552 H364 V458`);
-    if (V.wrg === 'kvs') lines.push(`M600 552 H424 V240 H412`);
+    if (reg === 'abluft') lines.push(`M766 ${TOP - 19} H750 V520 H660 V540`);
+    if (reg === 'raum') lines.push(`M1259 308 V600 H700 V572`);
+    lines.push(`M537 421 V510 H640 V540`);
+    lines.push(`M620 540 V486 H524 V479`);
+    if (V.kuehler || V.entf) lines.push(`M612 486 V479`);
+    if (V.wrg === 'rotor') lines.push(`M600 552 H365 V433`);
+    if (V.wrg === 'pwt' && V.bypass) lines.push(`M600 552 H390 V455`);
+    if (V.wrg === 'kvs') lines.push(`M600 552 H368 V250`);
     if (V.dampf) lines.push(`M662 540 V404`);
     g('regler', lines.map(d => `<path d="${d}" ${dash}/>`).join('') +
       hit(576, 536, 130, 40) +
