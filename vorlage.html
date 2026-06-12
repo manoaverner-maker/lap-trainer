@@ -18,7 +18,7 @@
 html{scrollbar-color:var(--line) var(--bg);background:radial-gradient(1100px 700px at 75% -120px,#17243f 0%,var(--bg) 58%) fixed,var(--bg)}
 body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:transparent;color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 24px 26px}
 /* ---------- Liquid Glass + Aurora: Hintergrund-Schichten ---------- */
-#bgPhoto{position:fixed;inset:0;z-index:-3;background:url("https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80") center/cover no-repeat;pointer-events:none}
+#bgPhoto{position:fixed;inset:0;z-index:-3;background:url("https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=80") center/cover no-repeat;pointer-events:none}
 #bgOverlay{position:fixed;inset:0;z-index:-2;background:rgba(5,12,28,.68);pointer-events:none}
 .aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.18;will-change:transform}
@@ -70,6 +70,20 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .fcard ul{list-style:none;display:flex;flex-direction:column;gap:7px;font-size:.92rem;line-height:1.55}
 .fcard .key{color:#fbbf24;font-weight:800}
 .fcard .nt{color:var(--mut2);font-size:.82rem}
+/* ---------- Formeln & Bauteilvorlagen (Dropdown-Panels) ---------- */
+#view-for .key,#view-bau .key{color:#fbbf24;font-weight:800}
+.formel-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.formel-list li{padding:11px 14px;background:rgba(15,23,42,.5);border:1px solid var(--line);border-radius:12px;font-size:.92rem;line-height:1.5}
+.formel-list .fsym{font-weight:700}
+.formel-list .fnote{display:block;color:var(--mut2);font-size:.82rem;margin-top:4px;line-height:1.45}
+.beispiel{margin-top:16px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.32);border-radius:12px;padding:12px 15px;font-size:.9rem;line-height:1.55}
+.bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
+.bauteil-formel{background:rgba(15,23,42,.5);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:.92rem;line-height:1.5;margin-bottom:14px}
+.filebtns{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.filebtn{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;text-decoration:none;color:var(--txt);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:9px 15px;transition:background .15s,border-color .15s,transform .12s}
+a.filebtn:hover{background:var(--card2);border-color:var(--acc);color:var(--acc);transform:translateY(-1px)}
+.filebtn .ext{color:var(--mut2);font-size:.78rem;font-weight:500}
+.filebtn.off{opacity:.5;cursor:default}
 .switch{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--mut);cursor:pointer;user-select:none}
 .switch input{accent-color:var(--acc);width:16px;height:16px;cursor:pointer}
 .pool-info{font-size:.8rem;color:var(--mut2)}
@@ -285,6 +299,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   <nav class="tabs">
     <a href="#gebaeude" id="tabGeb" class="active">Gebäudetypen &amp; Schemas</a>
     <a href="#formeln" id="tabFor">Formeln</a>
+    <a href="#bauteile" id="tabBau">Bauteilvorlagen</a>
   </nav>
 </header>
 
@@ -334,76 +349,27 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 <main id="view-for">
   <div class="card" style="padding:24px 28px">
     <h2 class="sec" style="font-size:1.2rem">📖 Formel-Spickzettel Lüftungstechnik</h2>
-    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 18px">Einheiten immer mitdenken! Praktische Faustwerte <span class="key">gold</span> markiert. (Inhalt: eigene Formel-Lernhilfe LAP)</p>
-    <div class="fwrap">
-      <div class="fcard"><h3>Konstanten / Faustwerte (auswendig)</h3><ul>
-        <li>Luftdichte <b>ρ ≈ <span class="key">1.2 kg/m³</span></b> (20 °C)</li>
-        <li>spez. Wärmekapazität Luft <b>c<sub>p</sub> ≈ <span class="key">1.0 kJ/(kg·K)</span></b> = 1005 J/(kg·K)</li>
-        <li>Wärmekapazität Wasser c<sub>W</sub> ≈ 4.19 kJ/(kg·K)</li>
-        <li>Verdampfungswärme Wasser r ≈ <span class="key">2500 kJ/kg</span></li>
-        <li>kin. Viskosität Luft ν ≈ 15·10⁻⁶ m²/s (20 °C)</li>
-        <li>Volumen-Wärmekapazität <b>ρ·c<sub>p</sub> ≈ <span class="key">0.34 Wh/(m³·K)</span></b> ← Schlüsselzahl!</li>
-        <li class="nt">Richtgeschwindigkeiten: Hauptkanal 4–6 m/s · Nebenkanal 2–4 m/s · Auslass 1–3 m/s</li>
-      </ul></div>
-      <div class="fcard"><h3>1 · Volumenstrom &amp; Luftwechsel</h3><ul>
-        <li>Kontinuität: <b>V̇ = A · w</b> [m³/s] → V̇[m³/h] = 3600·A·w</li>
-        <li>Luftwechsel: <b>n = V̇ / V<sub>Raum</sub></b> [1/h] → V̇ = n · V<sub>Raum</sub></li>
-        <li>personenbezogen: V̇ = n<sub>Pers</sub> · v̇<sub>Pers</sub> (SIA 2024)</li>
-        <li>flächenbezogen: V̇ = A<sub>Raum</sub> · v̇<sub>Fläche</sub> <span class="nt">→ massgebend = MAX</span></li>
-      </ul></div>
-      <div class="fcard"><h3>2 · Luftmenge über CO₂</h3><ul>
-        <li><b>V̇<sub>AU</sub> = V̇<sub>CO₂</sub> / (c<sub>i</sub> − c<sub>a</sub>)</b></li>
-        <li>v̇<sub>CO₂</sub> ≈ <span class="key">20 l/h</span> pro Person (sitzend) · c<sub>a</sub> ≈ 400 ppm · c<sub>i</sub> z. B. 1000 ppm</li>
-        <li class="nt">Einheiten konsistent: l/h und ppm = ml/m³ = 10⁻⁶</li>
-      </ul></div>
-      <div class="fcard"><h3>3 · Sensible Leistung (Heizen/Kühlen)</h3><ul>
-        <li><b>Q̇ = V̇ · ρ · c<sub>p</sub> · Δϑ</b></li>
-        <li>Praktisch: <b>Q̇ [W] = V̇ [m³/h] · <span class="key">0.34</span> · Δϑ [K]</b></li>
-        <li>Mischluft: ϑ<sub>m</sub> = (V̇₁·ϑ₁ + V̇₂·ϑ₂)/(V̇₁+V̇₂)</li>
-      </ul></div>
-      <div class="fcard"><h3>4 · Latente Leistung / Befeuchtung</h3><ul>
-        <li>Wassermenge: <b>ṁ<sub>W</sub> = V̇ · ρ · Δx</b> (x in kg/kg tr. Luft)</li>
-        <li>Befeuchtungsleistung: Q̇<sub>lat</sub> = ṁ<sub>W</sub> · r</li>
-        <li>Gesamt (sensibel+latent): <b>Q̇ = ṁ<sub>L</sub> · Δh</b> (Δh aus h,x-Diagramm)</li>
-        <li>Enthalpie: h = 1.006·ϑ + x·(2500 + 1.86·ϑ) [kJ/kg]</li>
-      </ul></div>
-      <div class="fcard"><h3>5 · Druckverlust</h3><ul>
-        <li>dynamischer Druck: <b>p<sub>dyn</sub> = (ρ/2)·w²</b></li>
-        <li>Reibung: Δp<sub>R</sub> = λ · (l/d) · (ρ/2)·w²</li>
-        <li>Einzelwiderstand: <b>Δp<sub>E</sub> = ζ · (ρ/2)·w²</b></li>
-        <li>Gesamt: Δp<sub>ges</sub> = ΣΔp<sub>R</sub> + ΣΔp<sub>E</sub></li>
-        <li>hydraulischer Durchmesser: d<sub>h</sub> = 2ab/(a+b)</li>
-        <li>Reynolds: Re = w·d/ν <span class="nt">(turbulent ab ~2300)</span></li>
-      </ul></div>
-      <div class="fcard"><h3>6 · Ventilator</h3><ul>
-        <li><b>P = V̇ · Δp<sub>t</sub> / η</b> [W] <span class="nt">(V̇ in m³/s – bei m³/h: ÷3600!)</span></li>
-        <li>SFP = P<sub>el</sub> / V̇ → SIA 382/1 Kategorien SFP 1…7</li>
-        <li>Ähnlichkeitsgesetze: <b>V̇ ∝ n · Δp ∝ n² · P ∝ n³</b></li>
-      </ul></div>
-      <div class="fcard"><h3>7 · Wärmerückgewinnung (WRG)</h3><ul>
-        <li>Rückwärmzahl: <b>Φ = (ϑ<sub>Zu</sub> − ϑ<sub>Au</sub>) / (ϑ<sub>Ab</sub> − ϑ<sub>Au</sub>)</b></li>
-        <li>WRG-Leistung: Q̇<sub>WRG</sub> = V̇ · ρ · c<sub>p</sub> · (ϑ<sub>Zu,nach</sub> − ϑ<sub>Au</sub>)</li>
-      </ul></div>
-      <div class="fcard"><h3>8 · Wasserseitige Register (Hydraulik)</h3><ul>
-        <li><b>Q̇ = ṁ<sub>W</sub> · c<sub>W</sub> · Δϑ<sub>W</sub></b> → ṁ<sub>W</sub> = Q̇/(c<sub>W</sub>·Δϑ<sub>W</sub>)</li>
-        <li class="nt">Spreizung typ. Heizregister 70/50 · Kühlregister 6/12 °C (objektabhängig)</li>
-      </ul></div>
-      <div class="fcard"><h3>9 · Schall</h3><ul>
-        <li>energetische Addition: <b>L<sub>ges</sub> = 10·log₁₀(Σ 10^(L<sub>i</sub>/10))</b></li>
-        <li>n gleiche Quellen: L<sub>ges</sub> = L + 10·log₁₀(n) → 2 gleiche = <span class="key">+3 dB</span>, 10 gleiche = +10 dB</li>
-        <li>Schalldämpfer: Einfügungsdämpfung <b>De = L<sub>vor</sub> − L<sub>nach</sub></b></li>
-      </ul></div>
-      <div class="fcard"><h3>10 · h,x-Prozesse (Kurzmerker)</h3><ul>
-        <li>Erwärmen: x konst., ϑ↑, φ↓ (senkrecht hoch)</li>
-        <li>Kühlen ohne Entfeuchten: bis Taupunkt · mit Entfeuchten: x↓ (unter Taupunkt)</li>
-        <li>Befeuchten Dampf: ϑ ≈ konst., x↑ · adiabat (Wasser): h ≈ konst., ϑ↓, x↑</li>
-        <li>Mischen: auf der Verbindungslinie (Verhältnis der Massenströme)</li>
-      </ul></div>
-      <div class="fcard" style="border-color:rgba(245,158,11,.5)"><h3 style="color:#fbbf24">Lern-Tipp</h3><ul>
-        <li>Die <span class="key">0.34</span>-Zahl und <b>Q̇ = V̇·ρ·c<sub>p</sub>·Δϑ</b> sind die meistgebrauchten – die musst du blind können.</li>
-        <li class="nt">Decke die rechte Seite ab und rechne die Beispiele aus 02_Berechnungen nach – oder direkt hier im Übungsmodus.</li>
-      </ul></div>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Kategorie wählen – Formelzeichen &amp; Einheiten sind <span class="key">gold</span> markiert, dazu Erklärung, Beispielrechnung und Norm-Verweis. Einheiten immer mitdenken!</p>
+    <div class="hilfe-bar">
+      <select class="bigselect" id="formelSelect">
+        <option value="">Formel-Kategorie wählen …</option>
+      </select>
     </div>
+    <div id="formelBody"><div class="empty">Wähle oben eine Kategorie, um Formelzeichen, Beispielrechnung und Normen zu sehen.</div></div>
+  </div>
+</main>
+
+<!-- ================= Bauteilvorlagen ================= -->
+<main id="view-bau">
+  <div class="card" style="padding:24px 28px">
+    <h2 class="sec" style="font-size:1.2rem">🧩 Bauteilvorlagen</h2>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Bauteil wählen – Kurzbeschrieb, Auslegungsformel <span class="key">gold</span>, Norm-Verweis und die passenden Vorlagen aus den Ordnern 03_Auslegungen / 04_Lerndokus.</p>
+    <div class="hilfe-bar">
+      <select class="bigselect" id="bauteilSelect">
+        <option value="">Bauteil wählen …</option>
+      </select>
+    </div>
+    <div id="bauteilBody"><div class="empty">Wähle oben ein Bauteil, um Beschreibung, Auslegungsformel, Norm und Vorlagen zu sehen.</div></div>
   </div>
 </main>
 
@@ -418,11 +384,14 @@ const $ = id => document.getElementById(id);
 function vShow(which){
   $('view-geb').classList.toggle('show', which === 'geb');
   $('view-for').classList.toggle('show', which === 'for');
+  $('view-bau').classList.toggle('show', which === 'bau');
   $('tabGeb').classList.toggle('active', which === 'geb');
   $('tabFor').classList.toggle('active', which === 'for');
+  $('tabBau').classList.toggle('active', which === 'bau');
 }
 $('tabGeb').onclick = e => { e.preventDefault(); vShow('geb'); history.replaceState(null, '', '#gebaeude'); };
 $('tabFor').onclick = e => { e.preventDefault(); vShow('for'); history.replaceState(null, '', '#formeln'); };
+$('tabBau').onclick = e => { e.preventDefault(); vShow('bau'); history.replaceState(null, '', '#bauteile'); };
 
 /* ================= Gebäudetypen Vorlage: Daten (Modul A) ================= */
 const BT_CATS = {
@@ -939,7 +908,318 @@ document.addEventListener('click', e => { if (!e.target.closest('#schemaStage'))
 
 
 
-/* Deep-Link: vorlage.html#formeln */
+/* ================= Formeln (Modul C): Daten ================= */
+const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
+const FORMEL_DATA = [
+  {
+    id: 'konstanten', name: 'Konstanten & Faustwerte',
+    intro: 'Auswendig lernen — diese Werte brauchst du in jeder Aufgabe.',
+    norm: '—',
+    items: [
+      { sym: 'ρ_Luft', val: '1.20 kg/m³', note: 'bei 20 °C / 1013 mbar (Normzustand)' },
+      { sym: 'ρ_Luft', val: '1.13 kg/m³', note: 'bei 20 °C / 955 mbar (Bern/Zürich-Höhe) ← LAP-Aufgaben!' },
+      { sym: 'c_p Luft', val: '1.006 kJ/(kg·K)', note: 'spez. Wärmekapazität trockene Luft' },
+      { sym: 'c_W Wasser', val: '4.19 kJ/(kg·K)', note: 'spez. Wärmekapazität Wasser' },
+      { sym: 'r Wasser', val: '2500 kJ/kg', note: 'Verdampfungswärme bei 0 °C' },
+      { sym: 'ρ·c_p', val: '0.34 Wh/(m³·K)', note: '← Schlüsselzahl! Q[W] = V̇[m³/h] · 0.34 · ΔT[K]' },
+      { sym: 'v Hauptkanal', val: '4–6 m/s', note: 'Richtwert Kanalauslegung' },
+      { sym: 'v Nebenkanal', val: '2–4 m/s', note: 'Richtwert' },
+      { sym: 'v Auslass', val: '1–3 m/s', note: 'Richtwert Raumdurchlass' },
+    ],
+    beispiel: 'Gegeben: V̇ = 2000 m³/h, ΔT = 8 K → Q = 2000 · 0.34 · 8 = 5440 W = 5.44 kW'
+  },
+  {
+    id: 'volumenstrom', name: 'Volumenstrom & Luftwechsel',
+    intro: 'Grundlage jeder Auslegung — immer den massgebenden Wert nehmen (MAX).',
+    norm: 'SIA 2024, SIA 382/1',
+    items: [
+      { sym: 'V̇ = A · w', val: '[m³/s]', note: '× 3600 → m³/h' },
+      { sym: 'n = V̇ / V_Raum', val: '[1/h]', note: 'Luftwechsel' },
+      { sym: 'V̇ = n_Pers · v̇_Pers', val: '[m³/h]', note: 'personenbezogen nach SIA 2024' },
+      { sym: 'V̇ = A_Raum · v̇_Fläche', val: '[m³/h]', note: 'flächenbezogen' },
+      { sym: 'Massgebend', val: 'MAX(Person, Fläche, LW)', note: 'immer den grössten Wert nehmen!' },
+    ],
+    beispiel: 'Büro, 10 Pers., 50 m², n_min = 2/h, V_Raum = 150 m³ → Person: 10×40=400, Fläche: 50×3=150, LW: 2×150=300 → massgebend: 400 m³/h'
+  },
+  {
+    id: 'co2', name: 'CO₂-Berechnung',
+    intro: 'Aussenluftmenge aus CO₂-Bilanz — typische Prüfungsaufgabe.',
+    norm: 'SIA 382/1, SIA 2024',
+    items: [
+      { sym: 'V̇_AU = V̇_CO₂ / (c_i − c_a)', val: '[m³/h pro Person]', note: 'Aussenluftbedarf' },
+      { sym: 'V̇_CO₂', val: '≈ 20 l/h pro Person', note: 'sitzende Tätigkeit (leichte Arbeit)' },
+      { sym: 'c_a', val: '≈ 400 ppm', note: 'CO₂-Konzentration Aussenluft' },
+      { sym: 'c_i', val: 'z.B. 1000 ppm', note: 'Sollwert Innenraum (SIA: Stufe II)' },
+      { sym: 'Einheiten', val: 'ppm = ml/m³', note: 'konsistent halten!' },
+    ],
+    beispiel: 'V̇ = 20 l/h ÷ (1000−400) ppm = 20/600 m³/h × 1000 = 33.3 m³/h pro Person'
+  },
+  {
+    id: 'leistung', name: 'Sensible Leistung (Heizen/Kühlen)',
+    intro: 'Die meistgebrauchte Formel — blind können!',
+    norm: 'SIA 382/1',
+    items: [
+      { sym: 'Q̇ = V̇ · ρ · c_p · ΔT', val: '[kW]', note: 'allgemeine Form' },
+      { sym: 'Q̇ [W] = V̇ [m³/h] · 0.34 · ΔT [K]', val: '← Kurzform!', note: 'mit ρ·c_p = 0.34 Wh/(m³·K)' },
+      { sym: 'ϑ_m = (V̇₁·ϑ₁ + V̇₂·ϑ₂) / (V̇₁+V̇₂)', val: '[°C]', note: 'Mischlufttemperatur' },
+    ],
+    beispiel: 'V̇ = 3600 m³/h, T_ZUL = 22°C, T_ABL = 26°C → Q̇ = 3600 · 0.34 · 4 = 4896 W ≈ 4.9 kW'
+  },
+  {
+    id: 'feuchte', name: 'Feuchte & h,x-Diagramm',
+    intro: 'Enthalpie, Wassergehalt und Prozesse im h,x-Diagramm.',
+    norm: 'SIA 382/1',
+    items: [
+      { sym: 'h = 1.006·ϑ + x·(2500 + 1.86·ϑ)', val: '[kJ/kg]', note: 'Enthalpie feuchte Luft' },
+      { sym: 'ṁ_W = V̇ · ρ · Δx', val: '[kg/s]', note: 'Wassermenge Befeuchtung/Entfeuchtung' },
+      { sym: 'Dampfbefeuchtung', val: 'ϑ ≈ konst., x↑', note: 'isotherm' },
+      { sym: 'Adiabat. Befeuchtung', val: 'h ≈ konst., ϑ↓, x↑', note: 'isenthalp' },
+      { sym: 'Kühlen + Entfeuchten', val: 'unter Taupunkt: x↓', note: 'Kondensat entsteht' },
+      { sym: 'Kondensat', val: 'ṁ_K = V̇·ρ·(x_ein−x_aus)/1000', val2: '[l/h]', note: 'Siphon dimensionieren!' },
+    ],
+    beispiel: 'x = 8 g/kg, ϑ = 20°C → h = 1.006·20 + 0.008·(2500+1.86·20) = 20.12 + 20.30 = 40.4 kJ/kg'
+  },
+  {
+    id: 'druck', name: 'Druckverlust',
+    intro: 'Systemwiderstand im Kanalnetz — massgebend für Ventilatorwahl.',
+    norm: 'SIA 382/1',
+    items: [
+      { sym: 'p_dyn = ρ/2 · w²', val: '[Pa]', note: 'dynamischer Druck' },
+      { sym: 'Δp_R = λ · (l/d) · ρ/2 · w²', val: '[Pa]', note: 'Reibungsverlust' },
+      { sym: 'Δp_E = ζ · ρ/2 · w²', val: '[Pa]', note: 'Einzelwiderstand (Bögen, T-Stücke, etc.)' },
+      { sym: 'Δp_ges = ΣΔp_R + ΣΔp_E', val: '[Pa]', note: 'Gesamtwiderstand ungünstigster Strang' },
+      { sym: 'd_h = 2ab/(a+b)', val: '[m]', note: 'hydraulischer Durchmesser Rechteckkanal' },
+      { sym: 'Re = w·d/ν', val: '[-]', note: 'turbulent ab Re > 2300, ν_Luft ≈ 15·10⁻⁶ m²/s' },
+      { sym: 'Δp ~ V̇²', val: '', note: 'Systemkennlinie (quadratisch!)' },
+    ],
+    beispiel: 'v = 4 m/s, ρ = 1.2 kg/m³ → p_dyn = 1.2/2 · 16 = 9.6 Pa; Bogen ζ=0.3 → Δp_E = 0.3·9.6 = 2.9 Pa'
+  },
+  {
+    id: 'ventilator', name: 'Ventilator & SFP',
+    intro: 'Leistung, Effizienz und Ähnlichkeitsgesetze — häufige Prüfungsthemen.',
+    norm: 'SIA 382/1, EN ISO 5801',
+    items: [
+      { sym: 'P = V̇ · Δp_t / η', val: '[W]', note: 'V̇ in m³/s, Δp_t in Pa' },
+      { sym: 'SFP = P_el / V̇', val: '[W·s/m³]', note: 'SIA 382/1: ZUL+ABL ≤ 1250 W·s/m³' },
+      { sym: 'V̇ ∝ n', val: '', note: 'Ähnlichkeitsgesetz Volumenstrom ∝ Drehzahl' },
+      { sym: 'Δp ∝ n²', val: '', note: 'Druck ∝ Drehzahl²' },
+      { sym: 'P ∝ n³', val: '', note: 'Leistung ∝ Drehzahl³ ← Energiesparpotenzial!' },
+      { sym: 'h_S = Δp/(ρ_W·g)·1000·1.5', val: '[mm]', note: 'Siphonhöhe (Faktor 1.5 = Sicherheit)' },
+    ],
+    beispiel: 'Drehzahl von 1000 auf 800 U/min → V̇: ×0.8, Δp: ×0.64, P: ×0.512 → Energieeinsparung 48.8%!'
+  },
+  {
+    id: 'wrg', name: 'Wärmerückgewinnung (WRG)',
+    intro: 'Rückwärmzahl und zurückgewonnene Energie.',
+    norm: 'SIA 382/1, SWKI VA300-01, EN 308',
+    items: [
+      { sym: 'φ = (ϑ_ZUL − ϑ_AUL) / (ϑ_ABL − ϑ_AUL)', val: '[-]', note: 'Temperatur-Rückwärmzahl' },
+      { sym: 'Q̇_WRG = V̇ · ρ · c_p · φ · (ϑ_ABL − ϑ_AUL)', val: '[kW]', note: 'rückgewonnene Leistung' },
+      { sym: 'Rotation', val: 'φ = 75–85%', note: 'Feuchteübertragung möglich, nicht für Küche/Labor' },
+      { sym: 'Platte Kreuzstrom', val: 'φ = 50–65%', note: 'kein Feuchtetransfer, hygienisch sicher' },
+      { sym: 'Platte Gegenstrom', val: 'φ = 70–85%', note: 'höherer Druckverlust' },
+      { sym: 'Umlaufsystem', val: 'φ = 40–60%', note: 'räumliche Trennung möglich' },
+    ],
+    beispiel: 'ϑ_AUL = -5°C, ϑ_ABL = 22°C, φ = 0.80 → ϑ_ZUL = -5 + 0.80·(22-(-5)) = -5 + 21.6 = 16.6°C'
+  },
+  {
+    id: 'hydraulik', name: 'Hydraulik (wasserseitig)',
+    intro: 'Heiz-/Kühlregister und KVS-Ventil dimensionieren.',
+    norm: 'SIA 382/1, EN 60534',
+    items: [
+      { sym: 'Q̇ = ṁ_W · c_W · Δϑ_W', val: '[kW]', note: 'Wärmeleistung Wasser' },
+      { sym: 'ṁ_W = Q̇ / (c_W · Δϑ_W)', val: '[kg/s]', note: 'Massenstrom Wasser' },
+      { sym: 'KVS = V̇_W / √Δp', val: '[m³/h bei Δp=1 bar]', note: 'Ventilkennwert' },
+      { sym: 'P_v = Δp_Ventil / Δp_System', val: '≥ 0.3', note: 'Ventilautorität — bei <0.3: schlechte Regelung' },
+      { sym: 'Spreizung Heizreg.', val: '70/50°C oder 60/40°C', note: 'Vorlauf/Rücklauf' },
+      { sym: 'Spreizung Kühlreg.', val: '6/12°C', note: 'Vorlauf/Rücklauf (Kaltwasser)' },
+    ],
+    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.19·10) = 0.239 kg/s = 0.239 l/s = 860 l/h = 0.86 m³/h'
+  },
+  {
+    id: 'schall', name: 'Schall & Akustik',
+    intro: 'Pegeladdition und Schalldämpfung — Einheiten in dB immer logarithmisch!',
+    norm: 'SIA 181, EN ISO 7235',
+    items: [
+      { sym: 'L_ges = 10·log(Σ 10^(Li/10))', val: '[dB]', note: 'energetische Addition' },
+      { sym: '2 gleiche Quellen', val: '+3 dB', note: 'z.B. 2× 60 dB → 63 dB' },
+      { sym: '10 gleiche Quellen', val: '+10 dB', note: 'z.B. 10× 60 dB → 70 dB' },
+      { sym: 'D_e = L_vor − L_nach', val: '[dB]', note: 'Einfügungsdämpfung Schalldämpfer' },
+      { sym: 'NR-Grenzwerte', val: 'Büro NR 35, Wohnen NR 30, OP NR 25', note: 'nach SIA 181' },
+    ],
+    beispiel: 'Ventilator 65 dB + gleicher Kanal 65 dB → L_ges = 10·log(2·10^6.5) = 65+3 = 68 dB'
+  },
+  {
+    id: 'siphon', name: 'Siphon & Kondensatableitung',
+    intro: 'Siphon bei Unterdruckgeräten (Kühler, Befeuchter) zwingend!',
+    norm: 'SIA 382/1',
+    items: [
+      { sym: 'h_S = Δp_stat / (ρ_W · g) · 1000 · 1.5', val: '[mm WS]', note: 'Siphonhöhe' },
+      { sym: 'Faktor 1.5', val: 'Sicherheitsfaktor', note: 'immer einrechnen' },
+      { sym: 'ρ_W', val: '1000 kg/m³', note: 'Dichte Wasser' },
+      { sym: 'g', val: '9.81 m/s²', note: 'Erdbeschleunigung' },
+      { sym: 'Δp_stat', val: 'Unterdruck im Gerät [Pa]', note: 'aus Ventilatordruckverlust' },
+    ],
+    beispiel: 'Δp_stat = 300 Pa → h_S = 300/(1000·9.81)·1000·1.5 = 45.9 mm → mind. 50 mm Siphon verwenden'
+  },
+];
+function renderFormel(){
+  const f = FORMEL_DATA.find(x => x.id === $('formelSelect').value);
+  const box = $('formelBody');
+  if (!f){ box.innerHTML = '<div class="empty">Wähle oben eine Kategorie, um Formelzeichen, Beispielrechnung und Normen zu sehen.</div>'; return; }
+  const rows = f.items.map(it => {
+    const val  = it.val  ? ` <span class="key">${esc(it.val)}</span>`  : '';
+    const val2 = it.val2 ? ` <span class="key">${esc(it.val2)}</span>` : '';
+    const note = it.note ? `<span class="fnote">${esc(it.note)}</span>` : '';
+    return `<li><span class="fsym">${esc(it.sym)}</span>${val}${val2}${note}</li>`;
+  }).join('');
+  const normBadge = (f.norm && f.norm !== '—') ? `<span class="badge p-norm">${esc(f.norm)}</span>` : '';
+  box.innerHTML =
+    `<div class="badges" style="margin:18px 0 12px"><span class="badge cat">📖 ${esc(f.name)}</span>${normBadge}</div>` +
+    `<p style="color:var(--mut);font-size:.9rem;line-height:1.5;margin:0 0 10px">${esc(f.intro)}</p>` +
+    `<ul class="formel-list">${rows}</ul>` +
+    `<div class="beispiel"><span class="bsp-k">Beispiel</span> ${esc(f.beispiel)}</div>`;
+}
+
+/* ================= Bauteilvorlagen (Modul D): Daten ================= */
+const BAUTEIL_DATA = [
+  { cat:'Auslässe', id:'diffusionsgitter', name:'Diffusionsgitter',
+    desc:'Deckenauslass mit gleichmässiger Luftverteilung in alle Richtungen (Coanda-Effekt). Standard für Büro und Komfortlüftung.',
+    formel:'K_v = V̇/√Δp · Betriebspunkt: Δp = 5–15 Pa', norm:'SIA 382/1',
+    files:[{label:'Hinweis & Auslegung', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Hinweis.pdf'},
+           {label:'Übung Dimensionierung', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Kapitel_4_Übung_Diffusionsgitter Dimensionierung.pdf'}] },
+  { cat:'Auslässe', id:'draller', name:'Deckendraller',
+    desc:'Drallauslass mit rotierender Luftführung. Hohe Induktion, grosse Wurfweite, gut für hohe Räume.',
+    formel:'Ausblasgeschwindigkeit 2–5 m/s · Induktionszahl je nach Typ', norm:'SIA 382/1',
+    files:[{label:'Hinweis & Auslegung', path:'../03_Auslegungen/Auslässe/Draller/Hinweis.pdf'},
+           {label:'Übung Deckendraller', path:'../03_Auslegungen/Auslässe/Draller/Kapitel_8_Übung_Deckendraller.pdf'}] },
+  { cat:'Auslässe', id:'queller', name:'Quelldurchlass',
+    desc:'Bodennaher Auslass mit sehr geringer Ausblasgeschwindigkeit. Luftqualität im Aufenthaltsbereich optimal.',
+    formel:'v_Auslass = 0.1–0.3 m/s · ΔT = 2–4 K unter Raumtemperatur', norm:'SIA 382/1, VDI 3804',
+    files:[{label:'Hinweis', path:'../03_Auslegungen/Auslässe/Queller/Hinweis.pdf'},
+           {label:'Auslegung', path:'../03_Auslegungen/Auslässe/Queller/Queller_Auslegung.pdf'}] },
+  { cat:'Auslässe', id:'tellerventil', name:'Tellerventil',
+    desc:'Einfachster Raumdurchlass. Axiale Einstellung des Tellers regelt Volumenstrom. ZUL konvex, ABL konkav mit Gitter.',
+    formel:'K_v = V̇/√Δp · Betrieb bei Δp = 5–15 Pa', norm:'SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Auslässe/Tellerventil/Tellerventil_Erklaerung.pdf'}] },
+  { cat:'Auslässe', id:'schlitzauslass', name:'Schlitzauslass / Linearauslass',
+    desc:'Linienförmige Luftverteilung für Fassaden, Brüstungskanäle und Decken. Diskret und optisch integrierbar.',
+    formel:'v_0 = 1.5–4.0 m/s · Wurfweite L = C·h_0·(v_0/v_end)^(1/n)', norm:'SIA 382/1, EN 13141',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Auslässe/Schlitzauslass/Schlitzauslass_Erklaerung.pdf'}] },
+  { cat:'Auslässe', id:'weitwurfdüse', name:'Weitwurfdüse / Druckdüse',
+    desc:'Erzeugt Luftstrahlen mit 5–30 m Reichweite. Einsatz in Sporthallen, Industrie, Messehallen.',
+    formel:'v_0 = 4–12 m/s · Wurfweite L = K·d_0·√(V̇/A_0)/v_end', norm:'SIA 382/1, VDI 3803',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Auslässe/Weitwurfdüse/Weitwurfdüse_Erklaerung.pdf'}] },
+  { cat:'Luftbehandlung', id:'lufterhitzer', name:'Lufterhitzer (Heizregister)',
+    desc:'Erwärmt den Luftstrom auf Zulufttemperatur. Heizmittel: Warmwasser, elektrisch oder Dampf.',
+    formel:'Q̇ = ṁ_L·c_p·ΔT [kW] · KVS = V̇_W/√Δp', norm:'SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Lufterhitzer/Lufterhitzer_Erklaerung.pdf'}] },
+  { cat:'Luftbehandlung', id:'luftkühler', name:'Luftkühler (Kühlregister)',
+    desc:'Kühlt und ggf. entfeuchtet den Luftstrom. Taupunkt-Unterschreitung → Kondensatbildung → Siphon nötig.',
+    formel:'Q̇_sens = V̇·ρ·c_p·ΔT · Q̇_lat = ṁ_W·r', norm:'SIA 382/1',
+    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftkühler.docx'},
+           {label:'Formeln', path:'../04_Lerndokus/Luftkühler Formeln.docx'}] },
+  { cat:'Luftbehandlung', id:'befeuchter-dampf', name:'Dampfbefeuchter',
+    desc:'Befeuchtet mit reinem Dampf. Temperatur bleibt konstant, x steigt. Hygienisch einwandfrei.',
+    formel:'ṁ_W = V̇·ρ·Δx [kg/s] · Q̇_el = ṁ_W · 2500 kJ/kg', norm:'SIA 382/1, SWKI VA104',
+    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'}] },
+  { cat:'Luftbehandlung', id:'befeuchter-adiabat', name:'Adiabatischer Befeuchter',
+    desc:'Befeuchtet durch Wasserverdunstung. h ≈ konst., Temperatur sinkt, x steigt. Energieeffizient.',
+    formel:'h_ein ≈ h_aus · ΔT ≈ −Δx · 2500/c_p', norm:'SIA 382/1, SWKI VA104',
+    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'}] },
+  { cat:'WRG', id:'wrg-rotation', name:'Rotationswärmetauscher',
+    desc:'Rotierendes Rad überträgt Wärme (und Feuchte) von Abluft auf Zuluft. φ = 75–85%. Nicht für Küche/Labor.',
+    formel:'φ = (ϑ_ZUL−ϑ_AUL)/(ϑ_ABL−ϑ_AUL) · Δp = 80–150 Pa je Seite', norm:'SWKI VA300-01, SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Rotationswärmetauscher/WRG_Rotation_Erklaerung.pdf'}] },
+  { cat:'WRG', id:'wrg-platte', name:'Plattenwärmetauscher',
+    desc:'Hermetisch getrennte Ströme. Kein Feuchtetransfer (ausser Membrantyp). Auch für Küche/Labor geeignet.',
+    formel:'φ_Kreuzstrom = 50–65% · φ_Gegenstrom = 70–85%', norm:'EN 308, SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Plattenwärmetauscher/WRG_Platte_Erklaerung.pdf'}] },
+  { cat:'WRG', id:'wrg-umlauf', name:'Umlaufsystem (Flüssigkeits-WRG)',
+    desc:'Zwei Batterien über Pumpe mit Glykol verbunden. Einziges System für räumlich getrennte Anlagen.',
+    formel:'φ = 40–60% · Glykol 30–40% für Frostschutz bis −15°C', norm:'SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Umlaufsystem/WRG_Umlauf_Erklaerung.pdf'}] },
+  { cat:'Filter', id:'taschenfilter', name:'Taschenfilter (ePM1/F7)',
+    desc:'Standard-Feinstaubfilter. ePM1 ≥60% oder ≥80%. Wechsel nach Differenzdruck-Anzeige.',
+    formel:'Δp_neu = 80–120 Pa · Wechsel bei Δp_max = 200–250 Pa', norm:'EN ISO 16890, SIA 382/1',
+    files:[{label:'SVWL Filterauswahl-Tool', path:'../03_Auslegungen/SVWL-Tool Filter/140_Werkzeug_Filterauswahl_V1.1_D.pdf'},
+           {label:'Wegleitung Filterbestimmung', path:'../03_Auslegungen/SVWL-Tool Filter/Wegleitung__Filterbestimmung_V2.1_.pdf'}] },
+  { cat:'Filter', id:'hepa', name:'HEPA-Filter (H13/H14)',
+    desc:'Schwebstofffilter für OP, Reinraum, Pharma. H13 ≥99.95%, H14 ≥99.995%. Vorfilter F7 zwingend!',
+    formel:'Δp_neu = 250–400 Pa · Wechsel bei 600–800 Pa', norm:'EN 1822',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/HEPA-Filter/HEPA_Filter_Erklaerung.pdf'}] },
+  { cat:'Regelung / MSR', id:'bsk', name:'Brandschutzklappe (BSK)',
+    desc:'Schliesst bei Brandfall selbsttätig (Schmelzlot 72°C). Unterbricht Brandausbreitung im Kanalnetz.',
+    formel:'Schmelzlot 72°C (Standard) / 95°C (Küche) · BSK in jeder feuerw. Wand/Decke', norm:'EN 15650, VKF 25-15',
+    files:[{label:'BSK Info', path:'../03_Auslegungen/Brandschutzklappe/Brandschutzklappe.pdf'},
+           {label:'Steuerung BSK', path:'../03_Auslegungen/Brandschutzklappe/Steuerung Brandschutzklappen.pdf'}] },
+  { cat:'Regelung / MSR', id:'vav', name:'Variabler Volumenstromregler (VAV)',
+    desc:'Regelt Volumenstrom bedarfsabhängig 0–100%. Drucksensor + Klappe + Stellantrieb integriert.',
+    formel:'V̇_min/V̇_max = 0.2–1.0 · Mindest-Δp Kanal = 80–150 Pa', norm:'SIA 382/1, EN 1751',
+    files:[{label:'VAV Erklärungsblatt', path:'../03_Auslegungen/Volumenstromregler/VAV_VariablerVolumenstromregler_Erklaerung.pdf'},
+           {label:'TROX VARYCONTROL Codeliste', path:'../03_Auslegungen/Volumenstromregler/TROX-HESCO_VARYCONTROL-Codeliste_01-2024.pdf'}] },
+  { cat:'Regelung / MSR', id:'kvs', name:'KVS-Regelventil',
+    desc:'Regelt Wasservolumenstrom zu Heiz-/Kühlregistern. KVS = Durchfluss bei Δp = 1 bar.',
+    formel:'KVS = V̇_W/√Δp · Ventilautorität P_v = Δp_v/Δp_System ≥ 0.3', norm:'EN 60534, SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/KVS-Regelventil/KVS_Regelventil_Erklaerung.pdf'}] },
+  { cat:'Regelung / MSR', id:'regelklappe', name:'Regelklappe / Absperrklappe',
+    desc:'Absperrklappe: Auf/Zu. Regelklappe: 0–100% stufenlos. Leckrate nach EN 1751 Klasse 1–3.',
+    formel:'Δp = ζ·ρ/2·v² · ζ_100% offen = 0.1–0.5', norm:'EN 1751, SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/Regelklappe/Regelklappe_Erklaerung.pdf'}] },
+  { cat:'Regelung / MSR', id:'sensoren', name:'Sensoren (CO₂, Feuchte, Temperatur)',
+    desc:'CO₂: NDIR-Prinzip 400–2000 ppm. Feuchte: kapazitiv. Temp: PT100/PT1000. CO₂ gut <800 ppm.',
+    formel:'CO₂ Sollwert: 1000 ppm (SIA Stufe II) · Kalibrierung alle 1–2 Jahre', norm:'SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/Sensoren/Sensoren_Erklaerung.pdf'}] },
+  { cat:'Ventilatoren', id:'radial', name:'Radialventilator',
+    desc:'Standard in RLT-Zentralen. Rückwärtsgekrümmte Schaufeln: η = 75–85%. Stabile Kennlinie.',
+    formel:'P = V̇·Δp_t/η · SFP ≤ 1250 W·s/m³ · V̇∝n, Δp∝n², P∝n³', norm:'EN ISO 5801, SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Radialventilator/Radialventilator_Erklaerung.pdf'}] },
+  { cat:'Ventilatoren', id:'axial', name:'Axialventilator',
+    desc:'Grosser Volumenstrom bei niedrigem Druck. Entrauchung F400 (400°C/2h), Tiefgaragen.',
+    formel:'Δp = 50–500 Pa · η = 55–75% · F400 nach EN 12101-3', norm:'EN ISO 5801, SIA 182',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Axialventilator/Axialventilator_Erklaerung.pdf'}] },
+  { cat:'Sonstiges', id:'wsg', name:'Wetterschutzgitter & Rückschlagklappe',
+    desc:'AUL ≤2 m/s, FOL ≤4 m/s. Mindestabstand AUL↔FOL: 5 m horizontal, 2 m vertikal (SIA 382/1).',
+    formel:'A_roh = V̇/(v_frei·f_frei) · f_frei = 0.5–0.7', norm:'SIA 382/1',
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Wetterschutzgitter_RSK/WSG_RSK_Erklaerung.pdf'}] },
+];
+function renderBauteil(){
+  const b = BAUTEIL_DATA.find(x => x.id === $('bauteilSelect').value);
+  const box = $('bauteilBody');
+  if (!b){ box.innerHTML = '<div class="empty">Wähle oben ein Bauteil, um Beschreibung, Auslegungsformel, Norm und Vorlagen zu sehen.</div>'; return; }
+  const files = b.files.map(f => {
+    if (BT_IS_FILE) return `<a class="filebtn" href="${encodeURI(f.path)}" target="_blank" rel="noopener">📄 ${esc(f.label)} <span class="ext">↗</span></a>`;
+    return `<span class="filebtn off" title="nur in der Offline-Version (OneDrive-Ordner) verfügbar">📄 ${esc(f.label)} <span class="ext">· offline</span></span>`;
+  }).join('');
+  const fileNote = BT_IS_FILE
+    ? 'Dateien öffnen direkt aus den Ordnern 03_Auslegungen / 04_Lerndokus.'
+    : 'Vorlagen sind nur in der Offline-Version (OneDrive-Ordner) verlinkt – online aus Copyright-/Speichergründen nicht gehostet.';
+  box.innerHTML =
+    `<div class="badges" style="margin:18px 0 12px"><span class="badge cat">🧩 ${esc(b.cat)}</span><span class="badge p-norm">${esc(b.norm)}</span></div>` +
+    `<h3 style="font-size:1.05rem;margin:0 0 8px">${esc(b.name)}</h3>` +
+    `<p style="color:var(--mut);font-size:.92rem;line-height:1.55;margin:0 0 12px">${esc(b.desc)}</p>` +
+    `<div class="bauteil-formel"><span class="bsp-k">Auslegung</span> <span class="key">${esc(b.formel)}</span></div>` +
+    `<div class="filebtns">${files}</div>` +
+    `<div class="ph-note">${esc(fileNote)}</div>`;
+}
+
+/* Init Formeln + Bauteilvorlagen */
+(function(){
+  $('formelSelect').innerHTML = '<option value="">Formel-Kategorie wählen …</option>' +
+    FORMEL_DATA.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+  $('formelSelect').onchange = renderFormel;
+
+  const cats = [];
+  BAUTEIL_DATA.forEach(b => { if (!cats.includes(b.cat)) cats.push(b.cat); });
+  $('bauteilSelect').innerHTML = '<option value="">Bauteil wählen …</option>' +
+    cats.map(c => `<optgroup label="${esc(c)}">` +
+      BAUTEIL_DATA.filter(b => b.cat === c).map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('') +
+      '</optgroup>').join('');
+  $('bauteilSelect').onchange = renderBauteil;
+})();
+
+/* Deep-Link: vorlage.html#formeln / #bauteile */
 if (location.hash === '#formeln') vShow('for');
+else if (location.hash === '#bauteile') vShow('bau');
 </script>
 </body></html>
