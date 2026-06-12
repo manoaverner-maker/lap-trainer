@@ -83,7 +83,7 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .frac-d{padding:.05em .5em 0;border-top:1.6px solid currentColor}
 .formel-list .fsym sub,.formel-list .key sub{font-size:.7em;vertical-align:-.28em;line-height:0}
 .formel-list .fsym sup,.formel-list .key sup{font-size:.7em;vertical-align:.5em;line-height:0}
-.formel-list .fnote{display:block;color:var(--mut2);font-size:.82rem;margin-top:7px;line-height:1.45;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.formel-list .fnote{display:block;color:#c3cfe0;font-size:.82rem;margin-top:7px;line-height:1.45;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 .beispiel{margin-top:18px;background:rgba(56,189,248,.1);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(56,189,248,.4);border-top:1px solid rgba(125,211,252,.55);border-radius:14px;padding:13px 16px;font-size:.9rem;line-height:1.55;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
 .bauteil-formel{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;padding:13px 16px;font-size:.92rem;line-height:1.5;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -273,8 +273,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .schema-stage .duct{fill:#16213a;stroke:#475569;stroke-width:1.4}
 .schema-stage .comp{fill:#1c2940;stroke:#94a3b8;stroke-width:1.5}
 .schema-stage .cl{stroke:#94a3b8;stroke-width:1.4;fill:none}
-.schema-stage .lb{fill:#94a3b8;font-size:13px;font-weight:600}
-.schema-stage .lbs{fill:#64748b;font-size:11px}
+.schema-stage .lb{fill:#e2e8f0;font-size:13px;font-weight:600}
+.schema-stage .lbs{fill:#cbd5e1;font-size:11px}
 .schema-stage .hit{fill:transparent;stroke:none}
 .schema-stage .sc{cursor:pointer}
 .schema-stage .sc:hover .comp{stroke:var(--acc)}
@@ -304,6 +304,36 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   .card:not(.swap-out):hover{transform:none}
 }
 
+
+/* ---------- Kachel-Auswahl (Formeln + Bauteile) ---------- */
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:6px}
+.pick-card{padding:11px 13px;border:1px solid var(--glass-line);border-radius:12px;background:var(--glass);cursor:pointer;font-size:.86rem;font-weight:600;color:var(--txt);text-align:left;line-height:1.3;transition:border-color .15s ease,transform .15s ease,background .15s ease;font-family:inherit}
+.pick-card small{display:block;color:var(--mut2);font-weight:400;font-size:.72rem;margin-top:3px}
+.pick-card:hover{border-color:var(--acc);transform:translateY(-1px)}
+.pick-card.active{border-color:var(--acc);background:rgba(56,189,248,.14)}
+@media(max-width:768px){.pick-card{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}}
+
+/* ---------- Druck: nur das Anlagenschema, dunkle Linien auf Weiss ---------- */
+@media print{
+  body.print-schema{background:#fff}
+  body.print-schema header,body.print-schema footer,body.print-schema .aurora,
+  body.print-schema #bgPhoto,body.print-schema #bgOverlay,
+  body.print-schema #view-for,body.print-schema #view-bau,
+  body.print-schema #view-geb>.card:first-child,
+  body.print-schema .schema-bar,body.print-schema .schema-reco,
+  body.print-schema .schema-tip{display:none !important}
+  body.print-schema #view-geb{display:block !important}
+  body.print-schema .card{background:#fff !important;border:none !important;box-shadow:none !important;backdrop-filter:none !important;padding:0 !important}
+  body.print-schema .schema-scroll{overflow:visible;border:none;background:#fff}
+  body.print-schema .schema-stage{min-width:0}
+  body.print-schema .schema-stage .duct{fill:#fff !important;stroke:#000 !important}
+  body.print-schema .schema-stage .comp{fill:#fff !important;stroke:#000 !important}
+  body.print-schema .schema-stage .cl{stroke:#000 !important}
+  body.print-schema .schema-stage .lb,body.print-schema .schema-stage .lbs{fill:#000 !important}
+  body.print-schema .schema-stage rect[style*="rgba(30,41,59"]{fill:#fff !important}
+  body.print-schema h2.sec,body.print-schema #view-geb p{color:#000}
+  body.print-schema .legend{color:#000}
+}
 </style></head><body>
 
 <!-- Liquid Glass + Aurora: Hintergrund-Schichten (Foto → Overlay → Blobs) -->
@@ -345,6 +375,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
       <select class="bigselect" id="schemaBt"></select>
       <select class="bigselect" id="schemaVar"></select>
       <select class="bigselect" id="schemaReg"></select>
+      <button class="bigselect" id="schemaPrint" type="button" style="flex:0 0 auto;min-width:0;cursor:pointer">🖨 Drucken</button>
     </div>
     <div class="schema-reco" id="schemaReco"></div>
     <div class="schema-scroll">
@@ -371,11 +402,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   <div class="card" style="padding:24px 28px">
     <h2 class="sec" style="font-size:1.2rem">📖 Formel-Spickzettel Lüftungstechnik</h2>
     <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Kategorie wählen – Formelzeichen &amp; Einheiten sind <span class="key">gold</span> markiert, dazu Erklärung, Beispielrechnung und Norm-Verweis. Einheiten immer mitdenken!</p>
-    <div class="hilfe-bar">
-      <select class="bigselect" id="formelSelect">
-        <option value="">Formel-Kategorie wählen …</option>
-      </select>
-    </div>
+    <div class="pick-grid" id="formelGrid"></div>
     <div id="formelBody"><div class="empty">Wähle oben eine Kategorie, um Formelzeichen, Beispielrechnung und Normen zu sehen.</div></div>
   </div>
 </main>
@@ -385,11 +412,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   <div class="card" style="padding:24px 28px">
     <h2 class="sec" style="font-size:1.2rem">🧩 Bauteilvorlagen</h2>
     <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Bauteil wählen – Kurzbeschrieb, Auslegungsformel <span class="key">gold</span>, Norm-Verweis und die passenden Vorlagen aus den Ordnern 03_Auslegungen / 04_Lerndokus.</p>
-    <div class="hilfe-bar">
-      <select class="bigselect" id="bauteilSelect">
-        <option value="">Bauteil wählen …</option>
-      </select>
-    </div>
+    <div class="pick-grid" id="bauteilGrid"></div>
     <div id="bauteilBody"><div class="empty">Wähle oben ein Bauteil, um Beschreibung, Auslegungsformel, Norm und Vorlagen zu sehen.</div></div>
   </div>
 </main>
@@ -658,8 +681,9 @@ const SCH_VARIANTS = [
   { id: 'v4', name: '4 · Kreislaufverbundsystem (KVS-WRG)', wrg: 'kvs' },
   { id: 'v5', name: '5 · Kühlung + KVS-Ventil', wrg: 'pwt', bypass: true, kuehler: true },
   { id: 'v6', name: '6 · Dampfbefeuchter (hygienisch)', wrg: 'pwt', bypass: true, dampf: true },
-  { id: 'v7', name: '7 · Hallenbad (Entfeuchtung + WRG)', wrg: 'pwt', bypass: true, entf: true, room: 'Schwimmhalle',
-    note: 'Korrosionsschutz: chlorhaltige Hallenluft – beschichtete Register / V4A, keine blanken Zink-/Alu-Teile (SWKI 2004-1)' },
+  { id: 'v7', name: '7 · Hallenbad (Entfeuchtung + WRG + Umluft)', wrg: 'pwt', bypass: true, entf: true, umluft: true, room: 'Schwimmhalle',
+    note: 'Korrosionsschutz: chlorhaltige Hallenluft – beschichtete Register / V4A, keine blanken Zink-/Alu-Teile (SWKI 2004-1)',
+    note2: 'Umluftbetrieb (Nacht/Ruhe) mit definiertem AUL-Anteil · Entfeuchtung oft via integrierte Wärmepumpe: Verdampfer entfeuchtet die Abluft, Kondensator erwärmt Zuluft/Beckenwasser – Abwärmenutzung im Gerät (vgl. Seven-Air ECOPOOL)' },
   { id: 'v8', name: '8 · Küche/Gastronomie (Typ-B-Abluft + KVS)', wrg: 'kvs', haube: true, room: 'Gewerbeküche',
     note: 'Typ-B-Abluft: Fettabscheider in der Haube · WRG nur ohne Stoffübertragung (KVS) · Fortluft mit erhöhter Geschwindigkeit über Dach (SWKI VA102-01)' }
 ];
@@ -681,13 +705,13 @@ const SCH_INFO = {
   kvswrg: { n: 'Kreislaufverbundsystem (KVS-WRG)', f: 'Zwei Register, verbunden über einen Wasser-Glykol-Kreislauf mit Pumpe – Zu- und Abluft können räumlich getrennt sein.', p: 'Rückwärmzahl φ typisch 45–65 % · ideal bei fett-/schadstoffbelasteter Abluft (Küche, Industrie, Spital) · Leistungsregelung über 3-Weg-Ventil', norm: 'SIA 382/1 · SWKI VA102-01 (Küche)' },
   bypass: { n: 'WRG-Bypass mit Klappe', f: 'Führt die Zuluft an der WRG vorbei – Vereisungsschutz im Winter, freie Kühlung im Sommer.', p: 'modulierende Klappe, Regelung nach Austrittstemperatur', norm: 'SIA 382/1' },
   erhitzer: { n: 'Heizregister (PWW) mit Ventil + Pumpe', f: 'Erwärmt die Zuluft auf die Solltemperatur; wasserseitig VL/RL mit Umwälzpumpe und Regelventil.', p: 'Q̇ = V̇·0.34·Δϑ [W] · Spreizung typ. 70/50 °C · Ventilatorennachlauf min. 60 s · Frostschutz!', norm: 'SIA 382/1 · SIA 410' },
-  kuehler: { n: 'Kühlregister mit Kondensatwanne', f: 'Kühlt (und entfeuchtet ggf.) die Zuluft; Kondensat über Wanne und Siphon abführen.', p: 'Kaltwasser typ. 6/12 °C · Tropfenabscheider ab ~2.5 m/s', norm: 'SIA 382/1 · SWKI VA104-01' },
-  entf: { n: 'Entfeuchtungsregister + Tropfenabscheider', f: 'Kühlt die Hallenluft unter den Taupunkt und schlägt die Feuchte als Kondensat nieder.', p: 'Auslegung auf Verdunstungsmenge des Beckens (VDI 2089) · Kondensatwanne mit Siphon', norm: 'SWKI 2004-1 · VDI 2089' },
+  kuehler: { n: 'Luftkühler (Kühlregister) mit Kondensatwanne', f: 'Kühlt (und entfeuchtet ggf.) die Zuluft; Kondensat über Wanne und Siphon abführen.', p: 'Kaltwasser typ. 6/12 °C · Tropfenabscheider ab ~2.5 m/s', norm: 'SIA 382/1 · SWKI VA104-01' },
+  entf: { n: 'Luftkühler (Entfeuchtung) + Tropfenabscheider', f: 'Kühlt die Hallenluft unter den Taupunkt und schlägt die Feuchte als Kondensat nieder.', p: 'Auslegung auf Verdunstungsmenge des Beckens (VDI 2089) · Kondensatwanne mit Siphon', norm: 'SWKI 2004-1 · VDI 2089' },
   kvsventil: { n: 'KVS-Ventil (Regelventil mit Stellantrieb)', f: 'Kvs-Wert: Durchfluss in m³/h bei 1 bar Differenzdruck. 2-Weg für Auf/Zu-Regelung, 3-Weg für Mischregelung.', p: 'Auslegung: Kvs = V̇ / √Δp', norm: 'SIA 382/1' },
   dampf: { n: 'Dampfbefeuchter', f: 'Befeuchtet die Zuluft isotherm (ϑ ≈ konstant, x steigt) – hygienisch und schnell regelbar.', p: 'ṁ_W = V̇·ρ·Δx · Nachlaufstrecke für Dampfaufnahme beachten', norm: 'SWKI VA104-01' },
   ventZul: { n: 'Zuluftventilator (EC, Radial)', f: 'Fördert die Zuluft durch Gerät und Kanalnetz bis in den Raum; EC-Motor stufenlos drehzahlgeregelt.', p: 'P = V̇·Δp_t/η · SFP-Kategorie einhalten · Ventilatorennachlauf min. 60 s · V̇∝n, Δp∝n², P∝n³', norm: 'SIA 382/1 (SFP) · ErP' },
   ventAbl: { n: 'Abluftventilator (EC, Radial)', f: 'Saugt die Abluft aus dem Raum und fördert sie über die WRG zur Fortluft.', p: 'P = V̇·Δp_t/η · SFP-Kategorie einhalten', norm: 'SIA 382/1 (SFP) · ErP' },
-  sd: { n: 'Schalldämpfer (Kulissen)', f: 'Reduziert Ventilator- und Strömungsschall in Richtung Raum bzw. Fassade.', p: 'Einfügungsdämpfung De je Oktavband · Druckverlust beachten', norm: 'LSV · SIA 181' },  vsr: { n: 'Volumenstromregler (VSR) mit Stellantrieb', f: 'Hält den Volumenstrom je Strang/Raum konstant bzw. variabel nach Bedarf (VAV).', p: 'Auslegung auf Nennvolumenstrom · v ≈ 2–4 m/s · Schallleistung prüfen', norm: 'SIA 382/1' },
+  umluft: { n: 'Umluftklappe (Mischluftbetrieb)', f: 'Mischt einen Teil der Abluft der Zuluft bei – Umluft-/Mischluftbetrieb; Aussenluftanteil nach Bedarf zur Lufterneuerung.', p: 'Hallenbad: Entfeuchtung im Umluftbetrieb (Nacht/Ruhe), definierter AUL-Anteil bei Badebetrieb (vgl. Seven-Air ECOPOOL) · Mischschikanen für gute Durchmischung', norm: 'SWKI 2004-1 · SIA 382/1' },
   zulOut: { n: 'Zuluft-Auslass', f: 'Bringt die Zuluft zugfrei in den Aufenthaltsbereich (Drall-, Quell- oder Schlitzauslass).', p: 'Wurfweite und Schallleistung prüfen · v im Aufenthaltsbereich ≤ 0.2 m/s', norm: 'SIA 382/1' },
   ablIn: { n: 'Abluft-Einlass', f: 'Erfasst die belastete Raumluft möglichst nahe bei den Lastquellen (Wärme, Feuchte, Geruch).', p: 'Anordnung oben bei Wärmelasten · Gitter-Anströmung ≤ 2–3 m/s', norm: 'SIA 382/1' },
   haube: { n: 'Typ-B-Ablufthaube', f: 'Erfasst Wrasen und Fett direkt über dem Kochfeld; flammendurchschlagsicherer Fettabscheider Typ B in der Haube.', p: 'Erfassungsstrom nach Kochgeräten (SWKI VA102-01) · Fettfilter reinigbar', norm: 'SWKI VA102-01' },
@@ -698,10 +722,16 @@ const SCH_INFO = {
   rauch: { n: 'Rauchmelder (Kanal)', f: 'Detektiert Rauch in der Abluft und schaltet die Anlage ab bzw. steuert die BSK an (Brandfallsteuerung).', p: 'Einbau im Abluft-Sammelkanal', norm: 'VKF 25-15' },
   regler: { n: 'Regler mit Sollwert (w)', f: 'Vergleicht Ist- mit Sollwert (w) und steuert die Stellglieder: Heiz-/Kühlventil, WRG, Klappen und EC-Ventilatoren in Sequenz (erst WRG, dann Erhitzer/Kühler).', p: 'magenta gestrichelt = Regulierungs-/Steuerleitungen (Strichschema-Konvention)', norm: 'SIA 382/1 (Regelsequenz WRG → Heizen → Kühlen)' }
 };
+/* Luftmengen im Raumstempel – per Klick editierbar (für Druck/Prüfung) */
+const SCH_FLOW = { zul: '', abl: '' };
 function schBuild(V, reg){
   const TOP = 150, BOT = 350;
+  const cross = (V.wrg === 'pwt');   // Kreuzstrom-PWT: Zu-/Abluft wechseln rechts vom WT die Ebene
+  const DY = BOT - TOP;
   const s = [];
-  const g = (k, inner) => s.push(`<g class="sc" data-k="${k}">${inner}</g>`);
+  const supR = [], exhR = [];        // rechts vom WT gesammelt, damit der Strang die Ebene wechseln kann
+  let sink = s;
+  const g = (k, inner) => sink.push(`<g class="sc" data-k="${k}">${inner}</g>`);
   const hit = (x, y, w, h) => `<rect class="hit" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
   const mk = (id, c) => `<marker id="m_${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${c}"/></marker>`;
   s.push('<defs>' + mk('aul', '#4ade80') + mk('zul', '#f87171') + mk('abl', '#fbbf24') + mk('fol', '#cd853f') + mk('cl', '#94a3b8') + '</defs>');
@@ -710,8 +740,8 @@ function schBuild(V, reg){
   s.push(`<rect class="duct" x="70" y="${BOT}" width="960" height="36"/>`);
   const spl = V.wrg ? [296, 434] : [360, 360];
   s.push(`<rect x="71" y="${BOT + 1}" width="${spl[0] - 71}" height="34" fill="#4ade80" opacity=".1"/>`);
-  s.push(`<rect x="${spl[1]}" y="${BOT + 1}" width="${1029 - spl[1]}" height="34" fill="#f87171" opacity=".12"/>`);
-  s.push(`<rect x="${spl[1]}" y="${TOP + 1}" width="${1029 - spl[1]}" height="34" fill="#fbbf24" opacity=".1"/>`);
+  s.push(`<rect x="${spl[1]}" y="${BOT + 1}" width="${1029 - spl[1]}" height="34" fill="${cross ? '#fbbf24' : '#f87171'}" opacity=".12"/>`);
+  s.push(`<rect x="${spl[1]}" y="${TOP + 1}" width="${1029 - spl[1]}" height="34" fill="${cross ? '#f87171' : '#fbbf24'}" opacity=".1"/>`);
   s.push(`<rect x="71" y="${TOP + 1}" width="${spl[0] - 71}" height="34" fill="#cd853f" opacity=".1"/>`);
   /* Geräterahmen (Lüftungsgerät) */
   s.push(`<rect x="108" y="118" width="858" height="306" rx="6" fill="none" stroke="#475569" stroke-width="1.2"/>`);
@@ -721,18 +751,18 @@ function schBuild(V, reg){
   s.push(`<rect x="1056" y="372" width="190" height="20" fill="rgba(148,163,184,.15)" stroke="#475569" stroke-width="1"/>`);
   s.push(`<text class="lbs" x="1064" y="386">Raum</text>`);
   s.push(`<rect x="1056" y="392" width="190" height="20" fill="rgba(248,113,113,.18)" stroke="#475569" stroke-width="1"/>`);
-  s.push(`<text class="lbs" x="1064" y="406" style="fill:#f87171">Zuluft</text><text class="lbs" x="1200" y="406" style="fill:#f87171">m³/h</text>`);
+  s.push(`<text class="lbs" x="1064" y="406" style="fill:#f87171">Zuluft</text><text class="lbs" data-f="zul" x="1194" y="406" style="fill:#f87171;cursor:pointer;text-anchor:end;font-weight:700">${SCH_FLOW.zul || '···'}</text><text class="lbs" x="1200" y="406" style="fill:#f87171">m³/h</text>`);
   s.push(`<rect x="1056" y="412" width="190" height="20" fill="rgba(251,191,36,.15)" stroke="#475569" stroke-width="1"/>`);
-  s.push(`<text class="lbs" x="1064" y="426" style="fill:#fbbf24">Abluft</text><text class="lbs" x="1200" y="426" style="fill:#fbbf24">m³/h</text>`);
+  s.push(`<text class="lbs" x="1064" y="426" style="fill:#fbbf24">Abluft</text><text class="lbs" data-f="abl" x="1194" y="426" style="fill:#fbbf24;cursor:pointer;text-anchor:end;font-weight:700">${SCH_FLOW.abl || '···'}</text><text class="lbs" x="1200" y="426" style="fill:#fbbf24">m³/h</text>`);
   s.push(`<text class="lb" x="1090" y="450">${V.room || 'Raum / Zone'}</text>`);
   /* Luftart-Labels + Strömungspfeile */
   s.push(`<text class="lb" x="6" y="${BOT + 23}" style="fill:#4ade80">AUL ▷</text>`);
   s.push(`<text class="lb" x="6" y="${TOP + 23}" style="fill:#cd853f">◁ FOL</text>`);
-  s.push(`<text class="lb" x="988" y="${BOT - 8}" style="fill:#f87171">ZUL</text>`);
-  s.push(`<text class="lb" x="988" y="${TOP - 8}" style="fill:#fbbf24">ABL</text>`);
+  s.push(`<text class="lb" x="988" y="${(cross ? TOP : BOT) - 8}" style="fill:#f87171">ZUL</text>`);
+  s.push(`<text class="lb" x="988" y="${(cross ? BOT : TOP) - 8}" style="fill:#fbbf24">ABL</text>`);
   s.push(`<line x1="244" y1="${BOT + 18}" x2="276" y2="${BOT + 18}" stroke="#4ade80" stroke-width="2.2" marker-end="url(#m_aul)"/>`);
-  s.push(`<line x1="438" y1="${BOT + 18}" x2="464" y2="${BOT + 18}" stroke="#f87171" stroke-width="2.2" marker-end="url(#m_zul)"/>`);
-  s.push(`<line x1="540" y1="${TOP + 18}" x2="510" y2="${TOP + 18}" stroke="#fbbf24" stroke-width="2.2" marker-end="url(#m_abl)"/>`);
+  s.push(`<line x1="438" y1="${(cross ? TOP : BOT) + 18}" x2="464" y2="${(cross ? TOP : BOT) + 18}" stroke="#f87171" stroke-width="2.2" marker-end="url(#m_zul)"/>`);
+  s.push(`<line x1="540" y1="${(cross ? BOT : TOP) + 18}" x2="510" y2="${(cross ? BOT : TOP) + 18}" stroke="#fbbf24" stroke-width="2.2" marker-end="url(#m_abl)"/>`);
   s.push(`<line x1="232" y1="${TOP + 18}" x2="200" y2="${TOP + 18}" stroke="#cd853f" stroke-width="2.2" marker-end="url(#m_fol)"/>`);
   /* --- Symbol-Helfer (nach SIA 410 / Schemas-Vorlage) --- */
   const mbox = (x, y) =>
@@ -743,10 +773,11 @@ function schBuild(V, reg){
     `<rect class="comp" x="70" y="${y}" width="26" height="36"/>` +
     [0, 1, 2, 3].map(i => `<line class="cl" x1="73" y1="${y + 5 + i * 8}" x2="93" y2="${y + 9 + i * 8}"/>`).join('') +
     `<text class="lbs" x="42" y="${y + 56}">${lbl}</text>`);
+  /* Gliederklappe: 2 Klappenblätter (Lamellen) + Stellantrieb M — wie Firmen-Vorlage */
   const klappe = (y, mUp) => g('klappe', hit(116, mUp ? y - 40 : y - 8, 44, mUp ? 80 : 84) +
     `<rect class="comp" x="124" y="${y}" width="22" height="36"/>` +
-    `<line class="cl" x1="127" y1="${y + 33}" x2="143" y2="${y + 3}"/>` +
-    `<ellipse cx="135" cy="${y + 18}" rx="7" ry="3.5" transform="rotate(-58 135 ${y + 18})" style="fill:#94a3b8"/>` +
+    [9, 27].map(d => `<ellipse cx="135" cy="${y + d}" rx="8" ry="3" transform="rotate(-35 135 ${y + d})" style="fill:#cbd5e1"/>` +
+      `<line class="cl" x1="129" y1="${y + d + 4}" x2="141" y2="${y + d - 4}"/>`).join('') +
     `<line class="cl" x1="135" y1="${mUp ? y : y + 36}" x2="135" y2="${mUp ? y - 15 : y + 50}"/>` +
     mbox(127, mUp ? y - 30 : y + 50));
   /* Filter: Trichter-Symbol + Gitterkassette + Δp-Messschleife (wie Vorlage) */
@@ -778,10 +809,11 @@ function schBuild(V, reg){
     `<line class="cl" x1="${cx}" y1="${cy + 24}" x2="${cx}" y2="${cy + 33}"/>` +
     mbox(cx - 8, cy + 33));
   /* 3-Weg-Ventil (Ports oben/unten/links) mit Stellantrieb */
+  /* gefüllte Kegel (Doppelkegel + Abzweig) wie Firmen-Vorlage */
   const ventil3w = (cx, cy, mSide) =>
-    `<path class="comp" d="M${cx - 14} ${cy - 9} L${cx} ${cy} L${cx - 14} ${cy + 9} Z"/>` +
-    `<path class="comp" d="M${cx - 9} ${cy - 14} L${cx} ${cy} L${cx + 9} ${cy - 14} Z"/>` +
-    `<path class="comp" d="M${cx - 9} ${cy + 14} L${cx} ${cy} L${cx + 9} ${cy + 14} Z"/>` +
+    `<path d="M${cx - 14} ${cy - 9} L${cx} ${cy} L${cx - 14} ${cy + 9} Z" style="fill:#cbd5e1"/>` +
+    `<path d="M${cx - 9} ${cy - 14} L${cx} ${cy} L${cx + 9} ${cy - 14} Z" style="fill:#cbd5e1"/>` +
+    `<path d="M${cx - 9} ${cy + 14} L${cx} ${cy} L${cx + 9} ${cy + 14} Z" style="fill:#cbd5e1"/>` +
     `<line class="cl" x1="${cx}" y1="${cy}" x2="${cx + mSide * 14}" y2="${cy}"/>` +
     mbox(mSide > 0 ? cx + 14 : cx - 30, cy - 7);
   const pumpe = (x, y) =>
@@ -804,7 +836,7 @@ function schBuild(V, reg){
       `<text class="lbs" x="${x + 28}" y="516" style="font-size:9px;fill:${hyd[0]}">VL</text>` +
       `<text class="lbs" x="${x + 2}" y="516" style="font-size:9px;fill:${hyd[1]}">RL</text>`
       : '') +
-    `<text class="lbs" x="${x - 8}" y="330">${lbl}</text>`);
+    `<text class="lbs" x="${x + 2}" y="330">${lbl}</text>`);
   /* --- Zuluftstrang (unten, links → rechts) --- */
   gitter('gitterAul', BOT, 'Wetterschutz');
   klappe(BOT, false);
@@ -857,8 +889,21 @@ function schBuild(V, reg){
       mbox(382, 438) +
       `<text class="lbs" x="306" y="464">Bypass</text>`);
   }
+  /* Umluftklappe: verbindet ABL- und ZUL-Kanal nach dem WT (Mischluftbetrieb, z. B. Hallenbad) */
+  if (V.umluft){
+    g('umluft', hit(434, 190, 38, 158) +
+      `<line class="cl" x1="442" y1="${TOP + 36}" x2="442" y2="${BOT}"/>` +
+      `<line class="cl" x1="466" y1="${TOP + 36}" x2="466" y2="${BOT}"/>` +
+      `<rect class="comp" x="442" y="248" width="24" height="34"/>` +
+      [257, 273].map(d => `<ellipse cx="454" cy="${d}" rx="7" ry="2.8" transform="rotate(-35 454 ${d})" style="fill:#cbd5e1"/>`).join('') +
+      `<line class="cl" x1="454" y1="282" x2="454" y2="290"/>` +
+      mbox(446, 290) +
+      `<text class="lbs" x="436" y="214">UML</text>`);
+  }
+  /* Rechts vom WT — Zuluft-Strang (bei PWT-Kreuzstrom als Gruppe nach oben verschoben) */
+  sink = supR;
   /* Erhitzer mit VL/RL, Pumpe, 3-Weg-Ventil */
-  register('erhitzer', 470, '+', '#fca5a5', 'rgba(239,68,68,.08)', 'Erhitzer', ['#f87171', '#60a5fa']);
+  register('erhitzer', 470, '+', '#fca5a5', 'rgba(239,68,68,.08)', 'Lufterhitzer', ['#f87171', '#60a5fa']);
   g('kvsventil', hit(486, 452, 48, 36) + ventil3w(502, 470, 1));
   g('fs', hit(522, 384, 30, 42) +
     `<line class="cl" x1="537" y1="386" x2="537" y2="404"/>` +
@@ -870,7 +915,7 @@ function schBuild(V, reg){
       ? `<path class="cl" d="M606 346 L613 358 L606 370 L613 382 L606 392"/>` +
         [0, 1, 2].map(i => `<circle cx="${566 + i * 12}" cy="400" r="2" style="fill:#7dd3fc"/>`).join('')
       : '';
-    register(V.entf ? 'entf' : 'kuehler', 558, '−', '#7dd3fc', 'rgba(56,189,248,.07)', V.entf ? 'Entfeuchter' : 'Kühler', ['#22d3ee', '#60a5fa'], extra);
+    register(V.entf ? 'entf' : 'kuehler', 558, '−', '#7dd3fc', 'rgba(56,189,248,.07)', 'Luftkühler', ['#22d3ee', '#60a5fa'], extra);
     g('kvsventil', hit(574, 452, 48, 50) + ventil3w(590, 470, 1) +
       `<text class="lbs" x="556" y="530">KVS-Ventil</text>`);
   }
@@ -882,30 +927,18 @@ function schBuild(V, reg){
       [874, 886, 898].map(x => `<circle cx="${x}" cy="${BOT + 6}" r="1.6" style="fill:#94a3b8"/>`).join('') +
       `<text class="lbs" x="840" y="330">Dampfbefeuchter</text>`);
   }
-  fan('ventZul', 730, BOT + 18, 1);
-  g('tzul', hit(764, 312, 24, 44) +
-    `<line class="cl" x1="775" y1="350" x2="775" y2="340"/>` +
-    `<circle class="comp" cx="775" cy="331" r="9"/>` +
-    `<text class="lbs" x="771.5" y="335" style="font-size:9px">T</text>`);
-  /* Schalldämpfer: schlanke Kulisse (wie Vorlage) */
-  const sd = (k, x, y, lblBelow) => g(k, hit(x - 6, y - 22, 38, 96) +
-    `<rect class="comp" x="${x}" y="${y - 16}" width="26" height="68"/>` +
-    `<line class="cl" x1="${x + 13}" y1="${y - 9}" x2="${x + 13}" y2="${y + 45}"/>` +
-    `<text class="lbs" x="${x + 3}" y="${lblBelow ? y + 68 : y - 24}">SD</text>`);
-  sd('sd', 826, BOT, true);
-  const vsr = (y, mUp) => g('vsr', hit(930, mUp ? y - 36 : y - 8, 60, 84) +
-    `<rect class="comp" x="938" y="${y + 2}" width="44" height="32"/>` +
-    `<path class="cl" d="M946 ${y + 4} Q960 ${y + 18} 946 ${y + 32}"/>` +
-    `<path class="cl" d="M974 ${y + 4} Q960 ${y + 18} 974 ${y + 32}"/>` +
-    `<line class="cl" x1="960" y1="${mUp ? y + 2 : y + 34}" x2="960" y2="${mUp ? y - 13 : y + 49}"/>` +
-    mbox(952, mUp ? y - 28 : y + 49) +
-    `<text class="lbs" x="948" y="${mUp ? y + 50 : y - 14}">VSR</text>`);
-  vsr(BOT, true);
+  fan('ventZul', 770, BOT + 18, 1);
+  g('tzul', hit(814, 312, 24, 44) +
+    `<line class="cl" x1="825" y1="350" x2="825" y2="340"/>` +
+    `<circle class="comp" cx="825" cy="331" r="9"/>` +
+    `<text class="lbs" x="821.5" y="335" style="font-size:9px">T</text>`);
   g('zulOut', hit(990, 336, 70, 62) +
     `<line x1="996" y1="${BOT + 18}" x2="1048" y2="${BOT + 18}" stroke="#f87171" stroke-width="2" marker-end="url(#m_zul)"/>` +
     `<path class="cl" d="M1034 ${BOT + 6} L1046 ${BOT} M1034 ${BOT + 30} L1046 ${BOT + 36}"/>` +
     `<text class="lbs" x="1052" y="${BOT + 8}">Zuluft-Auslass</text>`);
   /* --- Abluftstrang (oben, rechts → links) --- */
+  /* Abluftstrang rechts (bei PWT-Kreuzstrom als Gruppe nach unten verschoben) */
+  sink = exhR;
   if (V.haube){
     g('haube', hit(1036, 150, 160, 170) +
       `<path class="comp" d="M1056 240 L1170 240 L1148 204 L1078 204 Z"/>` +
@@ -920,42 +953,48 @@ function schBuild(V, reg){
       `<line x1="1048" y1="${TOP + 18}" x2="996" y2="${TOP + 18}" stroke="#fbbf24" stroke-width="2" marker-end="url(#m_abl)"/>` +
       `<text class="lbs" x="1036" y="${TOP + 44}">Abluft-Einlass</text>`);
   }
-  vsr(TOP, false);
-  sd('sd', 826, TOP, false);
-  g('tabl', hit(764, 122, 24, 44) +
-    `<line class="cl" x1="775" y1="${TOP}" x2="775" y2="${TOP - 10}"/>` +
-    `<circle class="comp" cx="775" cy="${TOP - 19}" r="9"/>` +
-    `<text class="lbs" x="771.5" y="${TOP - 15}" style="font-size:9px">T</text>`);
-  g('rauch', hit(698, 182, 30, 50) +
-    `<line class="cl" x1="713" y1="${TOP + 36}" x2="713" y2="${TOP + 42}"/>` +
-    `<rect class="comp" x="704" y="${TOP + 42}" width="18" height="12" rx="2"/>` +
-    `<circle cx="713" cy="${TOP + 48}" r="2.5" style="fill:#f59e0b"/>` +
-    `<text class="lbs" x="700" y="${TOP + 68}" style="font-size:9px">RM</text>`);
-  filter('g4', 646, TOP - 8, 'ISO ePM10 50%', -1, 120, [600, TOP + 82]);
-  fan('ventAbl', 580, TOP + 18, -1);
+  g('tabl', hit(856, 122, 24, 44) +
+    `<line class="cl" x1="870" y1="${TOP}" x2="870" y2="${TOP - 10}"/>` +
+    `<circle class="comp" cx="870" cy="${TOP - 19}" r="9"/>` +
+    `<text class="lbs" x="866.5" y="${TOP - 15}" style="font-size:9px">T</text>`);
+  g('rauch', hit(776, 182, 30, 50) +
+    `<line class="cl" x1="791" y1="${TOP + 36}" x2="791" y2="${TOP + 42}"/>` +
+    `<rect class="comp" x="782" y="${TOP + 42}" width="18" height="12" rx="2"/>` +
+    `<circle cx="791" cy="${TOP + 48}" r="2.5" style="fill:#f59e0b"/>` +
+    `<text class="lbs" x="778" y="${TOP + 68}" style="font-size:9px">RM</text>`);
+  filter('g4', 690, TOP - 8, 'ISO ePM10 50%', -1, 120, [644, TOP + 82]);
+  fan('ventAbl', 610, TOP + 18, -1);
+  sink = s;
   klappe(TOP, true);
   gitter('gitterFol', TOP, 'FOL über Dach');
+  /* Strang-Ebenen zusammenführen: bei PWT (Kreuzstrom) Zuluft nach oben, Abluft nach unten */
+  s.push(cross ? `<g transform="translate(0,${-DY})">${supR.join('')}</g>` : supR.join(''));
+  s.push(cross ? `<g transform="translate(0,${DY})">${exhR.join('')}</g>` : exhR.join(''));
   /* --- Regulierung (magenta, Strichschema) --- */
   if (reg && reg !== 'ohne'){
     const RC = '#e879f9';
     const dash = `stroke="${RC}" stroke-width="1.5" stroke-dasharray="5 4" fill="none"`;
     const lines = [];
-    if (reg === 'zuluft') lines.push(`M775 340 V520 H660 V540`);
-    if (reg === 'abluft') lines.push(`M766 ${TOP - 19} H750 V520 H660 V540`);
-    if (reg === 'raum') lines.push(`M1259 308 V600 H700 V572`);
-    lines.push(`M537 421 V510 H640 V540`);
-    lines.push(`M620 540 V486 H524 V479`);
-    if (V.kuehler || V.entf) lines.push(`M612 486 V479`);
-    if (V.wrg === 'rotor') lines.push(`M600 552 H365 V433`);
-    if (V.wrg === 'pwt') lines.push(`M600 552 H390 V455`);
-    if (V.wrg === 'kvs') lines.push(`M600 552 H368 V250`);
-    if (V.dampf) lines.push(`M695 540 V520 H886 V402`);
+    const sY = v => cross ? v - DY : v, eY = v => cross ? v + DY : v;  // Strang-Ebenenwechsel mitführen
+    /* Fühler-Leitungen in freien Gassen, Stellglieder per eigener Stichleitung (keine Bauteil-Querung) */
+    if (reg === 'zuluft') lines.push(`M825 ${sY(340)} V556 H700`);
+    if (reg === 'abluft') lines.push(`M879 ${eY(TOP - 19)} H930 V556 H700`);
+    if (reg === 'raum') lines.push(`M1259 308 V600 H640 V572`);
+    lines.push(`M537 ${sY(421)} V540 H580`);
+    lines.push(`M524 540 V${sY(478)}`);
+    if (V.kuehler || V.entf) lines.push(`M612 540 V${sY(478)}`);
+    if (V.wrg === 'rotor') lines.push(`M580 552 H365 V433`);
+    if (V.wrg === 'pwt') lines.push(`M580 552 H390 V455`);
+    if (V.wrg === 'kvs') lines.push(`M580 552 H330 V240 H364`);
+    if (V.dampf) lines.push(`M700 548 H886 V${sY(402)}`);
     g('regler', lines.map(d => `<path d="${d}" ${dash}/>`).join('') +
       hit(576, 536, 130, 40) +
-      `<rect class="comp" x="580" y="540" width="120" height="32" rx="6" style="stroke:${RC}"/>` +
-      `<text class="lbs" x="596" y="560" style="fill:${RC}">Regler · w (Soll)</text>`);
+      `<rect x="580" y="540" width="120" height="32" rx="6" fill="#1c2940" style="stroke:${RC};stroke-width:1.8"/>` +
+      `<path d="M588 548 L588 564 L600 556 Z" style="fill:${RC}"/>` +
+      `<text class="lbs" x="606" y="560" style="fill:${RC}">Regler · w (Soll)</text>`);
   }
-  if (V.note) s.push(`<text class="lbs" x="74" y="620" style="fill:#fbbf24">⚠ ${V.note}</text>`);
+  if (V.note) s.push(`<text class="lbs" x="74" y="618" style="fill:#fbbf24">⚠ ${V.note}</text>`);
+  if (V.note2) s.push(`<text class="lbs" x="74" y="634" style="fill:#fbbf24">⚠ ${V.note2}</text>`);
   return '<svg viewBox="0 0 1320 640" xmlns="http://www.w3.org/2000/svg">' + s.join('') + '</svg>';
 }
 function renderSchema(){
@@ -968,6 +1007,13 @@ function renderSchema(){
 }
 function schHideTip(){ $('schemaTip').style.display = 'none'; }
 $('schemaStage').addEventListener('click', e => {
+  const fEl = e.target.closest('[data-f]');
+  if (fEl){
+    const k = fEl.dataset.f;
+    const v = prompt(k === 'zul' ? 'Zuluft-Volumenstrom [m³/h]:' : 'Abluft-Volumenstrom [m³/h]:', SCH_FLOW[k]);
+    if (v !== null){ SCH_FLOW[k] = v.trim(); renderSchema(); }
+    return;
+  }
   const gEl = e.target.closest('g.sc');
   const info = gEl && SCH_INFO[gEl.dataset.k];
   if (!info){ schHideTip(); return; }
@@ -998,6 +1044,8 @@ document.addEventListener('click', e => { if (!e.target.closest('#schemaStage'))
   };
   $('schemaVar').onchange = renderSchema;
   $('schemaReg').onchange = renderSchema;
+  $('schemaPrint').onclick = () => { document.body.classList.add('print-schema'); window.print(); };
+  window.addEventListener('afterprint', () => document.body.classList.remove('print-schema'));
   renderSchema();
 })();
 
@@ -1296,8 +1344,9 @@ function fmtFormula(src){
   }
   return build(src);
 }
+let CUR_FORMEL = '';
 function renderFormel(){
-  const f = FORMEL_DATA.find(x => x.id === $('formelSelect').value);
+  const f = FORMEL_DATA.find(x => x.id === CUR_FORMEL);
   const box = $('formelBody');
   if (!f){ box.innerHTML = '<div class="empty">Wähle oben eine Kategorie, um Formelzeichen, Beispielrechnung und Normen zu sehen.</div>'; return; }
   const rows = f.items.map(it => {
@@ -1423,8 +1472,9 @@ const BAUTEIL_DATA = [
     formel:'A_roh = V̇/(v_frei·f_frei) · f_frei = 0.5–0.7', norm:'SIA 382/1',
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Wetterschutzgitter_RSK/WSG_RSK_Erklaerung.pdf'}] },
 ];
+let CUR_BAUTEIL = '';
 function renderBauteil(){
-  const b = BAUTEIL_DATA.find(x => x.id === $('bauteilSelect').value);
+  const b = BAUTEIL_DATA.find(x => x.id === CUR_BAUTEIL);
   const box = $('bauteilBody');
   if (!b){ box.innerHTML = '<div class="empty">Wähle oben ein Bauteil, um Beschreibung, Auslegungsformel, Norm und Vorlagen zu sehen.</div>'; return; }
   const files = b.files.map(f => {
@@ -1444,19 +1494,21 @@ function renderBauteil(){
     `<div class="ph-note">${esc(fileNote)}</div>`;
 }
 
-/* Init Formeln + Bauteilvorlagen */
+/* Init Formeln + Bauteilvorlagen: Kachel-Auswahl (Klick = öffnen/wechseln, nochmals = schliessen) */
 (function(){
-  $('formelSelect').innerHTML = '<option value="">Formel-Kategorie wählen …</option>' +
-    FORMEL_DATA.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
-  $('formelSelect').onchange = renderFormel;
-
-  const cats = [];
-  BAUTEIL_DATA.forEach(b => { if (!cats.includes(b.cat)) cats.push(b.cat); });
-  $('bauteilSelect').innerHTML = '<option value="">Bauteil wählen …</option>' +
-    cats.map(c => `<optgroup label="${esc(c)}">` +
-      BAUTEIL_DATA.filter(b => b.cat === c).map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('') +
-      '</optgroup>').join('');
-  $('bauteilSelect').onchange = renderBauteil;
+  const pick = (gridId, data, getCur, setCur, render, withCat) => {
+    $(gridId).innerHTML = data.map(d =>
+      `<button class="pick-card" type="button" data-id="${d.id}">${esc(d.name)}${withCat ? `<small>${esc(d.cat)}</small>` : ''}</button>`).join('');
+    $(gridId).onclick = e => {
+      const b = e.target.closest('.pick-card');
+      if (!b) return;
+      setCur(getCur() === b.dataset.id ? '' : b.dataset.id);
+      [...$(gridId).children].forEach(el => el.classList.toggle('active', el.dataset.id === getCur()));
+      render();
+    };
+  };
+  pick('formelGrid', FORMEL_DATA, () => CUR_FORMEL, v => CUR_FORMEL = v, renderFormel, false);
+  pick('bauteilGrid', BAUTEIL_DATA, () => CUR_BAUTEIL, v => CUR_BAUTEIL = v, renderBauteil, true);
 })();
 
 /* Deep-Link: vorlage.html#formeln / #bauteile */
