@@ -132,6 +132,8 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .hx-pt .del{cursor:pointer;color:var(--mut2);margin-left:6px;font-weight:700}
 .hx-pt .del:hover{color:#fca5a5}
 .hx-diag{position:relative}
+.hx-fsbar{display:none;gap:8px;align-items:center;flex-wrap:wrap}
+.hx-taphint{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:12px;background:rgba(11,18,32,.30);color:#fff;font-weight:700;font-size:.95rem;pointer-events:none;text-shadow:0 1px 5px rgba(0,0,0,.7)}
 .hx-title{font-size:1.06rem;font-weight:700;color:var(--txt);text-align:center;padding:8px 12px;min-height:1.3em;outline:none;border-bottom:1px solid var(--glass-line)}
 .hx-title:empty:before{content:attr(data-ph);color:var(--mut2);font-weight:500;font-size:.92rem}
 .hx-title:focus{background:rgba(56,189,248,.06)}
@@ -375,6 +377,17 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   .hx-pt{font-size:.65rem;padding:3px 5px;white-space:normal;max-width:44vw}
   .hx-title{font-size:.96rem}
   .hx-hint{font-size:.74rem}
+  /* h,x: Handy = inline scrollen statt zeichnen; Vollbild zum Zeichnen & Zoomen */
+  .hx-overlay{touch-action:pan-y}
+  .hx-taphint{display:flex}
+  .hx-wrap.hx-fs{position:fixed;inset:0;z-index:9999;margin:0;background:#0b1220;display:flex;flex-direction:column;padding:6px;gap:6px;overflow:hidden}
+  .hx-wrap.hx-fs .hx-fsbar{display:flex;margin-bottom:0}
+  .hx-wrap.hx-fs .hx-controls{margin-bottom:0;max-height:30vh;overflow-y:auto}
+  .hx-wrap.hx-fs .hx-live{margin:0}
+  .hx-wrap.hx-fs .hx-stage{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+  .hx-wrap.hx-fs .hx-diag{width:calc(100% * var(--hxz,1))}
+  .hx-wrap.hx-fs .hx-overlay{touch-action:none}
+  .hx-wrap.hx-fs .hx-taphint{display:none}
 }
 @media(max-width:400px){
   .brand small{display:none}
@@ -1620,6 +1633,13 @@ function hxSvg(){
 }
 function hxHtml(){
   return '<div class="hx-wrap">' +
+    '<div class="hx-fsbar">' +
+      '<button class="hx-btn" id="hxFsClose">✕ Schliessen</button>' +
+      '<span class="lbl" style="margin-left:auto">Zoom</span>' +
+      '<button class="hx-btn" id="hxZoomOut">−</button>' +
+      '<button class="hx-btn" id="hxZoomIn">+</button>' +
+      '<button class="hx-btn" id="hxZoomRst">Fit</button>' +
+    '</div>' +
     '<div class="hx-controls">' +
       '<span class="lbl">Werkzeug:</span>' +
       '<button class="hx-btn hx-mode on" data-m="gerade">╱ Gerade</button>' +
@@ -1648,6 +1668,7 @@ function hxHtml(){
         '<img class="hx-img" src="hx-diagram.svg" alt="h,x-Diagramm für feuchte Luft">' +
         '<svg class="hx-overlay" id="hxOv" viewBox="28 38 527 610" xmlns="http://www.w3.org/2000/svg"><g id="hxComfortG"></g><g id="hxDraw"></g><g id="hxTextG"></g><g id="hxCursor" style="display:none"><circle r="4" fill="none" stroke="#c0392b" stroke-width="1.2"/><line x1="-7" y1="0" x2="7" y2="0" stroke="#c0392b" stroke-width="0.8"/><line x1="0" y1="-7" x2="0" y2="7" stroke="#c0392b" stroke-width="0.8"/></g></svg>' +
         '<div class="hx-points" id="hxPoints"></div>' +
+        '<div class="hx-taphint">👆 Antippen — Vollbild zum Zeichnen &amp; Zoomen</div>' +
       '</div>' +
     '</div>' +
     '<div class="hx-hint">Original 7air-Diagramm (p = 950 mbar). <b>Text</b>: anklicken setzt eine Beschriftung (Inhalt per Klick änderbar, Grösse + Farbe oben wählen). <b>Polylinie</b>: Eckpunkte klicken, Doppelklick beendet. <b>Punkt</b>: benennbarer Zustand mit Werte-Box. Titel oben eintippen — alles kommt mit aufs A4-Blatt. Werte sind Richtwerte.</div>' +
@@ -1734,8 +1755,36 @@ function hxInit(){
   document.getElementById('hxColor').oninput = e => { hxColor = e.target.value; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); };
   document.querySelectorAll('.hx-mode').forEach(b => b.onclick = () => { if (hxPoly){ if (hxPoly.pts.length >= 2) hxLines.push(hxPoly); hxPoly = null; hxPrev = null; } hxMode = b.dataset.m; document.querySelectorAll('.hx-mode').forEach(x => x.classList.remove('on')); b.classList.add('on'); hxRenderDraw(); });
   const pt = ev => { const r = ov.getBoundingClientRect(), vb = ov.viewBox.baseVal; return [vb.x + (ev.clientX - r.left) / r.width * vb.width, vb.y + (ev.clientY - r.top) / r.height * vb.height]; };
+  // --- Handy: Vollbild zum Zeichnen + Pinch-Zoom/2-Finger-Pan (Desktop unberührt) ---
+  const wrap = ov.closest('.hx-wrap'), diag = document.getElementById('hxDiag'), stage = document.getElementById('hxStage');
+  const isMobile = () => window.matchMedia('(max-width:640px)').matches;
+  const inFs = () => wrap.classList.contains('hx-fs');
+  const canDraw = () => !isMobile() || inFs();
+  let zoom = 1, pinch = null;
+  const applyZoom = () => wrap.style.setProperty('--hxz', zoom.toFixed(3));
+  const enterFs = () => { wrap.classList.add('hx-fs'); document.body.style.overflow = 'hidden'; zoom = 1; applyZoom(); };
+  const exitFs = () => { wrap.classList.remove('hx-fs'); document.body.style.overflow = ''; };
+  document.getElementById('hxFsClose').onclick = exitFs;
+  document.getElementById('hxZoomIn').onclick  = () => { zoom = Math.min(4, zoom + 0.5); applyZoom(); };
+  document.getElementById('hxZoomOut').onclick = () => { zoom = Math.max(1, zoom - 0.5); applyZoom(); };
+  document.getElementById('hxZoomRst').onclick = () => { zoom = 1; applyZoom(); };
+  diag.addEventListener('click', () => { if (isMobile() && !inFs()) enterFs(); });
+  stage.addEventListener('touchstart', e => { if (!inFs() || e.touches.length < 2) return;
+    const a = e.touches[0], b = e.touches[1];
+    pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z: zoom, mx: (a.clientX + b.clientX) / 2, my: (a.clientY + b.clientY) / 2, sl: stage.scrollLeft, st: stage.scrollTop };
+    drawing = false; if (hxCur){ const i = hxLines.indexOf(hxCur); if (i >= 0 && hxCur.pts.length < 2) hxLines.splice(i, 1); hxCur = null; hxRenderDraw(); }
+    e.preventDefault();
+  }, { passive: false });
+  stage.addEventListener('touchmove', e => { if (!pinch || e.touches.length < 2) return;
+    const a = e.touches[0], b = e.touches[1], d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), mx = (a.clientX + b.clientX) / 2, my = (a.clientY + b.clientY) / 2;
+    zoom = Math.max(1, Math.min(4, pinch.z * d / pinch.d)); applyZoom();
+    stage.scrollLeft = pinch.sl - (mx - pinch.mx); stage.scrollTop = pinch.st - (my - pinch.my);
+    e.preventDefault();
+  }, { passive: false });
+  stage.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; });
   let drawing = false, start = null;
   ov.addEventListener('pointerdown', ev => {
+    if (!canDraw() || pinch) return;   // Handy inline: scrollen/Vollbild öffnen statt zeichnen
     ev.preventDefault(); const p = pt(ev);
     if (hxMode === 'punkt'){ const t = tOf(p[0], p[1]), x = xgOf(p[0]); const name = prompt('Name des Zustands (z. B. „Zustand nach WRG"):', 'Zustand ' + (hxPoints.length + 1)); if (name == null) return; hxPoints.push({ sx: p[0], sy: p[1], t, x, name }); if (hxPoints.length >= 2){ const a = hxPoints[hxPoints.length - 2], b = hxPoints[hxPoints.length - 1]; hxEval([a.sx, a.sy], [b.sx, b.sy]); } hxRenderDraw(); hxRenderPoints(); return; }
     if (hxMode === 'text'){ const txt = prompt('Text eingeben:', ''); if (txt == null || txt.trim() === '') return; hxTexts.push({ sx: p[0], sy: p[1], text: txt, color: hxColor, size: +document.getElementById('hxSize').value }); hxRenderTexts(); return; }
@@ -1750,7 +1799,7 @@ function hxInit(){
       live.innerHTML = `ϑ <b>${t.toFixed(1)}</b> °C &nbsp; x <b>${x.toFixed(1)}</b> g/kg &nbsp; φ <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.5 ? ' (Nebel)' : ''} &nbsp; Taup. <b>${tdp.toFixed(1)}</b> °C &nbsp; Feuchtk. <b>${twb.toFixed(1)}</b> °C &nbsp; h <b>${st.h.toFixed(1)}</b> kJ/kg &nbsp; ρ <b>${st.rho.toFixed(3)}</b> kg/m³`;
     } else cursor.style.display = 'none';
     if (hxMode === 'polylinie' && hxPoly){ hxPrev = p; hxRenderDraw(); }
-    if (drawing && hxCur){ if (hxMode === 'gerade') hxCur.pts = [start, p]; else if (hxMode === 'heizen' || hxMode === 'dampf' || hxMode === 'adiabat' || hxMode === 'kuehlen') hxCur.pts = [start, hxSnap(start, p)]; else hxCur.pts.push(p); hxRenderDraw(); }
+    if (drawing && hxCur && !pinch){ if (hxMode === 'gerade') hxCur.pts = [start, p]; else if (hxMode === 'heizen' || hxMode === 'dampf' || hxMode === 'adiabat' || hxMode === 'kuehlen') hxCur.pts = [start, hxSnap(start, p)]; else hxCur.pts.push(p); hxRenderDraw(); }
   });
   ov.addEventListener('pointerup', ev => { if (drawing && hxCur && hxCur.pts.length >= 2){ const ps = hxCur.pts; hxEval(ps[0], ps[ps.length - 1]); } drawing = false; hxCur = null; try { ov.releasePointerCapture(ev.pointerId); } catch (e) {} });
   ov.addEventListener('dblclick', () => { if (hxPoly){ hxPoly.pts = hxPoly.pts.filter((p, i, a) => i === 0 || Math.hypot(p[0] - a[i-1][0], p[1] - a[i-1][1]) > 1); if (hxPoly.pts.length >= 2) hxLines.push(hxPoly); hxPoly = null; hxPrev = null; hxRenderDraw(); } });
