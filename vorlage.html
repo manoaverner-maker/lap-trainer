@@ -405,6 +405,20 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .pick-card.active{border-color:var(--acc);background:rgba(56,189,248,.14)}
 @media(max-width:768px){.pick-card{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,25,50,.92)}}
 
+/* ---------- Kanalschieber ---------- */
+.kan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin-bottom:16px}
+.kan-row{display:flex;flex-direction:column;gap:5px;font-size:.86rem;color:var(--mut)}
+.kan-field{display:flex;align-items:center;gap:8px}
+.kan-field input{flex:1;min-width:0;font:inherit;font-size:1rem;padding:9px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(0,0,0,.28);color:var(--txt)}
+.kan-field input:focus{border-color:var(--acc);outline:none;box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+.kan-field i{color:var(--mut2);font-style:normal;font-size:.85rem;white-space:nowrap}
+.kan-out{display:grid;gap:10px}
+.kan-res{background:rgba(15,23,42,.55);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px;padding:12px 15px;font-size:.93rem;line-height:1.55;font-variant-numeric:tabular-nums}
+.kan-res .k{color:var(--mut2);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px}
+.kan-res b{color:#5ecbfa;font-weight:700;font-size:1.05em}
+.kan-note{margin-top:16px;color:var(--mut2);font-size:.8rem;line-height:1.6;background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.25);border-radius:12px;padding:11px 14px}
+@media(max-width:640px){.kan-grid{grid-template-columns:1fr}}
+
 /* ---------- Druck: nur das Anlagenschema, dunkle Linien auf Weiss ---------- */
 @media print{
   body.print-schema{background:#fff}
@@ -459,6 +473,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <a href="#formeln" id="tabFor">Formeln</a>
     <a href="#bauteile" id="tabBau">Bauteilvorlagen</a>
     <a href="#hxdia" id="tabHx">h,x-Diagramm</a>
+    <a href="#kanal" id="tabKan">Kanalschieber</a>
   </nav>
 </header>
 
@@ -534,6 +549,23 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   </div>
 </main>
 
+<!-- ================= Kanalschieber ================= -->
+<main id="view-kan">
+  <div class="card" style="padding:24px 28px">
+    <h2 class="sec" style="font-size:1.2rem">📐 Kanalschieber – Leitungsdimensionierung</h2>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Luftvolumenstrom eingeben → erforderliche <b>Rohr-</b> bzw. <b>Kanalgrösse</b>. Geschwindigkeit als Maximum nach BBVI (Kt. ZH, je nach Volumenstrom) oder frei wählbar. Richtwerte zur Vordimensionierung.</p>
+    <div class="kan-grid">
+      <label class="kan-row"><span>Luftvolumenstrom V̇</span><span class="kan-field"><input type="number" id="kanV" value="1000" min="0" step="50"><i>m³/h</i></span></label>
+      <label class="kan-row"><span>Geschwindigkeit</span><span class="kan-field"><select class="bigselect" id="kanMode" style="min-height:0;padding:9px 36px 9px 12px"><option value="bbvi">Max nach BBVI (Kt. ZH)</option><option value="frei">frei wählen</option></select></span></label>
+      <label class="kan-row" id="kanVelRow" style="display:none"><span>Geschwindigkeit (frei)</span><span class="kan-field"><input type="number" id="kanVel" value="4" min="0.5" step="0.5"><i>m/s</i></span></label>
+      <label class="kan-row"><span>Gewünschte Kanalhöhe</span><span class="kan-field"><input type="number" id="kanH" value="200" min="20" step="10"><i>mm</i></span></label>
+      <label class="kan-row"><span>Freier Querschnitt <small style="color:var(--mut2)">(nur Gitter, sonst 100)</small></span><span class="kan-field"><input type="number" id="kanFq" value="100" min="10" max="100" step="5"><i>%</i></span></label>
+    </div>
+    <div id="kanOut" class="kan-out"></div>
+    <div class="kan-note"><b>BBVI Kt. Zürich</b> – max. Luftgeschwindigkeit nach Volumenstrom: ≤1000 → 3 · ≤2000 → 4 · ≤4000 → 5 · ≤10000 → 6 · &gt;10000 → 7 m/s. &nbsp; Norm-Rundrohre (Wickelfalz) 80…1250 mm. &nbsp; Hydraulischer Durchmesser dₕ = 2·a·b/(a+b). &nbsp; A = V̇ / (3600·v).</div>
+  </div>
+</main>
+
 <footer>
   Prüfungsvorlage · Manoa Verner · GPL22c · 2026
 </footer>
@@ -547,16 +579,19 @@ function vShow(which){
   $('view-for').classList.toggle('show', which === 'for');
   $('view-bau').classList.toggle('show', which === 'bau');
   $('view-hx').classList.toggle('show', which === 'hx');
+  $('view-kan').classList.toggle('show', which === 'kan');
   $('tabGeb').classList.toggle('active', which === 'geb');
   $('tabFor').classList.toggle('active', which === 'for');
   $('tabBau').classList.toggle('active', which === 'bau');
   $('tabHx').classList.toggle('active', which === 'hx');
+  $('tabKan').classList.toggle('active', which === 'kan');
   const _a = document.querySelector('.tabs a.active'); if (_a && _a.scrollIntoView) _a.scrollIntoView({ block: 'nearest', inline: 'center' });
 }
 $('tabGeb').onclick = e => { e.preventDefault(); vShow('geb'); history.replaceState(null, '', '#gebaeude'); };
 $('tabFor').onclick = e => { e.preventDefault(); vShow('for'); history.replaceState(null, '', '#formeln'); };
 $('tabBau').onclick = e => { e.preventDefault(); vShow('bau'); history.replaceState(null, '', '#bauteile'); };
 $('tabHx').onclick = e => { e.preventDefault(); vShow('hx'); history.replaceState(null, '', '#hxdia'); window.scrollTo(0, 0); };
+$('tabKan').onclick = e => { e.preventDefault(); vShow('kan'); history.replaceState(null, '', '#kanal'); window.scrollTo(0, 0); };
 
 /* ================= Gebäudetypen Vorlage: Daten (Modul A) ================= */
 const BT_CATS = {
@@ -1965,9 +2000,40 @@ function renderBauteil(){
 /* Interaktives h,x-Diagramm in eigenem Tab montieren (einzige Instanz) */
 (function(){ const host = $('hxHost'); if (host){ host.innerHTML = hxHtml(); hxInit(); } })();
 
-/* Deep-Link: vorlage.html#formeln / #bauteile / #hxdia */
+/* ===== Kanalschieber – Leitungsdimensionierung ===== */
+(function(){
+  if (!$('kanV')) return;
+  const BBVI = [[1000,3],[2000,4],[4000,5],[10000,6],[Infinity,7]];           // V̇max → vmax (Kt. ZH)
+  const bbviV = q => { for (const [l,v] of BBVI) if (q <= l) return v; return 7; };
+  const bbviRange = q => q<=1000?'≤1000':q<=2000?'≤2000':q<=4000?'≤4000':q<=10000?'≤10\'000':'>10\'000';
+  const STD = [80,100,125,160,200,250,315,355,400,450,500,560,630,710,800,900,1000,1120,1250]; // Wickelfalz
+  const nextStd = d => STD.find(s => s >= d) || STD[STD.length-1];
+  const r0 = x => Math.round(x), r1 = x => x.toFixed(1);
+  function calc(){
+    const q = parseFloat($('kanV').value) || 0, mode = $('kanMode').value;
+    $('kanVelRow').style.display = mode === 'frei' ? '' : 'none';
+    const fq = Math.min(100, Math.max(5, parseFloat($('kanFq').value) || 100)) / 100;
+    const v = mode === 'bbvi' ? bbviV(q) : (parseFloat($('kanVel').value) || 0);
+    const out = $('kanOut');
+    if (q <= 0 || v <= 0){ out.innerHTML = '<div class="kan-res">Bitte Volumenstrom und Geschwindigkeit eingeben.</div>'; return; }
+    const A = q / (3600 * v) / fq;                                   // m² (brutto bei Gitter)
+    const dmm = Math.sqrt(4 * A / Math.PI) * 1000, std = nextStd(dmm);
+    const vStd = (q / 3600) / (Math.PI * (std/1000)**2 / 4 * fq);    // v bei Norm-Ø
+    const h = Math.max(20, parseFloat($('kanH').value) || 200), b = A * 1e6 / h, dh = 2*b*h/(b+h);
+    const vsrc = mode === 'bbvi' ? `BBVI ${bbviRange(q)} → <b>${r1(v)}</b> m/s` : `frei <b>${r1(v)}</b> m/s`;
+    out.innerHTML =
+      `<div class="kan-res"><span class="k">Geschwindigkeit &amp; Querschnitt</span>${vsrc} &nbsp;·&nbsp; A = <b>${A.toFixed(3)}</b> m²${fq<1?` (Brutto bei ${r0(fq*100)} % freiem Querschnitt)`:''}</div>` +
+      `<div class="kan-res"><span class="k">Rundrohr</span>Ø erforderlich <b>${r0(dmm)}</b> mm &nbsp;→&nbsp; nächste Norm <b>Ø ${std}</b> mm &nbsp; <span style="color:var(--mut2)">(v bei Norm ≈ ${r1(vStd)} m/s)</span></div>` +
+      `<div class="kan-res"><span class="k">Rechteckkanal – bei Höhe ${r0(h)} mm</span>Breite <b>${r0(b)}</b> mm &nbsp;→&nbsp; Kanal <b>${r0(b)} × ${r0(h)}</b> mm &nbsp; <span style="color:var(--mut2)">hydr. Ø ${r0(dh)} mm</span></div>`;
+  }
+  ['kanV','kanMode','kanVel','kanH','kanFq'].forEach(id => { const e = $(id); if (e){ e.addEventListener('input', calc); e.addEventListener('change', calc); } });
+  calc();
+})();
+
+/* Deep-Link: vorlage.html#formeln / #bauteile / #hxdia / #kanal */
 if (location.hash === '#formeln') vShow('for');
 else if (location.hash === '#bauteile') vShow('bau');
 else if (location.hash === '#hxdia') vShow('hx');
+else if (location.hash === '#kanal') vShow('kan');
 </script>
 </body></html>
