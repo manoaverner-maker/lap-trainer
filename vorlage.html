@@ -417,6 +417,11 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .kan-res .k{color:var(--mut2);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px}
 .kan-res b{color:#5ecbfa;font-weight:700;font-size:1.05em}
 .kan-note{margin-top:16px;color:var(--mut2);font-size:.8rem;line-height:1.6;background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.25);border-radius:12px;padding:11px 14px}
+.kan-tbl{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:5px}
+.kan-tbl th{color:var(--mut2);font-weight:600;text-align:right;padding:3px 8px;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.kan-tbl td{text-align:right;padding:4px 8px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.kan-tbl th:first-child,.kan-tbl td:first-child{text-align:left}
+.kan-tbl tr.sel td{background:rgba(56,189,248,.13);color:#5ecbfa;font-weight:700}
 @media(max-width:640px){.kan-grid{grid-template-columns:1fr}}
 
 /* ---------- Druck: nur das Anlagenschema, dunkle Linien auf Weiss ---------- */
@@ -555,11 +560,12 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <h2 class="sec" style="font-size:1.2rem">📐 Kanalschieber – Leitungsdimensionierung</h2>
     <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Luftvolumenstrom eingeben → erforderliche <b>Rohr-</b> bzw. <b>Kanalgrösse</b>. Geschwindigkeit als Maximum nach BBVI (Kt. ZH, je nach Volumenstrom) oder frei wählbar. Richtwerte zur Vordimensionierung.</p>
     <div class="kan-grid">
-      <label class="kan-row"><span>Luftvolumenstrom V̇</span><span class="kan-field"><input type="number" id="kanV" value="1000" min="0" step="50"><i>m³/h</i></span></label>
+      <label class="kan-row"><span>Luftvolumenstrom V̇</span><span class="kan-field"><input type="number" id="kanV" value="1000" min="0" step="50"><select class="bigselect" id="kanUnit" style="min-height:0;padding:8px 28px 8px 10px;width:auto;flex:0 0 auto"><option value="m3h">m³/h</option><option value="ls">l/s</option></select></span></label>
       <label class="kan-row"><span>Geschwindigkeit</span><span class="kan-field"><select class="bigselect" id="kanMode" style="min-height:0;padding:9px 36px 9px 12px"><option value="bbvi">Max nach BBVI (Kt. ZH)</option><option value="frei">frei wählen</option></select></span></label>
       <label class="kan-row" id="kanVelRow" style="display:none"><span>Geschwindigkeit (frei)</span><span class="kan-field"><input type="number" id="kanVel" value="4" min="0.5" step="0.5"><i>m/s</i></span></label>
       <label class="kan-row"><span>Gewünschte Kanalhöhe</span><span class="kan-field"><input type="number" id="kanH" value="200" min="20" step="10"><i>mm</i></span></label>
       <label class="kan-row"><span>Freier Querschnitt <small style="color:var(--mut2)">(nur Gitter, sonst 100)</small></span><span class="kan-field"><input type="number" id="kanFq" value="100" min="10" max="100" step="5"><i>%</i></span></label>
+      <label class="kan-row"><span>Leitungslänge L <small style="color:var(--mut2)">(für Δp)</small></span><span class="kan-field"><input type="number" id="kanL" value="10" min="0" step="1"><i>m</i></span></label>
     </div>
     <div id="kanOut" class="kan-out"></div>
     <div class="kan-note"><b>BBVI Kt. Zürich</b> – max. Luftgeschwindigkeit nach Volumenstrom: ≤1000 → 3 · ≤2000 → 4 · ≤4000 → 5 · ≤10000 → 6 · &gt;10000 → 7 m/s. &nbsp; Norm-Rundrohre (Wickelfalz) 80…1250 mm. &nbsp; Hydraulischer Durchmesser dₕ = 2·a·b/(a+b). &nbsp; A = V̇ / (3600·v).</div>
@@ -2003,30 +2009,78 @@ function renderBauteil(){
 /* ===== Kanalschieber – Leitungsdimensionierung ===== */
 (function(){
   if (!$('kanV')) return;
-  const BBVI = [[1000,3],[2000,4],[4000,5],[10000,6],[Infinity,7]];           // V̇max → vmax (Kt. ZH)
+  const BBVI = [[1000,3],[2000,4],[4000,5],[10000,6],[Infinity,7]];
   const bbviV = q => { for (const [l,v] of BBVI) if (q <= l) return v; return 7; };
   const bbviRange = q => q<=1000?'≤1000':q<=2000?'≤2000':q<=4000?'≤4000':q<=10000?'≤10\'000':'>10\'000';
   const STD = [80,100,125,160,200,250,315,355,400,450,500,560,630,710,800,900,1000,1120,1250]; // Wickelfalz
-  const nextStd = d => STD.find(s => s >= d) || STD[STD.length-1];
-  const r0 = x => Math.round(x), r1 = x => x.toFixed(1);
-  function calc(){
-    const q = parseFloat($('kanV').value) || 0, mode = $('kanMode').value;
-    $('kanVelRow').style.display = mode === 'frei' ? '' : 'none';
-    const fq = Math.min(100, Math.max(5, parseFloat($('kanFq').value) || 100)) / 100;
-    const v = mode === 'bbvi' ? bbviV(q) : (parseFloat($('kanVel').value) || 0);
-    const out = $('kanOut');
-    if (q <= 0 || v <= 0){ out.innerHTML = '<div class="kan-res">Bitte Volumenstrom und Geschwindigkeit eingeben.</div>'; return; }
-    const A = q / (3600 * v) / fq;                                   // m² (brutto bei Gitter)
-    const dmm = Math.sqrt(4 * A / Math.PI) * 1000, std = nextStd(dmm);
-    const vStd = (q / 3600) / (Math.PI * (std/1000)**2 / 4 * fq);    // v bei Norm-Ø
-    const h = Math.max(20, parseFloat($('kanH').value) || 200), b = A * 1e6 / h, dh = 2*b*h/(b+h);
-    const vsrc = mode === 'bbvi' ? `BBVI ${bbviRange(q)} → <b>${r1(v)}</b> m/s` : `frei <b>${r1(v)}</b> m/s`;
-    out.innerHTML =
-      `<div class="kan-res"><span class="k">Geschwindigkeit &amp; Querschnitt</span>${vsrc} &nbsp;·&nbsp; A = <b>${A.toFixed(3)}</b> m²${fq<1?` (Brutto bei ${r0(fq*100)} % freiem Querschnitt)`:''}</div>` +
-      `<div class="kan-res"><span class="k">Rundrohr</span>Ø erforderlich <b>${r0(dmm)}</b> mm &nbsp;→&nbsp; nächste Norm <b>Ø ${std}</b> mm &nbsp; <span style="color:var(--mut2)">(v bei Norm ≈ ${r1(vStd)} m/s)</span></div>` +
-      `<div class="kan-res"><span class="k">Rechteckkanal – bei Höhe ${r0(h)} mm</span>Breite <b>${r0(b)}</b> mm &nbsp;→&nbsp; Kanal <b>${r0(b)} × ${r0(h)}</b> mm &nbsp; <span style="color:var(--mut2)">hydr. Ø ${r0(dh)} mm</span></div>`;
+  const HEIGHTS = [100,150,200,250,300,400,500];
+  const RHO = 1.2, NU = 1.5e-5;
+  const r0 = x => Math.round(x), r1 = x => x.toFixed(1), cl = (x,a,b) => Math.min(b, Math.max(a, x));
+  const Rfric = (d_m, v) => { const Re = d_m*v/NU; return (0.0054 + 0.396/Math.pow(Re,0.3))/d_m*(v*v*RHO/2); }; // R [Pa/m]
+  const stdIdx = dmm => { let i=0; while (i<STD.length-1 && STD[i] < dmm) i++; return i; };
+  function ampel(v){
+    const W=300, x=cl(v/12,0,1)*W;
+    const z = v<2?['#64748b','sehr niedrig – überdimensioniert']:v<6?['#22c55e','gut']:v<9?['#f59e0b','hoch – ok für Hauptkanal']:['#ef4444','zu hoch – laut & viel Druckverlust'];
+    return `<div class="kan-res"><span class="k">Geschwindigkeits-Bewertung</span>`+
+      `<svg viewBox="0 0 ${W} 26" style="width:100%;max-width:340px;height:26px;display:block;margin:3px 0 7px">`+
+        `<rect x="0" y="7" width="${(2/12*W).toFixed(1)}" height="10" rx="3" fill="#64748b"/>`+
+        `<rect x="${(2/12*W).toFixed(1)}" y="7" width="${(4/12*W).toFixed(1)}" height="10" fill="#22c55e"/>`+
+        `<rect x="${(6/12*W).toFixed(1)}" y="7" width="${(3/12*W).toFixed(1)}" height="10" fill="#f59e0b"/>`+
+        `<rect x="${(9/12*W).toFixed(1)}" y="7" width="${(3/12*W).toFixed(1)}" height="10" rx="3" fill="#ef4444"/>`+
+        `<path d="M${x.toFixed(1)} 3 l-5 -3 l10 0 z" fill="#e2e8f0"/><path d="M${x.toFixed(1)} 21 l-5 3 l10 0 z" fill="#e2e8f0"/>`+
+      `</svg>`+
+      `<b style="color:${z[0]}">${r1(v)} m/s — ${z[1]}</b> <span style="color:var(--mut2)">· Richtwerte: Hauptkanal 4–8 · Nebenkanal 3–5 · Auslass 2–3 m/s</span></div>`;
   }
-  ['kanV','kanMode','kanVel','kanH','kanFq'].forEach(id => { const e = $(id); if (e){ e.addEventListener('input', calc); e.addEventListener('change', calc); } });
+  function figur(dNorm, b, h){
+    const maxmm = Math.max(dNorm, b, h, 1), S = 130/maxmm, r = dNorm/2*S, cw = b*S, ch = h*S;
+    const big = Math.max(r*2, ch), top = 14, baseY = top + big, H = baseY + 24, midY = top + big/2;
+    return `<div class="kan-res"><span class="k">Querschnitt (massstäblich – gleicher Volumenstrom)</span>`+
+      `<svg viewBox="0 0 360 ${r0(H)}" style="width:100%;max-width:340px;height:auto;display:block;margin-top:4px">`+
+        `<circle cx="95" cy="${midY.toFixed(1)}" r="${r.toFixed(1)}" fill="rgba(56,189,248,.15)" stroke="#38bdf8" stroke-width="1.6"/>`+
+        `<text x="95" y="${(baseY+16).toFixed(1)}" fill="#cbd5e1" font-size="12" text-anchor="middle" font-family="system-ui">Ø ${dNorm} mm</text>`+
+        `<rect x="${(255-cw/2).toFixed(1)}" y="${(midY-ch/2).toFixed(1)}" width="${cw.toFixed(1)}" height="${ch.toFixed(1)}" rx="2" fill="rgba(56,189,248,.15)" stroke="#38bdf8" stroke-width="1.6"/>`+
+        `<text x="255" y="${(baseY+16).toFixed(1)}" fill="#cbd5e1" font-size="12" text-anchor="middle" font-family="system-ui">${r0(b)} × ${r0(h)} mm</text>`+
+      `</svg></div>`;
+  }
+  function roundTable(q, fq, reqd){
+    const i0 = stdIdx(reqd); let rows='';
+    for (let i=Math.max(0,i0-1); i<=Math.min(STD.length-1,i0+2); i++){
+      const d=STD[i], vv=(q/3600)/(Math.PI*(d/1000)**2/4*fq);
+      rows += `<tr class="${i===i0?'sel':''}"><td>Ø ${d} mm</td><td>${r1(vv)} m/s</td></tr>`;
+    }
+    return `<div class="kan-res"><span class="k">Norm-Rundrohre (Auswahl)</span><table class="kan-tbl"><tr><th>Grösse</th><th>Geschwindigkeit</th></tr>${rows}</table></div>`;
+  }
+  function heightTable(A){
+    let rows='';
+    for (const h of HEIGHTS){ const b=A*1e6/h, dh=2*b*h/(b+h); rows += `<tr><td>${h} mm</td><td>${r0(b)} mm</td><td>${r0(dh)} mm</td></tr>`; }
+    return `<div class="kan-res"><span class="k">Rechteckkanal – gängige Höhen</span><table class="kan-tbl"><tr><th>Höhe</th><th>Breite</th><th>hydr. Ø</th></tr>${rows}</table></div>`;
+  }
+  function calc(){
+    const unit = $('kanUnit').value, qin = parseFloat($('kanV').value)||0;
+    const q = unit==='ls' ? qin*3.6 : qin;                          // → m³/h
+    const mode = $('kanMode').value;
+    $('kanVelRow').style.display = mode==='frei' ? '' : 'none';
+    const fq = cl(parseFloat($('kanFq').value)||100,5,100)/100;
+    const v = mode==='bbvi' ? bbviV(q) : (parseFloat($('kanVel').value)||0);
+    const L = Math.max(0, parseFloat($('kanL').value)||0);
+    const out = $('kanOut');
+    if (q<=0 || v<=0){ out.innerHTML = '<div class="kan-res">Bitte Volumenstrom und Geschwindigkeit eingeben.</div>'; return; }
+    const A = q/(3600*v)/fq;
+    const dmm = Math.sqrt(4*A/Math.PI)*1000, std = STD[stdIdx(dmm)];
+    const vStd = (q/3600)/(Math.PI*(std/1000)**2/4*fq);
+    const h = cl(parseFloat($('kanH').value)||200,20,5000), b = A*1e6/h, dh = 2*b*h/(b+h);
+    const dpR = Rfric(dmm/1000, v)*L, dpK = Rfric(dh/1000, v)*L;
+    const vsrc = mode==='bbvi' ? `BBVI ${bbviRange(q)} → <b>${r1(v)}</b> m/s` : `frei <b>${r1(v)}</b> m/s`;
+    out.innerHTML =
+      `<div class="kan-res"><span class="k">Geschwindigkeit &amp; Querschnitt</span>${vsrc} &nbsp;·&nbsp; A = <b>${A.toFixed(3)}</b> m²${fq<1?` (Brutto bei ${r0(fq*100)} % freiem Querschnitt)`:''}</div>`+
+      ampel(v)+
+      `<div class="kan-res"><span class="k">Rundrohr</span>Ø erforderlich <b>${r0(dmm)}</b> mm &nbsp;→&nbsp; nächste Norm <b>Ø ${std}</b> mm &nbsp;<span style="color:var(--mut2)">(v ≈ ${r1(vStd)} m/s)</span>${L>0?` &nbsp;·&nbsp; Δp ≈ <b>${r1(dpR)}</b> Pa <span style="color:var(--mut2)">(${L} m)</span>`:''}</div>`+
+      `<div class="kan-res"><span class="k">Rechteckkanal – bei Höhe ${r0(h)} mm</span>Breite <b>${r0(b)}</b> mm &nbsp;→&nbsp; <b>${r0(b)} × ${r0(h)}</b> mm &nbsp;<span style="color:var(--mut2)">hydr. Ø ${r0(dh)} mm</span>${L>0?` &nbsp;·&nbsp; Δp ≈ <b>${r1(dpK)}</b> Pa`:''}</div>`+
+      figur(std, b, h)+
+      roundTable(q, fq, dmm)+
+      heightTable(A);
+  }
+  ['kanV','kanUnit','kanMode','kanVel','kanH','kanFq','kanL'].forEach(id => { const e=$(id); if (e){ e.addEventListener('input', calc); e.addEventListener('change', calc); } });
   calc();
 })();
 
