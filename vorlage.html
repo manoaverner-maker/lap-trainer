@@ -418,6 +418,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <a href="#gebaeude" id="tabGeb" class="active">Gebäudetypen &amp; Schemas</a>
     <a href="#formeln" id="tabFor">Formeln</a>
     <a href="#bauteile" id="tabBau">Bauteilvorlagen</a>
+    <a href="#hxdia" id="tabHx">h,x-Diagramm</a>
   </nav>
 </header>
 
@@ -484,6 +485,15 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   </div>
 </main>
 
+<!-- ================= Interaktives h,x-Diagramm ================= -->
+<main id="view-hx">
+  <div class="card" style="padding:24px 28px">
+    <h2 class="sec" style="font-size:1.2rem">💧 Interaktives h,x-Diagramm (Mollier)</h2>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Massstabsgetreues 7air-Mollier-Diagramm (p = 950 mbar). Der Mauszeiger zeigt den Luftzustand live (ϑ, x, φ, h, ρ); zeichne Zustandsänderungen, setze benannte Zustandspunkte und drucke das Blatt auf A4.</p>
+    <div id="hxHost"></div>
+  </div>
+</main>
+
 <footer>
   Prüfungsvorlage · Manoa Verner · GPL22c · 2026
 </footer>
@@ -496,13 +506,16 @@ function vShow(which){
   $('view-geb').classList.toggle('show', which === 'geb');
   $('view-for').classList.toggle('show', which === 'for');
   $('view-bau').classList.toggle('show', which === 'bau');
+  $('view-hx').classList.toggle('show', which === 'hx');
   $('tabGeb').classList.toggle('active', which === 'geb');
   $('tabFor').classList.toggle('active', which === 'for');
   $('tabBau').classList.toggle('active', which === 'bau');
+  $('tabHx').classList.toggle('active', which === 'hx');
 }
 $('tabGeb').onclick = e => { e.preventDefault(); vShow('geb'); history.replaceState(null, '', '#gebaeude'); };
 $('tabFor').onclick = e => { e.preventDefault(); vShow('for'); history.replaceState(null, '', '#formeln'); };
 $('tabBau').onclick = e => { e.preventDefault(); vShow('bau'); history.replaceState(null, '', '#bauteile'); };
+$('tabHx').onclick = e => { e.preventDefault(); vShow('hx'); history.replaceState(null, '', '#hxdia'); window.scrollTo(0, 0); };
 
 /* ================= Gebäudetypen Vorlage: Daten (Modul A) ================= */
 const BT_CATS = {
@@ -1508,7 +1521,7 @@ function renderFormel(){
     tbls +
     `<div class="beispiel"><span class="bsp-k">Beispiel</span> ${esc(f.beispiel)}</div>` +
     leg;
-  if (f.hx) { box.insertAdjacentHTML('beforeend', hxHtml()); hxInit(); }
+  if (f.hx) { box.insertAdjacentHTML('beforeend', '<div style="margin-top:16px"><button type="button" class="bigselect" style="flex:0 0 auto;min-width:0;cursor:pointer;font-weight:600" onclick="document.getElementById(\'tabHx\').click()">📊 Interaktives h,x-Diagramm öffnen →</button></div>'); }
 }
 
 /* ================= Interaktives h,x-Diagramm (Mollier, p = 950 mbar ≈ 540 m ü.M.) ================= */
@@ -1821,8 +1834,12 @@ function renderBauteil(){
   pick('bauteilGrid', BAUTEIL_DATA, () => CUR_BAUTEIL, v => CUR_BAUTEIL = v, renderBauteil, true);
 })();
 
-/* Deep-Link: vorlage.html#formeln / #bauteile */
+/* Interaktives h,x-Diagramm in eigenem Tab montieren (einzige Instanz) */
+(function(){ const host = $('hxHost'); if (host){ host.innerHTML = hxHtml(); hxInit(); } })();
+
+/* Deep-Link: vorlage.html#formeln / #bauteile / #hxdia */
 if (location.hash === '#formeln') vShow('for');
 else if (location.hash === '#bauteile') vShow('bau');
+else if (location.hash === '#hxdia') vShow('hx');
 </script>
 </body></html>
