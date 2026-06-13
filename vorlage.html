@@ -115,7 +115,10 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .hx-sw{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.35);cursor:pointer}
 .hx-sw.on{border-color:#fff;box-shadow:0 0 0 2px var(--acc)}
 .hx-stage{position:relative;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--glass-line);box-shadow:0 6px 24px rgba(0,0,0,.35)}
-.hx-stage svg{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.hx-img{display:block;width:100%;height:auto}
+.hx-overlay{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.hx-mode{padding:7px 11px}
+.hx-mode.on{border-color:var(--acc);color:var(--acc);background:rgba(56,189,248,.12)}
 .hx-readout{position:absolute;top:12px;right:12px;background:rgba(15,23,42,.93);color:#e2e8f0;border:1px solid var(--glass-line);border-radius:10px;padding:9px 13px;font-size:.82rem;line-height:1.55;font-variant-numeric:tabular-nums;pointer-events:none;min-width:148px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 .hx-readout b{color:#5ecbfa;font-weight:700}
 .hx-readout .ttl{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-bottom:4px;font-weight:700}
@@ -1556,39 +1559,53 @@ function hxSvg(){
 }
 function hxHtml(){
   return '<div class="hx-wrap">' +
-    '<div class="hx-controls"><span class="lbl">Zeichnen:</span><div class="hx-swatches" id="hxSw"></div>' +
-    '<input type="color" id="hxColor" value="#e11d48" title="Eigene Farbe" style="width:30px;height:30px;border:none;background:none;cursor:pointer;padding:0">' +
-    '<button class="hx-btn" id="hxUndo">↶ Zurück</button><button class="hx-btn" id="hxClear">🗑 Leeren</button>' +
-    '<button class="hx-btn" id="hxPrint">🖨 Drucken (A4 hoch)</button></div>' +
-    '<div class="hx-stage" id="hxStage">' + hxSvg() +
-    '<div class="hx-readout" id="hxRead"><div class="ttl">Luftzustand</div><div id="hxReadBody">Maus über das Diagramm bewegen …</div></div></div>' +
-    '<div class="hx-hint">Mit gedrückter Maustaste zeichnen (z. B. Zustandsänderung). Farbe oben wählen · ρ in kg/m³ · „Drucken" gibt ein leeres/eingezeichnetes Diagramm im A4-Hochformat aus.</div></div>';
+    '<div class="hx-controls">' +
+      '<span class="lbl">Linie:</span>' +
+      '<button class="hx-btn hx-mode on" data-m="gerade">╱ Gerade</button>' +
+      '<button class="hx-btn hx-mode" data-m="gebogen">∿ Gebogen</button>' +
+      '<span class="lbl" style="margin-left:8px">Farbe:</span><div class="hx-swatches" id="hxSw"></div>' +
+      '<input type="color" id="hxColor" value="#e11d48" title="Eigene Farbe" style="width:30px;height:30px;border:none;background:none;cursor:pointer;padding:0">' +
+      '<button class="hx-btn" id="hxUndo">↶ Zurück</button><button class="hx-btn" id="hxClear">🗑 Leeren</button>' +
+      '<button class="hx-btn" id="hxPrint">🖨 Drucken (A4 hoch)</button>' +
+    '</div>' +
+    '<div class="hx-stage" id="hxStage">' +
+      '<img class="hx-img" src="hx-diagram.svg" alt="h,x-Diagramm für feuchte Luft">' +
+      '<svg class="hx-overlay" id="hxOv" viewBox="-6 -158 608 854" xmlns="http://www.w3.org/2000/svg"><g id="hxDraw"></g><g id="hxCursor" style="display:none"><circle r="4.5" fill="none" stroke="#c0392b" stroke-width="1.4"/><line x1="-8" y1="0" x2="8" y2="0" stroke="#c0392b" stroke-width="0.9"/><line x1="0" y1="-8" x2="0" y2="8" stroke="#c0392b" stroke-width="0.9"/></g></svg>' +
+      '<div class="hx-readout" id="hxRead"><div class="ttl">Luftzustand ≈</div><div id="hxReadBody">Maus über das Diagramm …</div></div>' +
+    '</div>' +
+    '<div class="hx-hint">Original 7air-Diagramm (p = 950 mbar / 540 m ü.M.). Linienart wählen, mit gedrückter Maus zeichnen. Angezeigte Werte sind Richtwerte — genau am Diagramm ablesen. „Drucken" gibt das A4-Hochformat aus.</div>' +
+  '</div>';
 }
-let hxLines = [], hxCur = null, hxColor = '#e11d48';
-function hxRenderDraw(){ const g = document.getElementById('hxDraw'); if (!g) return; g.innerHTML = hxLines.map(l => `<polyline points="${l.pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${l.color}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`).join(''); }
+let hxLines = [], hxCur = null, hxColor = '#e11d48', hxMode = 'gerade';
+function hxRenderDraw(){ const g = document.getElementById('hxDraw'); if (!g) return; g.innerHTML = hxLines.map(l => `<polyline points="${l.pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${l.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`).join(''); }
 function hxInit(){
-  const svg = document.getElementById('hxSvg'); if (!svg) return;
-  hxLines = []; hxCur = null;
+  const ov = document.getElementById('hxOv'); if (!ov) return;
+  hxLines = []; hxCur = null; hxMode = 'gerade';
   const readBody = document.getElementById('hxReadBody'), cursor = document.getElementById('hxCursor');
+  // Kalibrierung in Overlay-Koordinaten (= Diagramm-SVG): svgX,svgY → x [g/kg], ϑ [°C]
+  const X0 = 68.1, AX = 12.35, FLIP = 690, TY0 = 78, TB = 7.929;
+  const xgOf = sx => (sx - X0) / AX;
+  const tOf  = sy => ((FLIP - sy) - TY0) / TB - 20;
   const cols = ['#e11d48','#2563eb','#16a34a','#f59e0b','#7c3aed','#111827'], sw = document.getElementById('hxSw');
   sw.innerHTML = cols.map((c, i) => `<span class="hx-sw${i === 0 ? ' on' : ''}" data-c="${c}" style="background:${c}"></span>`).join('');
   sw.querySelectorAll('.hx-sw').forEach(el => el.onclick = () => { hxColor = el.dataset.c; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); el.classList.add('on'); document.getElementById('hxColor').value = hxColor; });
   document.getElementById('hxColor').oninput = e => { hxColor = e.target.value; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); };
-  const pt = ev => { const r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal; return [(ev.clientX - r.left) / r.width * vb.width, (ev.clientY - r.top) / r.height * vb.height]; };
-  let drawing = false;
-  svg.addEventListener('pointerdown', ev => { ev.preventDefault(); drawing = true; hxCur = { color: hxColor, pts: [pt(ev)] }; hxLines.push(hxCur); try { svg.setPointerCapture(ev.pointerId); } catch (e) {} });
-  svg.addEventListener('pointermove', ev => {
-    const p = pt(ev), s = HX.inv(p[0], p[1]);
-    if (s.x >= -1 && s.x <= HX.xMax + 2 && s.t >= HX.tMin - 3 && s.t <= HX.tMax + 3){
-      const xg = Math.max(0, s.x), st = hxState(s.t, xg);
+  document.querySelectorAll('.hx-mode').forEach(b => b.onclick = () => { hxMode = b.dataset.m; document.querySelectorAll('.hx-mode').forEach(x => x.classList.remove('on')); b.classList.add('on'); });
+  const pt = ev => { const r = ov.getBoundingClientRect(), vb = ov.viewBox.baseVal; return [vb.x + (ev.clientX - r.left) / r.width * vb.width, vb.y + (ev.clientY - r.top) / r.height * vb.height]; };
+  let drawing = false, start = null;
+  ov.addEventListener('pointerdown', ev => { ev.preventDefault(); drawing = true; start = pt(ev); hxCur = { color: hxColor, pts: [start] }; hxLines.push(hxCur); try { ov.setPointerCapture(ev.pointerId); } catch (e) {} });
+  ov.addEventListener('pointermove', ev => {
+    const p = pt(ev), t = tOf(p[1]), xg = xgOf(p[0]);
+    if (xg >= -1 && xg <= 38 && t >= -22 && t <= 52){
+      const x = Math.max(0, xg), st = hxState(t, x);
       cursor.style.display = ''; cursor.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`);
-      readBody.innerHTML = `ϑ = <b>${s.t.toFixed(1)}</b> °C<br>x = <b>${xg.toFixed(1)}</b> g/kg<br>φ = <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.9 ? ' <span style="color:#fca5a5">(Nebel)</span>' : ''}<br>h = <b>${st.h.toFixed(1)}</b> kJ/kg<br>ρ = <b>${st.rho.toFixed(3)}</b> kg/m³<br>p<sub>D</sub> = <b>${st.pd.toFixed(1)}</b> mbar`;
+      readBody.innerHTML = `ϑ ≈ <b>${t.toFixed(1)}</b> °C<br>x ≈ <b>${x.toFixed(1)}</b> g/kg<br>φ ≈ <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.5 ? ' <span style="color:#fca5a5">(Nebel)</span>' : ''}<br>h ≈ <b>${st.h.toFixed(1)}</b> kJ/kg<br>ρ ≈ <b>${st.rho.toFixed(3)}</b> kg/m³`;
     } else cursor.style.display = 'none';
-    if (drawing && hxCur){ hxCur.pts.push(p); hxRenderDraw(); }
+    if (drawing && hxCur){ if (hxMode === 'gerade') hxCur.pts = [start, p]; else hxCur.pts.push(p); hxRenderDraw(); }
   });
-  const end = ev => { drawing = false; hxCur = null; try { svg.releasePointerCapture(ev.pointerId); } catch (e) {} };
-  svg.addEventListener('pointerup', end);
-  svg.addEventListener('pointerleave', () => { cursor.style.display = 'none'; });
+  const end = ev => { drawing = false; hxCur = null; try { ov.releasePointerCapture(ev.pointerId); } catch (e) {} };
+  ov.addEventListener('pointerup', end);
+  ov.addEventListener('pointerleave', () => { cursor.style.display = 'none'; });
   document.getElementById('hxUndo').onclick = () => { hxLines.pop(); hxRenderDraw(); };
   document.getElementById('hxClear').onclick = () => { hxLines = []; hxRenderDraw(); };
   document.getElementById('hxPrint').onclick = () => { document.body.classList.add('print-hx'); window.print(); };
