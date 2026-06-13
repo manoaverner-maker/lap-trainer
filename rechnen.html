@@ -529,6 +529,7 @@ const CATS = [
   { id: 'hx',     name: 'h,x-Prozesse' },
   { id: 'luft',   name: 'Luftmengen' },
   { id: 'druck',  name: 'Druck & Ventilator' },
+  { id: 'kanal',  name: 'Kanal & Druckverlust' },
   { id: 'schall', name: 'Schall' },
   { id: 'wrg',    name: 'WRG' }
 ];
@@ -536,6 +537,7 @@ const SUBS = {
   hx:    ['hx_erhitzer', 'hx_kuehler', 'hx_dampf', 'hx_misch'],
   luft:  ['luft_sia', 'luft_co2', 'luft_feuchte', 'luft_mak'],
   druck: ['druck_pel', 'druck_gesetz', 'druck_total', 'druck_siphon'],
+  kanal: ['kanal_rund', 'kanal_rechteck', 'kanal_dp'],
   schall:['schall_add', 'schall_einf'],
   wrg:   ['wrg_phi', 'wrg_t', 'wrg_q']
 };
@@ -543,6 +545,7 @@ const SUBNAME = {
   hx_erhitzer: 'Lufterhitzer', hx_kuehler: 'Luftkühler & Kondensat', hx_dampf: 'Dampfbefeuchter', hx_misch: 'Mischung',
   luft_sia: 'SIA personen-/flächenbezogen', luft_co2: 'CO₂-Ansatz', luft_feuchte: 'Feuchteabfuhr', luft_mak: 'MAK-Verdünnung',
   druck_pel: 'Ventilatorleistung', druck_gesetz: 'Ventilatorgesetze', druck_total: 'Gesamtdruck', druck_siphon: 'Siphonhöhe',
+  kanal_rund: 'Rundrohr dimensionieren', kanal_rechteck: 'Rechteckkanal', kanal_dp: 'Druckverlust-Strang',
   schall_add: 'Pegeladdition', schall_einf: 'Einfügungsdämpfung',
   wrg_phi: 'Rückwärmzahl', wrg_t: 'Temperatur nach WRG', wrg_q: 'WRG-Leistung & Nacherwärmung'
 };
@@ -1170,6 +1173,117 @@ const GENS = {
           : { v: m * c * (tb - ta) / 3600, hint: 'Δt der WRG ist nur Φ·(t₁₁−t₂₁) – nicht die volle Differenz Abluft−Aussenluft.' },
         { v: sol * 3600 / 1000, hint: 'Prüfe den Faktor 3600 (kg/h → kg/s) – P in kW = ṁ·c·Δt/3600.' },
         { v: V * c * (askNE ? (tz - tw) : (tw - ta)) / 3600, hint: 'Massenstrom verwenden: ṁ = V̇·ρ.' }
+      ]
+    };
+  },
+
+  /* === K6: Kanal & Druckverlust (Dimensionierung nach Formelsammlung / Druckverlust-Tabelle) === */
+  kanal_rund(rng){
+    const STD = [80, 100, 125, 160, 200, 250, 315, 355, 400, 450, 500, 560, 630, 710, 800, 900, 1000, 1120, 1250]; // Wickelfalz
+    const V = R.step(rng, 1000, 10000, 250);
+    const v = R.step(rng, 3, 7, 0.5);
+    const A = V / 3600 / v;                       // m²
+    const dmm = Math.sqrt(4 * A / Math.PI) * 1000; // mm
+    let i = 0; while (i < STD.length - 1 && STD[i] < dmm) i++; const std = STD[i];
+    const sol = dmm;
+    return {
+      cat: 'kanal', title: 'Rundrohr dimensionieren',
+      text: `Ein Lüftungskanal in einem ${R.pick(rng, ROOMS)} soll ${fmt(V)} m³/h mit einer Strömungsgeschwindigkeit von ${v.toFixed(1)} m/s führen. Berechnen Sie den erforderlichen Rohr-Innendurchmesser (in mm).`,
+      given: [
+        { k: 'Volumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Geschwindigkeit v', v: v.toFixed(1), u: 'm/s' }
+      ],
+      ask: 'Rohrdurchmesser Ø', unit: 'mm', sol, round: 0, tol: { rel: 0.02, abs: 3 },
+      steps: [
+        { t: 'Formel', d: `Querschnitt A = V̇ / (3600 · v), dann Ø = √(4·A/π). V̇ in m³/h zuerst durch 3600 in m³/s umrechnen.` },
+        { t: 'Querschnitt', d: `A = ${fmt(V)} / (3600 · ${v.toFixed(1)}) = ${A.toFixed(4)} m².` },
+        { t: 'Durchmesser', d: `Ø = √(4 · ${A.toFixed(4)} / π) = ${(dmm / 1000).toFixed(4)} m = <b>${fmt(sol, 0)} mm</b>.` },
+        { t: 'Norm wählen', d: `Nächstgrösseres Wickelfalzrohr: <b>Ø ${std} mm</b> – immer aufrunden, sonst steigt die Geschwindigkeit (und damit Druckverlust & Schall).` }
+      ],
+      traps: [
+        { v: dmm / 2, hint: 'Das ist der Radius – der Durchmesser ist doppelt so gross: Ø = √(4A/π) = 2·√(A/π).' },
+        { v: dmm / 10, hint: 'Einheit: das Resultat ist in mm gesucht (1 cm = 10 mm).' },
+        { v: Math.sqrt(4 * (V / v) / Math.PI) * 1000, hint: 'Umrechnung h → s vergessen: V̇ zuerst durch 3600 teilen (m³/h → m³/s).' }
+      ]
+    };
+  },
+
+  kanal_rechteck(rng){
+    const HSTD = [0.20, 0.25, 0.30, 0.40, 0.50, 0.60, 0.80]; // m – gängige Kanalhöhen
+    const V = R.step(rng, 1500, 11000, 250);
+    const v = R.step(rng, 3, 6, 0.5);
+    const A = V / 3600 / v;             // m²
+    const arT = R.pick(rng, [1.5, 2, 2.5, 3]);            // Ziel-Seitenverhältnis b/h
+    const hIdeal = Math.sqrt(A / arT);
+    const h = HSTD.reduce((p, c) => Math.abs(c - hIdeal) < Math.abs(p - hIdeal) ? c : p, HSTD[0]); // nächste Norm-Höhe
+    const hcm = Math.round(h * 100);
+    const b = A / h;                   // m
+    const bmm = b * 1000;
+    const dh = 2 * (b * h) / (b + h);  // m
+    const sol = bmm;
+    return {
+      cat: 'kanal', title: 'Rechteckkanal – Breite & hydraulischer Ø',
+      text: `Aus Platzgründen wird ein Rechteckkanal mit ${hcm} cm Höhe eingesetzt. Er soll ${fmt(V)} m³/h bei ${v.toFixed(1)} m/s führen. Berechnen Sie die erforderliche Kanalbreite (in mm).`,
+      given: [
+        { k: 'Volumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Geschwindigkeit v', v: v.toFixed(1), u: 'm/s' },
+        { k: 'Kanalhöhe h', v: String(hcm), u: 'cm' }
+      ],
+      ask: 'Kanalbreite b', unit: 'mm', sol, round: 0, tol: { rel: 0.02, abs: 5 },
+      steps: [
+        { t: 'Formel', d: `A = V̇/(3600·v); Breite b = A / h (Höhe in METER einsetzen). Hydraulischer Durchmesser d_h = 2·a·b/(a+b).` },
+        { t: 'Querschnitt', d: `A = ${fmt(V)} / (3600 · ${v.toFixed(1)}) = ${A.toFixed(4)} m².` },
+        { t: 'Breite', d: `b = ${A.toFixed(4)} / ${h.toFixed(2)} m = ${b.toFixed(3)} m = <b>${fmt(sol, 0)} mm</b> → Kanal ${fmt(Math.round(bmm))} × ${hcm * 10} mm.` },
+        { t: 'hydr. Durchmesser', d: `d_h = 2·${b.toFixed(3)}·${h.toFixed(2)} / (${b.toFixed(3)} + ${h.toFixed(2)}) = ${(dh * 1000).toFixed(0)} mm – massgebend für den Druckverlust.` }
+      ],
+      traps: [
+        { v: A * h * 1000, hint: 'Höhe wird DIVIDIERT, nicht multipliziert: b = A / h.' },
+        { v: A / hcm * 1000, hint: 'Höhe in Meter einsetzen (z. B. 40 cm = 0.40 m), nicht in cm.' },
+        { v: bmm / 10, hint: 'Einheit: Breite in mm angeben (1 cm = 10 mm).' }
+      ]
+    };
+  },
+
+  kanal_dp(rng){
+    const rho = R.pick(rng, [1.15, 1.20]);
+    const NU = 1.5e-5;
+    const d = R.pick(rng, [200, 250, 315, 400, 500, 630, 800]); // mm
+    const v = R.step(rng, 3, 7, 0.5);
+    const Acs = Math.PI / 4 * Math.pow(d / 1000, 2);
+    const V = Math.round(v * Acs * 3600 / 50) * 50;             // m³/h (Kontext)
+    const Re = (d / 1000) * v / NU;
+    const Rm = Math.round(((0.0054 + 0.396 / Math.pow(Re, 0.3)) / (d / 1000) * (v * v * rho / 2)) * 100) / 100; // Pa/m
+    const L = R.step(rng, 8, 45, 1);
+    const nB = R.int(rng, 2, 5);
+    const extra = R.pick(rng, [0, 0, 0.6, 0.9]);
+    const sumZ = Math.round((nB * 0.3 + extra) * 100) / 100;
+    const pdyn = rho / 2 * v * v;
+    const dpR = Rm * L;
+    const dpE = sumZ * pdyn;
+    const sol = dpR + dpE;
+    return {
+      cat: 'kanal', title: 'Druckverlust eines Kanalstrangs',
+      text: `Für den ungünstigsten Strang einer Anlage (${fmt(V)} m³/h, Ø ${d} mm) liest du aus der Druckverlust-Tabelle einen Reibungswiderstand von ${Rm.toFixed(2)} Pa/m ab. Der Strang ist ${L} m lang und enthält ${nB} Bögen (ζ = 0.3)${extra ? ` sowie ein Formstück (ζ = ${extra})` : ''}. Berechnen Sie den gesamten Druckverlust.`,
+      given: [
+        { k: 'Volumenstrom V̇', v: fmt(V), u: 'm³/h' },
+        { k: 'Geschwindigkeit w', v: v.toFixed(1), u: 'm/s' },
+        { k: 'Reibung R (Tabelle)', v: Rm.toFixed(2), u: 'Pa/m' },
+        { k: 'Stranglänge L', v: String(L), u: 'm' },
+        { k: 'Einzelwiderstände Σζ', v: sumZ.toFixed(2), u: `(${nB}×0.3${extra ? ' + ' + extra : ''})` },
+        { k: 'Luftdichte ρ', v: rho.toFixed(2), u: 'kg/m³' }
+      ],
+      ask: 'Gesamtdruckverlust Δp', unit: 'Pa', sol, round: 0, tol: { rel: 0.03, abs: 2 },
+      steps: [
+        { t: 'Formel', d: `Δp_ges = Δp_R + Δp_E = R·L + Σζ·(ρ/2·w²). R kommt aus der Druckverlust-Tabelle, ζ aus der Zeta-Wert-Tabelle (Darcy-Weisbach).` },
+        { t: 'Reibungsverlust', d: `Δp_R = ${Rm.toFixed(2)} Pa/m · ${L} m = ${dpR.toFixed(1)} Pa.` },
+        { t: 'Dynamischer Druck', d: `p_dyn = ρ/2·w² = ${rho.toFixed(2)}/2 · ${v.toFixed(1)}² = ${pdyn.toFixed(1)} Pa.` },
+        { t: 'Einzelwiderstände', d: `Δp_E = Σζ · p_dyn = ${sumZ.toFixed(2)} · ${pdyn.toFixed(1)} = ${dpE.toFixed(1)} Pa.` },
+        { t: 'Resultat', d: `Δp_ges = ${dpR.toFixed(1)} + ${dpE.toFixed(1)} = <b>${fmt(sol, 0)} Pa</b> – das muss der Ventilator überwinden.` }
+      ],
+      traps: [
+        { v: dpR, hint: 'Einzelwiderstände (Bögen/Formstücke) vergessen: Δp_E = Σζ·ρ/2·w² dazurechnen.' },
+        { v: dpE, hint: 'Das ist nur der Einzelwiderstands-Anteil – die Rohrreibung R·L fehlt.' },
+        { v: dpR + sumZ * rho * v * v, hint: 'p_dyn = ρ/2·w² – die Hälfte fehlt (ρ statt ρ/2 verwendet).' }
       ]
     };
   }
