@@ -131,6 +131,11 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .hx-pt .nm{font-weight:700;color:#5ecbfa;cursor:text}
 .hx-pt .del{cursor:pointer;color:var(--mut2);margin-left:6px;font-weight:700}
 .hx-pt .del:hover{color:#fca5a5}
+.hx-diag{position:relative}
+.hx-title{font-size:1.06rem;font-weight:700;color:var(--txt);text-align:center;padding:8px 12px;min-height:1.3em;outline:none;border-bottom:1px solid var(--glass-line)}
+.hx-title:empty:before{content:attr(data-ph);color:var(--mut2);font-weight:500;font-size:.92rem}
+.hx-title:focus{background:rgba(56,189,248,.06)}
+.hx-size{font:inherit;font-size:.83rem;padding:7px 8px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(0,0,0,.25);color:var(--txt);cursor:pointer}
 .beispiel{margin-top:18px;background:rgba(56,189,248,.1);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(56,189,248,.4);border-top:1px solid rgba(125,211,252,.55);border-radius:14px;padding:13px 16px;font-size:.9rem;line-height:1.55;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
 .bauteil-formel{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;padding:13px 16px;font-size:.92rem;line-height:1.5;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -389,6 +394,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   body.print-hx .hx-pt{background:#fff !important;color:#111 !important;box-shadow:none !important;border:1px solid #999 !important;border-left:3px solid #0a8a6a !important}
   body.print-hx .hx-pt .nm{color:#0a6a52 !important}
   body.print-hx .hx-pt .del{display:none !important}
+  body.print-hx .hx-title{color:#111 !important;border-bottom:1px solid #999 !important}
+  body.print-hx .hx-title:empty{display:none !important}
 }
 @page{size:A4 portrait;margin:9mm}
 </style></head><body>
@@ -1576,22 +1583,32 @@ function hxHtml(){
       '<button class="hx-btn hx-mode" data-m="gebogen">∿ Gebogen</button>' +
       '<button class="hx-btn hx-mode" data-m="polylinie">⋁ Polylinie</button>' +
       '<button class="hx-btn hx-mode" data-m="punkt">⊕ Punkt</button>' +
+      '<button class="hx-btn hx-mode" data-m="text">T Text</button>' +
       '<span class="lbl" style="margin-left:8px">Farbe:</span><div class="hx-swatches" id="hxSw"></div>' +
       '<input type="color" id="hxColor" value="#e11d48" title="Eigene Farbe" style="width:30px;height:30px;border:none;background:none;cursor:pointer;padding:0">' +
+      '<select class="hx-size" id="hxSize" title="Textgrösse"><option value="11">Text S</option><option value="15" selected>Text M</option><option value="21">Text L</option><option value="28">Text XL</option></select>' +
       '<button class="hx-btn" id="hxUndo">↶ Zurück</button><button class="hx-btn" id="hxClear">🗑 Leeren</button>' +
       '<button class="hx-btn" id="hxPrint">🖨 Drucken (A4 hoch)</button>' +
     '</div>' +
     '<div class="hx-live" id="hxLive"><span class="ttl">Mauszeiger ≈</span> <span id="hxLiveBody">über das Diagramm bewegen …</span></div>' +
     '<div class="hx-stage" id="hxStage">' +
-      '<img class="hx-img" src="hx-diagram.svg" alt="h,x-Diagramm für feuchte Luft">' +
-      '<svg class="hx-overlay" id="hxOv" viewBox="28 38 527 610" xmlns="http://www.w3.org/2000/svg"><g id="hxDraw"></g><g id="hxCursor" style="display:none"><circle r="4" fill="none" stroke="#c0392b" stroke-width="1.2"/><line x1="-7" y1="0" x2="7" y2="0" stroke="#c0392b" stroke-width="0.8"/><line x1="0" y1="-7" x2="0" y2="7" stroke="#c0392b" stroke-width="0.8"/></g></svg>' +
-      '<div class="hx-points" id="hxPoints"></div>' +
+      '<div class="hx-title" id="hxTitle" contenteditable="true" data-ph="Titel eingeben (erscheint im Druck) …"></div>' +
+      '<div class="hx-diag" id="hxDiag">' +
+        '<img class="hx-img" src="hx-diagram.svg" alt="h,x-Diagramm für feuchte Luft">' +
+        '<svg class="hx-overlay" id="hxOv" viewBox="28 38 527 610" xmlns="http://www.w3.org/2000/svg"><g id="hxDraw"></g><g id="hxTextG"></g><g id="hxCursor" style="display:none"><circle r="4" fill="none" stroke="#c0392b" stroke-width="1.2"/><line x1="-7" y1="0" x2="7" y2="0" stroke="#c0392b" stroke-width="0.8"/><line x1="0" y1="-7" x2="0" y2="7" stroke="#c0392b" stroke-width="0.8"/></g></svg>' +
+        '<div class="hx-points" id="hxPoints"></div>' +
+      '</div>' +
     '</div>' +
-    '<div class="hx-hint">Original 7air-Diagramm (p = 950 mbar). Werkzeug + Farbe wählen, mit gedrückter Maus zeichnen. <b>Polylinie</b>: klicken setzt Eckpunkte, Doppelklick beendet. <b>Punkt</b>: setzt einen benennbaren Zustand mit Werte-Box. Werte sind Richtwerte — genau am Diagramm ablesen.</div>' +
+    '<div class="hx-hint">Original 7air-Diagramm (p = 950 mbar). <b>Text</b>: anklicken setzt eine Beschriftung (Inhalt per Klick änderbar, Grösse + Farbe oben wählen). <b>Polylinie</b>: Eckpunkte klicken, Doppelklick beendet. <b>Punkt</b>: benennbarer Zustand mit Werte-Box. Titel oben eintippen — alles kommt mit aufs A4-Blatt. Werte sind Richtwerte.</div>' +
   '</div>';
 }
-let hxLines = [], hxCur = null, hxColor = '#e11d48', hxMode = 'gerade', hxPoints = [], hxPoly = null, hxPrev = null;
+let hxLines = [], hxCur = null, hxColor = '#e11d48', hxMode = 'gerade', hxPoints = [], hxPoly = null, hxPrev = null, hxTexts = [];
 const HXVB = { x: 28, y: 38, w: 527, h: 610 };
+function hxRenderTexts(){
+  const g = document.getElementById('hxTextG'); if (!g) return;
+  g.innerHTML = hxTexts.map((t, i) => `<text x="${t.sx.toFixed(1)}" y="${t.sy.toFixed(1)}" fill="${t.color}" font-size="${t.size}" font-weight="700" font-family="system-ui,-apple-system,sans-serif" data-i="${i}" style="cursor:pointer">${esc(t.text)}</text>`).join('');
+  g.querySelectorAll('text').forEach(el => el.addEventListener('pointerdown', ev => { ev.stopPropagation(); ev.preventDefault(); const i = +el.dataset.i, nv = prompt('Text bearbeiten (leer = löschen):', hxTexts[i].text); if (nv === null) return; if (nv.trim() === '') hxTexts.splice(i, 1); else hxTexts[i].text = nv; hxRenderTexts(); }));
+}
 function hxRenderDraw(){
   const g = document.getElementById('hxDraw'); if (!g) return;
   const ln = (pts, col, dash) => `<polyline points="${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"${dash ? ' stroke-dasharray="5 3"' : ''}/>`;
@@ -1612,12 +1629,12 @@ function hxRenderPoints(){
 }
 function hxInit(){
   const ov = document.getElementById('hxOv'); if (!ov) return;
-  hxLines = []; hxCur = null; hxMode = 'gerade'; hxPoints = []; hxPoly = null; hxPrev = null;
+  hxLines = []; hxCur = null; hxMode = 'gerade'; hxPoints = []; hxPoly = null; hxPrev = null; hxTexts = [];
   const live = document.getElementById('hxLiveBody'), cursor = document.getElementById('hxCursor');
   // Kalibrierung in Overlay-Koordinaten (= Diagramm-SVG): svgX,svgY → x [g/kg], ϑ [°C]
-  const X0 = 68.1, AX = 12.35, FLIP = 690, TY0 = 78, TB = 7.929;
+  const X0 = 68.1, AX = 12.35, FLIP = 690, TY0 = 230, TB = 8.05, SHEAR = 0.015;
   const xgOf = sx => (sx - X0) / AX;
-  const tOf  = sy => ((FLIP - sy) - TY0) / TB - 20;
+  const tOf  = (sx, sy) => ((FLIP - sy) - TY0 - SHEAR * (sx - X0)) / TB;
   const cols = ['#e11d48','#2563eb','#16a34a','#f59e0b','#7c3aed','#111827'], sw = document.getElementById('hxSw');
   sw.innerHTML = cols.map((c, i) => `<span class="hx-sw${i === 0 ? ' on' : ''}" data-c="${c}" style="background:${c}"></span>`).join('');
   sw.querySelectorAll('.hx-sw').forEach(el => el.onclick = () => { hxColor = el.dataset.c; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); el.classList.add('on'); document.getElementById('hxColor').value = hxColor; });
@@ -1627,12 +1644,13 @@ function hxInit(){
   let drawing = false, start = null;
   ov.addEventListener('pointerdown', ev => {
     ev.preventDefault(); const p = pt(ev);
-    if (hxMode === 'punkt'){ const t = tOf(p[1]), x = xgOf(p[0]); const name = prompt('Name des Zustands (z. B. „Zustand nach WRG"):', 'Zustand ' + (hxPoints.length + 1)); if (name == null) return; hxPoints.push({ sx: p[0], sy: p[1], t, x, name }); hxRenderDraw(); hxRenderPoints(); return; }
+    if (hxMode === 'punkt'){ const t = tOf(p[0], p[1]), x = xgOf(p[0]); const name = prompt('Name des Zustands (z. B. „Zustand nach WRG"):', 'Zustand ' + (hxPoints.length + 1)); if (name == null) return; hxPoints.push({ sx: p[0], sy: p[1], t, x, name }); hxRenderDraw(); hxRenderPoints(); return; }
+    if (hxMode === 'text'){ const txt = prompt('Text eingeben:', ''); if (txt == null || txt.trim() === '') return; hxTexts.push({ sx: p[0], sy: p[1], text: txt, color: hxColor, size: +document.getElementById('hxSize').value }); hxRenderTexts(); return; }
     if (hxMode === 'polylinie'){ if (!hxPoly) hxPoly = { color: hxColor, pts: [p] }; else hxPoly.pts.push(p); hxPrev = p; hxRenderDraw(); return; }
     drawing = true; start = p; hxCur = { color: hxColor, pts: [p] }; hxLines.push(hxCur); try { ov.setPointerCapture(ev.pointerId); } catch (e) {}
   });
   ov.addEventListener('pointermove', ev => {
-    const p = pt(ev), t = tOf(p[1]), xg = xgOf(p[0]);
+    const p = pt(ev), t = tOf(p[0], p[1]), xg = xgOf(p[0]);
     if (xg >= -1 && xg <= 39 && t >= -23 && t <= 53){
       const x = Math.max(0, xg), st = hxState(t, x);
       cursor.style.display = ''; cursor.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`);
@@ -1645,7 +1663,7 @@ function hxInit(){
   ov.addEventListener('dblclick', () => { if (hxPoly){ hxPoly.pts = hxPoly.pts.filter((p, i, a) => i === 0 || Math.hypot(p[0] - a[i-1][0], p[1] - a[i-1][1]) > 1); if (hxPoly.pts.length >= 2) hxLines.push(hxPoly); hxPoly = null; hxPrev = null; hxRenderDraw(); } });
   ov.addEventListener('pointerleave', () => { cursor.style.display = 'none'; });
   document.getElementById('hxUndo').onclick = () => { if (hxPoly) hxPoly = null; else hxLines.pop(); hxPrev = null; hxRenderDraw(); };
-  document.getElementById('hxClear').onclick = () => { hxLines = []; hxPoly = null; hxPrev = null; hxPoints = []; hxRenderDraw(); hxRenderPoints(); };
+  document.getElementById('hxClear').onclick = () => { hxLines = []; hxPoly = null; hxPrev = null; hxPoints = []; hxTexts = []; const tt = document.getElementById('hxTitle'); if (tt) tt.textContent = ''; hxRenderDraw(); hxRenderPoints(); hxRenderTexts(); };
   document.getElementById('hxPrint').onclick = () => { document.body.classList.add('print-hx'); window.print(); };
 }
 window.addEventListener('afterprint', () => document.body.classList.remove('print-hx'));
