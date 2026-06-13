@@ -1632,9 +1632,10 @@ function hxInit(){
   hxLines = []; hxCur = null; hxMode = 'gerade'; hxPoints = []; hxPoly = null; hxPrev = null; hxTexts = [];
   const live = document.getElementById('hxLiveBody'), cursor = document.getElementById('hxCursor');
   // Kalibrierung in Overlay-Koordinaten (= Diagramm-SVG): svgX,svgY → x [g/kg], ϑ [°C]
-  const X0 = 68.1, AX = 12.35, FLIP = 690, TY0 = 230, TB = 8.05, SHEAR = 0.015;
+  const X0 = 68.1, AX = 12.35, FLIP = 690, TY0 = 244.0, TB = 7.78, QFAN = 0.000575, THORIZ = -6.1;
   const xgOf = sx => (sx - X0) / AX;
-  const tOf  = (sx, sy) => ((FLIP - sy) - TY0 - SHEAR * (sx - X0)) / TB;
+  // Mollier: Isothermen fächern auf (Steigung ∝ t). t aus (svgX,svgY) exakt invertiert statt konstantem Shear.
+  const tOf  = (sx, sy) => { const u = sx - X0; return ((FLIP - sy) - TY0 + QFAN * u * THORIZ) / (TB + QFAN * u); };
   const cols = ['#e11d48','#2563eb','#16a34a','#f59e0b','#7c3aed','#111827'], sw = document.getElementById('hxSw');
   sw.innerHTML = cols.map((c, i) => `<span class="hx-sw${i === 0 ? ' on' : ''}" data-c="${c}" style="background:${c}"></span>`).join('');
   sw.querySelectorAll('.hx-sw').forEach(el => el.onclick = () => { hxColor = el.dataset.c; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); el.classList.add('on'); document.getElementById('hxColor').value = hxColor; });
