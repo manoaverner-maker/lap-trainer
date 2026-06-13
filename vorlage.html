@@ -422,6 +422,14 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .kan-tbl td{text-align:right;padding:4px 8px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
 .kan-tbl th:first-child,.kan-tbl td:first-child{text-align:left}
 .kan-tbl tr.sel td{background:rgba(56,189,248,.13);color:#5ecbfa;font-weight:700}
+.kan-info{margin-top:14px;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.25);border-radius:12px;padding:0 14px}
+.kan-info>summary{cursor:pointer;padding:12px 0;font-weight:600;font-size:.86rem;color:var(--acc);list-style:none;display:flex;align-items:center;gap:7px}
+.kan-info>summary::-webkit-details-marker{display:none}
+.kan-info>summary::after{content:'▾';margin-left:auto;transition:transform .2s}
+.kan-info[open]>summary::after{transform:rotate(180deg)}
+.kan-info-body{padding:6px 0 13px;font-size:.84rem;line-height:1.62;color:var(--mut);border-top:1px solid rgba(56,189,248,.18)}
+.kan-info-body p{margin:9px 0 0}
+.kan-info-body b{color:var(--txt)}
 @media(max-width:640px){
   .kan-grid{grid-template-columns:1fr;gap:15px;margin-bottom:18px}
   .kan-row{font-size:.9rem;gap:7px}
@@ -584,6 +592,14 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     </div>
     <div id="kanOut" class="kan-out"></div>
     <div class="kan-note"><b>BBVI Kt. Zürich</b> – max. Luftgeschwindigkeit nach Volumenstrom: ≤1000 → 3 · ≤2000 → 4 · ≤4000 → 5 · ≤10000 → 6 · &gt;10000 → 7 m/s. &nbsp; Norm-Rundrohre (Wickelfalz) 80…1250 mm. &nbsp; Hydraulischer Durchmesser dₕ = 2·a·b/(a+b). &nbsp; A = V̇ / (3600·v).</div>
+    <details class="kan-info">
+      <summary>ℹ️ SIA 382/1:2025 – Auslegung & Betriebsstunden</summary>
+      <div class="kan-info-body">
+        <p><b>Luftmenge</b> (Volumenstrom): aus der Nutzung – Personen, Fläche, Lasten (§ 5.4). <b>Nicht</b> von den Betriebsstunden abhängig.</p>
+        <p><b>Kanal-/Anlagendimensionierung</b>: indirekt schon – die zulässige <b>spezifische Ventilatorleistung</b> (NWLA, § 5.11.2) hängt von den jährlichen <b>Volllaststunden</b> ab. Mehr Betriebsstunden → strengere Energie-Grenze → tendenziell <b>grössere Kanäle / tiefere Geschwindigkeit & Druckverlust</b>.</p>
+        <p><b>Faustregel</b>: Dauerbetrieb → unteres Ende der Geschwindigkeitsbereiche wählen, Druckverlust tief halten. Ziel: Ventilator-Energie begrenzen (Energiestrategie 2050).</p>
+      </div>
+    </details>
   </div>
 </main>
 
