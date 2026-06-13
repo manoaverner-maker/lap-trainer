@@ -1632,7 +1632,7 @@ function hxInit(){
   hxLines = []; hxCur = null; hxMode = 'gerade'; hxPoints = []; hxPoly = null; hxPrev = null; hxTexts = [];
   const live = document.getElementById('hxLiveBody'), cursor = document.getElementById('hxCursor');
   // Kalibrierung in Overlay-Koordinaten (= Diagramm-SVG): svgX,svgY → x [g/kg], ϑ [°C]
-  const X0 = 68.1, AX = 12.35, FLIP = 690, TY0 = 244.0, TB = 7.78, QFAN = 0.000575, THORIZ = -6.1;
+  const X0 = 68.1, AX = 24.69, FLIP = 690, TY0 = 244.0, TB = 7.78, QFAN = 0.000575, THORIZ = -6.1;
   const xgOf = sx => (sx - X0) / AX;
   // Mollier: Isothermen fächern auf (Steigung ∝ t). t aus (svgX,svgY) exakt invertiert statt konstantem Shear.
   const tOf  = (sx, sy) => { const u = sx - X0; return ((FLIP - sy) - TY0 + QFAN * u * THORIZ) / (TB + QFAN * u); };
@@ -1652,7 +1652,7 @@ function hxInit(){
   });
   ov.addEventListener('pointermove', ev => {
     const p = pt(ev), t = tOf(p[0], p[1]), xg = xgOf(p[0]);
-    if (xg >= -1 && xg <= 39 && t >= -23 && t <= 53){
+    if (xg >= -1 && xg <= 20 && t >= -23 && t <= 53){
       const x = Math.max(0, xg), st = hxState(t, x);
       cursor.style.display = ''; cursor.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`);
       live.innerHTML = `ϑ <b>${t.toFixed(1)}</b> °C &nbsp; x <b>${x.toFixed(1)}</b> g/kg &nbsp; φ <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.5 ? ' (Nebel)' : ''} &nbsp; h <b>${st.h.toFixed(1)}</b> kJ/kg &nbsp; ρ <b>${st.rho.toFixed(3)}</b> kg/m³`;
