@@ -3,8 +3,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LAP Vorlagen · Lüftung</title>
 <meta name="theme-color" content="#0f172a">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22luftG%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23E98C5E%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23CB5E34%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23luftG%29%22/%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M15%2024%20C%2030%2018%2041%2018%2050%2024%22/%3E%3Cpath%20d%3D%22M13%2033%20C%2030%2026%2043%2026%2052%2033%22/%3E%3Cpath%20d%3D%22M18%2042%20C%2030%2037%2041%2037%2049%2042%22/%3E%3C/g%3E%3C/svg%3E">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LAP Vorlagen">
 <style>
 
 :root{
@@ -40,7 +46,9 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 
 /* ---------- Topbar ---------- */
 .top{width:100%;max-width:1480px;display:flex;align-items:center;gap:18px;padding:12px 18px;flex-wrap:wrap;margin:14px 0;background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)}
-.brand{font-weight:800;font-size:1.06rem;letter-spacing:.01em;white-space:nowrap}
+.brand{font-weight:800;font-size:1.06rem;letter-spacing:.01em;white-space:nowrap;display:flex;align-items:center;gap:11px}
+.brand .logo{flex:none;filter:drop-shadow(0 2px 8px rgba(203,94,52,.5));transition:transform .4s cubic-bezier(.2,.8,.25,1)}
+.brand:hover .logo{transform:scale(1.08)}
 .brand small{color:var(--mut);font-weight:500}
 .tabs{display:flex;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);border-radius:99px;padding:4px;gap:2px}
 .tabs a{color:var(--mut);text-decoration:none;font-size:.9rem;font-weight:600;padding:7px 18px;border-radius:99px;transition:color .15s,background .15s}
@@ -81,9 +89,37 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .3em;text-align:center;line-height:1.16}
 .frac-n{padding:0 .5em .03em}
 .frac-d{padding:.05em .5em 0;border-top:1.6px solid currentColor}
+.formel-list .mul,.bauteil-formel .mul,.leg-s .mul{margin:0 .17em;font-weight:400;opacity:.92}
 .formel-list .fsym sub,.formel-list .key sub{font-size:.7em;vertical-align:-.28em;line-height:0}
 .formel-list .fsym sup,.formel-list .key sup{font-size:.7em;vertical-align:.5em;line-height:0}
 .formel-list .fnote{display:block;color:#c3cfe0;font-size:.82rem;margin-top:7px;line-height:1.45;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.ftbl{margin-top:14px;background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;padding:12px 14px 8px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1);overflow-x:auto}
+.ftbl-h{color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:8px}
+.ftbl-h .src{float:right;color:var(--mut2);font-size:.92em;text-transform:none;letter-spacing:0;font-weight:500}
+.ftbl table{border-collapse:collapse;width:100%;font-size:.85rem;line-height:1.4}
+.ftbl th,.ftbl td{padding:6px 10px;border-bottom:1px solid var(--glass-line)}
+.ftbl th{color:#cbd5e1;font-weight:700;font-size:.77rem;border-bottom:1.5px solid var(--line2);white-space:nowrap}
+.ftbl th:first-child,.ftbl td:first-child{text-align:left}
+.ftbl th:not(:first-child),.ftbl td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ftbl tbody tr:last-child td{border-bottom:none}
+.ftbl tbody tr:hover td{background:rgba(56,189,248,.06)}
+.ftbl td b{color:#fbbf24;font-weight:700}
+.ftbl tr.rt td{color:var(--mut);font-size:.96em}
+/* ---- interaktives h,x-Diagramm ---- */
+.hx-wrap{margin-top:20px}
+.hx-controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:12px}
+.hx-controls .lbl{font-size:.82rem;color:var(--mut)}
+.hx-btn{font-size:.84rem;font-weight:600;padding:8px 13px;border-radius:10px;border:1px solid var(--glass-line);background:var(--glass);color:var(--txt);cursor:pointer;transition:border-color .15s,color .15s}
+.hx-btn:hover{border-color:var(--acc);color:var(--acc)}
+.hx-swatches{display:flex;gap:6px;align-items:center}
+.hx-sw{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.35);cursor:pointer}
+.hx-sw.on{border-color:#fff;box-shadow:0 0 0 2px var(--acc)}
+.hx-stage{position:relative;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--glass-line);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.hx-stage svg{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.hx-readout{position:absolute;top:12px;right:12px;background:rgba(15,23,42,.93);color:#e2e8f0;border:1px solid var(--glass-line);border-radius:10px;padding:9px 13px;font-size:.82rem;line-height:1.55;font-variant-numeric:tabular-nums;pointer-events:none;min-width:148px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.hx-readout b{color:#5ecbfa;font-weight:700}
+.hx-readout .ttl{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-bottom:4px;font-weight:700}
+.hx-hint{color:var(--mut);font-size:.8rem;margin-top:9px;line-height:1.5}
 .beispiel{margin-top:18px;background:rgba(56,189,248,.1);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(56,189,248,.4);border-top:1px solid rgba(125,211,252,.55);border-radius:14px;padding:13px 16px;font-size:.9rem;line-height:1.55;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
 .bauteil-formel{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:14px;padding:13px 16px;font-size:.92rem;line-height:1.5;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -333,7 +369,14 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   body.print-schema .schema-stage rect[style*="rgba(30,41,59"]{fill:#fff !important}
   body.print-schema h2.sec,body.print-schema #view-geb p{color:#000}
   body.print-schema .legend{color:#000}
+  /* h,x-Diagramm: nur das Diagramm, A4 hoch */
+  body.print-hx{background:#fff}
+  body.print-hx *{visibility:hidden !important}
+  body.print-hx #hxStage,body.print-hx #hxStage *{visibility:visible !important}
+  body.print-hx #hxStage{position:fixed;left:0;top:0;width:100%;border:none !important;box-shadow:none !important;border-radius:0 !important}
+  body.print-hx #hxRead,body.print-hx #hxCursor{display:none !important}
 }
+@page{size:A4 portrait;margin:9mm}
 </style></head><body>
 
 <!-- Liquid Glass + Aurora: Hintergrund-Schichten (Foto → Overlay → Blobs) -->
@@ -346,7 +389,10 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 </div>
 
 <header class="top">
-  <div class="brand">📋 LAP Vorlagen <small>· Lüftung EFZ</small></div>
+  <div class="brand">
+    <svg class="logo" width="32" height="32" viewBox="0 0 64 64" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="luftG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E98C5E"/><stop offset="1" stop-color="#CB5E34"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#luftG)"/><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"><path d="M15 24 C 30 18 41 18 50 24"/><path d="M13 33 C 30 26 43 26 52 33"/><path d="M18 42 C 30 37 41 37 49 42"/></g></svg>
+    <span>LAP Vorlagen <small>· Lüftung EFZ</small></span>
+  </div>
   <nav class="tabs">
     <a href="#gebaeude" id="tabGeb" class="active">Gebäudetypen &amp; Schemas</a>
     <a href="#formeln" id="tabFor">Formeln</a>
@@ -1064,14 +1110,33 @@ const FORMEL_DATA = [
       { sym: 'c_p Luft', val: '1.006 kJ/(kg·K)', note: 'spez. Wärmekapazität trockene Luft' },
       { sym: 'c_W Wasser', val: '4.17 kJ/(kg·K)', note: 'spez. Wärmekapazität Wasser' },
       { sym: 'r Wasser', val: '2500 kJ/kg', note: 'Verdampfungswärme bei 0 °C' },
+      { sym: 'ρ_Wasser', val: '1000 kg/m³', note: 'grösste Dichte bei 4 °C (Dichteanomalie); exakt 999.97 kg/m³' },
       { sym: 'ρ·c_p', val: '0.34 Wh/(m³·K)', note: '← Schlüsselzahl! Q[W] = V̇[m³/h] · 0.34 · ΔT[K]' },
-      { sym: 'v Hauptkanal', val: '4–6 m/s', note: 'Richtwert Kanalauslegung' },
-      { sym: 'v Nebenkanal', val: '2–4 m/s', note: 'Richtwert' },
-      { sym: 'v Auslass', val: '1–3 m/s', note: 'Richtwert Raumdurchlass' },
+    ],
+    tables: [
+      { title: 'Kanalgeschwindigkeit nach BBVI', src: 'Kt. Zürich',
+        head: ['Volumenstrom', 'v'],
+        rows: [
+          ['bis 1\'000 m³/h', '3 m/s'],
+          ['bis 2\'000 m³/h', '4 m/s'],
+          ['bis 4\'000 m³/h', '5 m/s'],
+          ['bis 10\'000 m³/h', '6 m/s'],
+          ['über 10\'000 m³/h', '7 m/s'],
+          ['Apparate (Nettofläche)', '2 m/s'],
+        ] },
+      { title: 'Empfohlene Auslassgeschwindigkeit', src: 'Richtwerte',
+        head: ['Auslasstyp', 'v'],
+        rows: [
+          ['Diffusionsgitter', '2–4 m/s'],
+          ['Dralluftauslass', '2–5 m/s'],
+          ['Quelluftauslass', '≤ 0.2 m/s'],
+          ['Weitwurfdüse', '5–15 m/s'],
+        ] },
     ],
     beispiel: 'Gegeben: V̇ = 2000 m³/h, ΔT = 8 K → Q = 2000 · 0.34 · 8 = 5440 W = 5.44 kW',
     legende: [
       ['ρ', 'Dichte Luft [kg/m³]'],
+      ['ρ_Wasser', 'Dichte Wasser [kg/m³]'],
       ['c_p', 'Wärmekapazität Luft [kJ/(kg·K)]'],
       ['c_W', 'Wärmekapazität Wasser [kJ/(kg·K)]'],
       ['r', 'Verdampfungswärme Wasser [kJ/kg]'],
@@ -1107,10 +1172,24 @@ const FORMEL_DATA = [
     norm: 'SIA 382/1, SIA 2024',
     items: [
       { sym: 'V̇_AU = frac{V̇_CO2}{c_i − c_a}', val: '[m³/h pro Person]', note: 'Aussenluftbedarf' },
-      { sym: 'V̇_CO2', val: '≈ 20 l/h pro Person', note: 'sitzende Tätigkeit (leichte Arbeit)' },
+      { sym: 'V̇_CO2', val: '≈ 18–20 l/h pro Person', note: 'sitzende Tätigkeit — Werte je Tätigkeit s. Tabelle' },
       { sym: 'c_a', val: '≈ 400 ppm', note: 'CO₂-Konzentration Aussenluft' },
       { sym: 'c_i', val: 'z.B. 1000 ppm', note: 'Sollwert Innenraum (SIA: Stufe II)' },
-      { sym: 'Einheiten', val: 'ppm = ml/m³', note: 'konsistent halten!' },
+      { sym: 'Einheiten', val: 'ppm = ml/m³', note: 'gilt für die Konzentration (Volumenanteil); 1 ppm = 1 ml/m³ — Abgabe V̇_CO2 dagegen in l/h!' },
+    ],
+    tables: [
+      { title: 'Abgabe pro Person nach Tätigkeit', src: 'Olf / l/h / g/h / W',
+        head: ['Tätigkeit', 'Geruch [Olf]', 'CO₂ [l/h]', 'Wasserdampf [g/h]', 'sens. Wärme [W]'],
+        rows: [
+          ['Ruhig liegend, schlafend', '0.7', '12', '45', '55'],
+          ['Ruhig sitzend', '0.8', '16', '60', '70'],
+          ['Sitzend (Büro, Schule, Labor)', '1.0', '18', '70', '75'],
+          ['Leichte Tätigkeit, stehend', '1.3', '24', '95', '85'],
+          ['Mittelschwere Tätigkeit, stehend', '1.7', '30', '115', '105'],
+        ],
+        foot: [
+          ['Richtwerte*', '0.1–0.5 pol', '1000–2000 ppm', 'gem. Norm', 'ϑ gem. Kap. 2'],
+        ] },
     ],
     beispiel: 'V̇ = 20 l/h ÷ (1000−400) ppm = 20/600 m³/h × 1000 = 33.3 m³/h pro Person',
     legende: [
@@ -1122,36 +1201,47 @@ const FORMEL_DATA = [
   },
   {
     id: 'leistung', name: 'Sensible Leistung (Heizen/Kühlen)',
-    intro: 'Die meistgebrauchte Formel — blind können!',
+    intro: 'Meistgebrauchte Formel — blind können! Formeln nach Formel-/Arbeitsbuch (Kühllast / Heizlast).',
     norm: 'SIA 382/1',
     items: [
-      { sym: 'Q̇ = V̇ · ρ · c_p · ΔT', val: '[kW]', note: 'allgemeine Form' },
-      { sym: 'Q̇ [W] = V̇ [m³/h] · 0.34 · ΔT [K]', val: '← Kurzform!', note: 'mit ρ·c_p = 0.34 Wh/(m³·K)' },
-      { sym: 'ϑ_m = frac{V̇₁·ϑ₁ + V̇₂·ϑ₂}{V̇₁+V̇₂}', val: '[°C]', note: 'Mischlufttemperatur' },
+      { sym: 'Q̇_K = frac{V̇ · ρ_L · c_L · (ϑ_R − ϑ_ZUL)}{3600}', val: '[kW]', note: 'Kühlleistung — V̇ in m³/h, cL = 1.006 kJ/(kg·K)' },
+      { sym: 'Q̇_H = frac{V̇ · ρ_L · c_L · (ϑ_ZUL − ϑ_R)}{3600}', val: '[kW]', note: 'Heizleistung (Zuluft wärmer als Raum)' },
+      { sym: 'Q̇ [W] = V̇ · 0.34 · ΔT', val: '← Kurzform', note: 'mit ρ·cp = 0.34 Wh/(m³·K), V̇ in m³/h — fürs Kopfrechnen' },
+      { sym: 'V̇ = frac{Q̇ · 3600}{ρ_L · c_L · ΔT}', val: '[m³/h]', note: 'nach Volumenstrom umgestellt (ΔT = |ϑ Raum − ϑ Zuluft|)' },
+      { sym: 'ϑ_ZUL = ϑ_R ± frac{Q̇ · 3600}{V̇ · ρ_L · c_L}', val: '[°C]', note: 'Kühlen: − (Zuluft < Raum) · Heizen: + (Zuluft > Raum)' },
+      { sym: 'Q̇_{Trans,−11} = Q̇_{Trans,−8} · frac{ϑ_R − 11°C}{ϑ_R − 8°C}', val: '[W]', note: 'Heizleistung von Auslegung −8 °C auf −11 °C umrechnen' },
+      { sym: 'Q = m · c_L · Δt', val: '[kJ]', note: 'Wärmemenge der Luft' },
+      { sym: 'ϑ_m = frac{V̇₁·ϑ₁ + V̇₂·ϑ₂}{V̇₁+V̇₂}', val: '[°C]', note: 'Mischlufttemperatur (z.B. Umluft + Aussenluft)' },
     ],
-    beispiel: 'V̇ = 3600 m³/h, T_ZUL = 22°C, T_ABL = 26°C → Q̇ = 3600 · 0.34 · 4 = 4896 W ≈ 4.9 kW',
+    beispiel: 'Kühllast: V̇ = 3600 m³/h, Raum 26 °C, Zuluft 18 °C (ΔT = 8 K) → Q̇K = (3600·1.2·1.006·8)/3600 = 9.66 kW · Kurzform: 3600·0.34·8 ≈ 9.8 kW',
     legende: [
-      ['Q̇', 'Heiz-/Kühlleistung [kW]'],
+      ['Q̇_K', 'Kühlleistung [kW]'],
+      ['Q̇_H', 'Heizleistung [kW]'],
       ['V̇', 'Volumenstrom [m³/h]'],
-      ['ρ', 'Dichte Luft [kg/m³]'],
-      ['c_p', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
-      ['ΔT', 'Temperaturdifferenz [K]'],
+      ['ρ_L', 'Dichte Luft [kg/m³]'],
+      ['c_L', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
+      ['Δt, ΔT', 'Temperaturdifferenz [K]'],
+      ['ϑ_ZUL', 'Temperatur Zuluft [°C]'],
+      ['ϑ_R', 'Temperatur Raum [°C]'],
+      ['Q̇_Trans', 'Transmissions-Heizleistung bei Auslegung [W]'],
+      ['Q', 'Wärmemenge [kJ]'],
+      ['m', 'Masse Luft [kg]'],
       ['ϑ_m', 'Mischlufttemperatur [°C]'],
-      ['V̇₁, V̇₂', 'Volumenstrom Teilstrom 1/2 [m³/h]'],
-      ['ϑ₁, ϑ₂', 'Temperatur Teilstrom 1/2 [°C]'],
     ]
   },
   {
-    id: 'feuchte', name: 'Feuchte & h,x-Diagramm',
-    intro: 'Enthalpie, Wassergehalt und Prozesse im h,x-Diagramm.',
+    id: 'feuchte', name: 'Feuchte & h,x-Diagramm', hx: true,
+    intro: 'Enthalpie, Wassergehalt und Prozesse im h,x-Diagramm. Interaktives Diagramm unten: Zustand am Mauszeiger ablesen, einzeichnen, im Hochformat drucken.',
     norm: 'SIA 382/1',
     items: [
-      { sym: 'h = 1.006·ϑ + x·(2500 + 1.86·ϑ)', val: '[kJ/kg]', note: 'Enthalpie feuchte Luft' },
-      { sym: 'ṁ_W = V̇ · ρ · Δx', val: '[kg/s]', note: 'Wassermenge Befeuchtung/Entfeuchtung' },
-      { sym: 'Dampfbefeuchtung', val: 'ϑ ≈ konst., x↑', note: 'isotherm' },
-      { sym: 'Adiabat. Befeuchtung', val: 'h ≈ konst., ϑ↓, x↑', note: 'isenthalp' },
-      { sym: 'Kühlen + Entfeuchten', val: 'unter Taupunkt: x↓', note: 'Kondensat entsteht' },
-      { sym: 'Kondensat', val: 'ṁ_K = frac{V̇·ρ·(x_ein−x_aus)}{1000}', val2: '[l/h]', note: 'Siphon dimensionieren!' },
+      { sym: 'h = 1.006·ϑ + x·(2500 + 1.86·ϑ)', val: '[kJ/kg]', note: 'Enthalpie feuchte Luft (x in kg/kg)' },
+      { sym: 'ṁ_W = V̇ · ρ_L · Δx', val: '[g/h]', note: 'Wasserdampfmenge Be-/Entfeuchtung (Δx in g/kg)' },
+      { sym: 'V̇ = frac{ṁ_W}{ρ_L · (x_ZUL − x_R)}', val: '[m³/h]', note: 'Volumenstrom Befeuchten' },
+      { sym: 'V̇ = frac{ṁ_W}{ρ_L · (x_R − x_ZUL)}', val: '[m³/h]', note: 'Volumenstrom Entfeuchten' },
+      { sym: 'Q = m · r · frac{Δx}{1000}', val: '[kJ]', note: 'Wärmemenge Befeuchterwasser (r = 2256 kJ/kg)' },
+      { sym: 'Dampfbefeuchtung', val: 'ϑ ≈ konst., x↑', note: 'isotherm — Wasser wird als Dampf zugeführt, Temperatur bleibt ~gleich' },
+      { sym: 'Adiabate Befeuchtung', val: 'h ≈ konst., ϑ↓, x↑', note: 'isenthalp — Verdunstungskälte kühlt die Luft ab' },
+      { sym: 'Kühlen + Entfeuchten', val: 'unter Taupunkt: x↓', note: 'Kondensat fällt aus → Siphon nötig' },
     ],
     beispiel: 'x = 8 g/kg, ϑ = 20°C → h = 1.006·20 + 0.008·(2500+1.86·20) = 20.12 + 20.30 = 40.4 kJ/kg',
     legende: [
@@ -1159,15 +1249,18 @@ const FORMEL_DATA = [
       ['ϑ', 'Lufttemperatur [°C]'],
       ['x', 'Wasserdampfgehalt [g/kg]'],
       ['Δx', 'Differenz Wasserdampfgehalt [g/kg]'],
-      ['ṁ_W', 'Wassermenge Befeuchtung [kg/s]'],
-      ['ṁ_K', 'Kondenswassermenge [l/h]'],
+      ['ṁ_W', 'Wasserdampfmenge [g/h]'],
+      ['x_ZUL', 'Wassergehalt Zuluft [g/kg]'],
+      ['x_R', 'Wassergehalt Raum [g/kg]'],
       ['V̇', 'Volumenstrom [m³/h]'],
-      ['ρ', 'Dichte Luft [kg/m³]'],
+      ['ρ_L', 'Dichte Luft [kg/m³]'],
+      ['m', 'Masse Wasser [kg]'],
+      ['r', 'Verdampfungswärme (2256) [kJ/kg]'],
     ]
   },
   {
     id: 'druck', name: 'Druckverlust',
-    intro: 'Systemwiderstand im Kanalnetz — massgebend für Ventilatorwahl.',
+    intro: 'Systemwiderstand im Kanalnetz — massgebend für Ventilatorwahl. In der Praxis liest man den Reibungsverlust Δp/m aus der Druckverlust-Tabelle bzw. dem Rohrreibungsdiagramm (λ aus Moody-Diagramm) ab und ζ aus der Zeta-Wert-Tabelle; die Formeln zeigen die Physik dahinter (Darcy-Weisbach).',
     norm: 'SIA 382/1',
     items: [
       { sym: 'p_dyn = frac{ρ}{2} · w²', val: '[Pa]', note: 'dynamischer Druck' },
@@ -1199,49 +1292,55 @@ const FORMEL_DATA = [
     intro: 'Leistung, Effizienz und Ähnlichkeitsgesetze — häufige Prüfungsthemen.',
     norm: 'SIA 382/1, EN ISO 5801',
     items: [
-      { sym: 'P = V̇ · frac{Δp_t}{η}', val: '[W]', note: 'V̇ in m³/s, Δp_t in Pa' },
-      { sym: 'SFP = frac{P_el}{V̇}', val: '[W·s/m³]', note: 'SIA 382/1: ZUL+ABL ≤ 1250 W·s/m³' },
-      { sym: 'V̇ ∝ n', val: '', note: 'Ähnlichkeitsgesetz Volumenstrom ∝ Drehzahl' },
-      { sym: 'Δp ∝ n²', val: '', note: 'Druck ∝ Drehzahl²' },
-      { sym: 'P ∝ n³', val: '', note: 'Leistung ∝ Drehzahl³ ← Energiesparpotenzial!' },
-      { sym: 'h_S = frac{Δp}{ρ_W·g}·1000·1.5', val: '[mm]', note: 'Siphonhöhe (Faktor 1.5 = Sicherheit)' },
+      { sym: 'P = frac{V̇ · Δp_t}{3600 · η}', val: '[W]', note: 'Antriebsleistung — V̇ in m³/h, Δp_t in Pa, η = Gesamtwirkungsgrad' },
+      { sym: 'SFP = frac{P_el}{V̇}', val: '[W·s/m³]', note: 'spez. Ventilatorleistung — SIA 382/1: ZUL + ABL ≤ 1250 W·s/m³' },
+      { sym: 'V̇ ∝ n', val: '', note: '∝ heisst „proportional zu" — Volumenstrom proportional zur Drehzahl' },
+      { sym: 'Δp ∝ n²', val: '', note: 'Druck steigt mit der Drehzahl im Quadrat' },
+      { sym: 'P ∝ n³', val: '', note: 'Leistung mit Drehzahl hoch 3 ← grosses Energiesparpotenzial!' },
     ],
     beispiel: 'Drehzahl von 1000 auf 800 U/min → V̇: ×0.8, Δp: ×0.64, P: ×0.512 → Energieeinsparung 48.8%!',
     legende: [
-      ['P', 'Ventilatorleistung [W]'],
-      ['V̇', 'Volumenstrom [m³/s]'],
-      ['Δp_t', 'Totaldruckerhöhung [Pa]'],
-      ['η', 'Wirkungsgrad [–]'],
+      ['P', 'Antriebsleistung Ventilator [W]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['Δp_t', 'Totaldruckerhöhung (Anlagenwiderstand) [Pa]'],
+      ['η', 'Gesamtwirkungsgrad (Ventilator·Motor·FU) [–]'],
       ['SFP', 'spez. Ventilatorleistung [W·s/m³]'],
       ['P_el', 'elektrische Leistung [W]'],
-      ['n', 'Drehzahl [U/min]'],
-      ['h_S', 'Siphonhöhe [mm]'],
-      ['ρ_W', 'Wasserdichte [kg/m³]'],
-      ['g', 'Erdbeschleunigung (9.81) [m/s²]'],
+      ['n', 'Drehzahl [1/min]'],
+      ['∝', 'Zeichen für „proportional zu"'],
     ]
   },
   {
     id: 'wrg', name: 'Wärmerückgewinnung (WRG)',
-    intro: 'Rückwärmzahl und zurückgewonnene Energie.',
+    intro: 'Rückwärmzahl, Zuluft-/Fortlufttemperatur und rückgewonnene Leistung. Mindest-Rückwärmzahl nach SIA 382/1.',
     norm: 'SIA 382/1, SWKI VA300-01, EN 308',
     items: [
-      { sym: 'φ = frac{ϑ_ZUL − ϑ_AUL}{ϑ_ABL − ϑ_AUL}', val: '[-]', note: 'Temperatur-Rückwärmzahl' },
-      { sym: 'Q̇_WRG = V̇ · ρ · c_p · φ · (ϑ_ABL − ϑ_AUL)', val: '[kW]', note: 'rückgewonnene Leistung' },
-      { sym: 'Rotation', val: 'φ = 75–85%', note: 'Feuchteübertragung möglich, nicht für Küche/Labor' },
-      { sym: 'Platte Kreuzstrom', val: 'φ = 50–65%', note: 'kein Feuchtetransfer, hygienisch sicher' },
-      { sym: 'Platte Gegenstrom', val: 'φ = 70–85%', note: 'höherer Druckverlust' },
-      { sym: 'Umlaufsystem', val: 'φ = 40–60%', note: 'räumliche Trennung möglich' },
+      { sym: 'φ = frac{ϑ_ZUL − ϑ_AUL}{ϑ_ABL − ϑ_AUL}', val: '[-]', note: 'Temperatur-Rückwärmzahl (Zuluftseite)' },
+      { sym: 'ϑ_ZUL = ϑ_AUL + φ · (ϑ_ABL − ϑ_AUL)', val: '[°C]', note: 'Zulufttemperatur nach WRG (umgestellt)' },
+      { sym: 'ϑ_FOL = ϑ_ABL − φ · (ϑ_ABL − ϑ_AUL)', val: '[°C]', note: 'Fortlufttemperatur nach WRG (umgestellt)' },
+      { sym: 'Q̇_WRG = frac{V̇ · ρ · c_L · φ · (ϑ_ABL − ϑ_AUL)}{3600}', val: '[kW]', note: 'rückgewonnene Leistung — V̇ in m³/h' },
     ],
-    beispiel: 'ϑ_AUL = -5°C, ϑ_ABL = 22°C, φ = 0.80 → ϑ_ZUL = -5 + 0.80·(22-(-5)) = -5 + 21.6 = 16.6°C',
+    tables: [
+      { title: 'Rückwärmzahl φ — typisch & Minimum', src: 'SIA 382/1',
+        head: ['System', 'φ typisch', 'min.', 'Merkmal'],
+        rows: [
+          ['Rotationstauscher', '75–85 %', '≥ 75 %', 'Feuchte-Übertrag · nicht Küche/Labor'],
+          ['Platte Gegenstrom', '75–90 %', '≥ 75 %', 'keine Stoffübertragung, hygienisch'],
+          ['Platte Kreuzstrom', '50–70 %', '—', 'kompakt, tiefer Wirkungsgrad'],
+          ['Kreislaufverbund (KVS)', '45–70 %', '≥ 70 %', 'Ströme räumlich getrennt'],
+        ] },
+    ],
+    beispiel: 'ϑ_AUL = -5°C, ϑ_ABL = 22°C, φ = 0.80 → ϑ_ZUL = -5 + 0.80·(22-(-5)) = 16.6°C · ϑ_FOL = 22 - 0.80·27 = 0.4°C',
     legende: [
       ['φ', 'Temperatur-Rückwärmzahl [–]'],
-      ['ϑ_ZUL', 'Zulufttemperatur [°C]'],
+      ['ϑ_ZUL', 'Zulufttemperatur nach WRG [°C]'],
+      ['ϑ_FOL', 'Fortlufttemperatur nach WRG [°C]'],
       ['ϑ_AUL', 'Aussenlufttemperatur [°C]'],
-      ['ϑ_ABL', 'Ablufttemperatur [°C]'],
+      ['ϑ_ABL', 'Ablufttemperatur (Raum) [°C]'],
       ['Q̇_WRG', 'rückgewonnene Leistung [kW]'],
       ['V̇', 'Volumenstrom [m³/h]'],
       ['ρ', 'Dichte Luft [kg/m³]'],
-      ['c_p', 'Wärmekapazität Luft [kJ/(kg·K)]'],
+      ['c_L', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
     ]
   },
   {
@@ -1249,21 +1348,32 @@ const FORMEL_DATA = [
     intro: 'Heiz-/Kühlregister und KVS-Ventil dimensionieren.',
     norm: 'SIA 382/1, EN 60534',
     items: [
-      { sym: 'Q̇ = ṁ_W · c_W · Δϑ_W', val: '[kW]', note: 'Wärmeleistung Wasser' },
-      { sym: 'ṁ_W = frac{Q̇}{c_W · Δϑ_W}', val: '[kg/s]', note: 'Massenstrom Wasser' },
-      { sym: 'KVS = frac{V̇_W}{√Δp}', val: '[m³/h bei Δp=1 bar]', note: 'Ventilkennwert' },
-      { sym: 'P_v = frac{Δp_Ventil}{Δp_System}', val: '≥ 0.3', note: 'Ventilautorität — bei <0.3: schlechte Regelung' },
-      { sym: 'Spreizung Heizreg.', val: '70/50°C oder 60/40°C', note: 'Vorlauf/Rücklauf' },
-      { sym: 'Spreizung Kühlreg.', val: '6/12°C', note: 'Vorlauf/Rücklauf (Kaltwasser)' },
+      { sym: 'Q̇ = ṁ_W · c_W · Δϑ_W', val: '[kW]', note: 'Wärmeleistung wasserseitig' },
+      { sym: 'ṁ_W = frac{Q̇}{c_W · Δϑ_W}', val: '[kg/s]', note: 'Massenstrom Wasser (umgestellt)' },
+      { sym: 'V̇_W = frac{ṁ_W · 3600}{ρ_W}', val: '[m³/h]', note: 'Wasservolumenstrom (ρ_W = 1000 kg/m³)' },
+      { sym: 'KVS = frac{V̇_W}{√Δp}', val: '[m³/h bei Δp = 1 bar]', note: 'Ventilkennwert' },
+      { sym: 'P_v = frac{Δp_Ventil}{Δp_System}', val: '≥ 0.3', note: 'Ventilautorität — bei < 0.3 schlechte Regelung' },
     ],
-    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.17·10) = 0.240 kg/s = 0.240 l/s = 863 l/h = 0.86 m³/h',
+    tables: [
+      { title: 'Übliche Medientemperaturen VL/RL (Praxis)', src: 'warum so',
+        head: ['Anwendung', 'VL/RL', 'warum so'],
+        rows: [
+          ['Lufterhitzer Standard', '70/50 °C', 'kompakt, kleine Registerfläche'],
+          ['Erhitzer modern / Brennwert', '60/40 °C', 'bessere Brennwertnutzung'],
+          ['Niedertemperatur / Wärmepumpe', '40/30 °C', 'hohe WP-Effizienz'],
+          ['Kühler mit Entfeuchtung', '6/12 °C', 'unter Taupunkt → entfeuchtet'],
+          ['Kühldecke / Bauteilkühlung', '16/19 °C', 'über Taupunkt: kein Kondensat, Free-Cooling'],
+        ] },
+    ],
+    beispiel: 'Q̇ = 10 kW, Δϑ_W = 10 K → ṁ_W = 10/(4.17·10) = 0.240 kg/s = 0.86 m³/h Wasser',
     legende: [
       ['Q̇', 'Wärmeleistung [kW]'],
       ['ṁ_W', 'Wassermassenstrom [kg/s]'],
-      ['c_W', 'Wärmekapazität Wasser [kJ/(kg·K)]'],
+      ['c_W', 'Wärmekapazität Wasser (4.187) [kJ/(kg·K)]'],
       ['Δϑ_W', 'Spreizung Wasser (VL−RL) [K]'],
-      ['KVS', 'Ventil-Durchflusskennwert [m³/h]'],
       ['V̇_W', 'Wasservolumenstrom [m³/h]'],
+      ['ρ_W', 'Dichte Wasser (1000) [kg/m³]'],
+      ['KVS', 'Ventil-Durchflusskennwert [m³/h]'],
       ['Δp', 'Druckdifferenz am Ventil [bar]'],
       ['P_v', 'Ventilautorität [–]'],
     ]
@@ -1318,6 +1428,7 @@ function fmtFormula(src){
     t = t.replace(/_([A-Za-z0-9ßäöüÄÖÜ]+)/g, (m, g) => '<sub>' + g + '</sub>');
     t = t.replace(/\^\{([^}]*)\}/g, (m, g) => '<sup>' + g + '</sup>');
     t = t.replace(/\^([A-Za-z0-9.]+)/g, (m, g) => '<sup>' + g + '</sup>');
+    t = t.replace(/\s*·\s*/g, '<span class="mul">·</span>');  // einheitlicher Abstand ums Malzeichen
     return t;
   }
   function readBrace(s, p){ // s[p] === '{'
@@ -1356,6 +1467,14 @@ function renderFormel(){
     return `<li><span class="fsym">${fmtFormula(it.sym)}</span>${val}${val2}${note}</li>`;
   }).join('');
   const normBadge = (f.norm && f.norm !== '—') ? `<span class="badge p-norm">${esc(f.norm)}</span>` : '';
+  const tbls = (f.tables || []).map(t => {
+    const cell = c => fmtFormula(String(c == null ? '' : c));
+    const head = t.head ? `<thead><tr>${t.head.map(h => `<th>${cell(h)}</th>`).join('')}</tr></thead>` : '';
+    const body = (t.rows || []).map(r => `<tr>${r.map(c => `<td>${cell(c)}</td>`).join('')}</tr>`).join('');
+    const foot = (t.foot || []).map(r => `<tr class="rt">${r.map(c => `<td>${cell(c)}</td>`).join('')}</tr>`).join('');
+    const src = t.src ? `<span class="src">${esc(t.src)}</span>` : '';
+    return `<div class="ftbl"><div class="ftbl-h">${esc(t.title)}${src}</div><table>${head}<tbody>${body}${foot}</tbody></table></div>`;
+  }).join('');
   const leg = (f.legende && f.legende.length)
     ? `<div class="legende"><div class="leg-h">Legende – Formelzeichen</div>` +
       f.legende.map(p => `<div class="leg-row"><span class="leg-s">${fmtFormula(p[0])}</span><span class="leg-d">${esc(p[1])}</span></div>`).join('') +
@@ -1365,15 +1484,123 @@ function renderFormel(){
     `<div class="badges" style="margin:18px 0 12px"><span class="badge cat">📖 ${esc(f.name)}</span>${normBadge}</div>` +
     `<p style="color:var(--mut);font-size:.9rem;line-height:1.5;margin:0 0 10px">${esc(f.intro)}</p>` +
     `<ul class="formel-list">${rows}</ul>` +
+    tbls +
     `<div class="beispiel"><span class="bsp-k">Beispiel</span> ${esc(f.beispiel)}</div>` +
     leg;
+  if (f.hx) { box.insertAdjacentHTML('beforeend', hxHtml()); hxInit(); }
 }
+
+/* ================= Interaktives h,x-Diagramm (Mollier, p = 950 mbar ≈ 540 m ü.M.) ================= */
+const HX = {
+  p: 95000, tMin: -20, tMax: 50, xMax: 30,
+  X0: 115, A: 28, Y0: 978.6, B: 16.571, E: 4,
+  sx(x){ return HX.X0 + HX.A * x; },
+  sy(t, x){ return HX.Y0 - HX.B * t - HX.E * x; },
+  inv(px, py){ const x = (px - HX.X0) / HX.A; const t = (HX.Y0 - py - HX.E * x) / HX.B; return { t, x }; }
+};
+function hxPs(t){ return 611.2 * Math.exp(17.62 * t / (243.12 + t)); }          // Sättigungsdruck über Wasser [Pa]
+function hxXs(t){ const ps = hxPs(t); return 1000 * 0.622 * ps / (HX.p - ps); } // Sättigungs-Wassergehalt [g/kg]
+function hxXphi(t, phi){ const pv = phi / 100 * hxPs(t); return 1000 * 0.622 * pv / (HX.p - pv); }
+function hxState(t, xg){
+  const xs = xg / 1000, ps = hxPs(t), pd = HX.p * xs / (0.622 + xs);
+  const phi = ps > 0 ? Math.min(100, pd / ps * 100) : 0;
+  const h = 1.006 * t + xs * (2501 + 1.86 * t), T = t + 273.15;
+  const rho = (HX.p - pd) / (287.1 * T) + pd / (461.5 * T);
+  return { phi, h, rho, pd: pd / 100 };
+}
+function hxSvg(){
+  const A = [], X0 = HX.X0, xMax = HX.xMax, tMin = HX.tMin, tMax = HX.tMax;
+  const left = HX.sx(0), right = HX.sx(xMax);
+  const poly = (pts, st, w) => pts.length < 2 ? '' : `<polyline points="${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${st}" stroke-width="${w}"/>`;
+  const lab = (x, y, s, cls) => `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" class="${cls}">${s}</text>`;
+  // Isenthalpen (Diagonalen)
+  for (let h = -10; h <= 110; h += 5){
+    const major = (h % 10 === 0), pts = [];
+    for (let xg = 0; xg <= xMax; xg += 0.5){ const xs = xg / 1000, t = (h - xs * 2501) / (1.006 + xs * 1.86); if (t < tMin || t > tMax) continue; if (hxState(t, xg).phi > 100.3) continue; pts.push([HX.sx(xg), HX.sy(t, xg)]); }
+    A.push(poly(pts, major ? '#aab9c6' : '#d2dce4', major ? 0.8 : 0.5));
+    if (major && pts.length){ const e = pts[pts.length - 1]; if (e[1] > 80 && e[1] < 1320) A.push(lab(e[0] + 4, e[1] + 4, h + '', 'hxH')); }
+  }
+  // Iso-x (vertikal)
+  for (let xg = 2; xg <= xMax; xg += 2){ const pts = []; for (let t = tMin; t <= tMax; t += 1){ if (hxState(t, xg).phi > 100) continue; pts.push([HX.sx(xg), HX.sy(t, xg)]); } A.push(poly(pts, '#dce5ed', 0.6)); }
+  // Isothermen
+  for (let t = tMin; t <= tMax; t += 5){ const xsat = Math.min(xMax, hxXs(t)), major = (t % 10 === 0); A.push(poly([[HX.sx(0), HX.sy(t, 0)], [HX.sx(xsat), HX.sy(t, xsat)]], major ? '#9fb0bd' : '#c6d2dc', major ? 0.9 : 0.6)); }
+  // φ-Kurven
+  [10,20,30,40,50,60,70,80,90].forEach(phi => { const pts = []; for (let t = tMin; t <= tMax; t += 0.5){ const xg = hxXphi(t, phi); if (xg > xMax) break; if (xg < 0) continue; pts.push([HX.sx(xg), HX.sy(t, xg)]); } A.push(poly(pts, '#6ba2cd', 0.8)); });
+  // Sättigung φ=100 %
+  { const pts = []; for (let t = tMin; t <= tMax; t += 0.4){ const xg = hxXs(t); if (xg > xMax) break; pts.push([HX.sx(xg), HX.sy(t, xg)]); } A.push(poly(pts, '#1d5b96', 1.9)); }
+  // Rahmen + Temperaturachse
+  A.push(poly([[left, HX.sy(tMax, 0)], [left, HX.sy(tMin, 0)]], '#5b6b7a', 1.1));
+  for (let t = tMin; t <= tMax; t += 10){ const y = HX.sy(t, 0); A.push(`<line x1="${(left-5).toFixed(1)}" y1="${y.toFixed(1)}" x2="${left}" y2="${y.toFixed(1)}" stroke="#5b6b7a" stroke-width="1"/>`); A.push(lab(left - 9, y + 5, t + '', 'hxT hxR')); }
+  A.push(lab(70, 106, 'ϑ [°C]', 'hxAx'));
+  // Dichte ρ (zweite Spalte links)
+  [[1.05,41.9],[1.10,27.5],[1.15,14.5],[1.20,2.6],[1.25,-8.5],[1.30,-18.6]].forEach(d => { A.push(lab(left - 46, HX.sy(d[1], 0) + 5, d[0].toFixed(2), 'hxD hxR')); });
+  A.push(lab(44, 106, 'ρ', 'hxAx'));
+  // x-Achse unten
+  const yb = 1344;
+  A.push(`<line x1="${left}" y1="${yb}" x2="${right}" y2="${yb}" stroke="#5b6b7a" stroke-width="1.1"/>`);
+  for (let xg = 0; xg <= xMax; xg += 5){ const X = HX.sx(xg); A.push(`<line x1="${X.toFixed(1)}" y1="${yb}" x2="${X.toFixed(1)}" y2="${yb+5}" stroke="#5b6b7a" stroke-width="1"/>`); A.push(lab(X, yb + 19, xg + '', 'hxT hxC')); }
+  A.push(lab((left + right) / 2, yb + 43, 'Wasserdampfgehalt x [g/kg]', 'hxAx hxC'));
+  // pD-Achse oben
+  const yt = 60;
+  A.push(`<line x1="${left}" y1="${yt}" x2="${right}" y2="${yt}" stroke="#5b6b7a" stroke-width="1"/>`);
+  [5,10,15,20,25].forEach(pd => { const xg = 1000 * 0.622 * (pd*100) / (HX.p - pd*100), X = HX.sx(xg); if (X > right) return; A.push(`<line x1="${X.toFixed(1)}" y1="${(yt-5).toFixed(1)}" x2="${X.toFixed(1)}" y2="${yt}" stroke="#5b6b7a" stroke-width="1"/>`); A.push(lab(X, yt - 9, pd + '', 'hxT hxC')); });
+  A.push(lab((left + right) / 2, yt - 30, 'Teildruck Wasserdampf pᴅ [mbar]', 'hxAx hxC'));
+  // φ-Beschriftung
+  [20,40,60,80].forEach(phi => { const t = 15, xg = hxXphi(t, phi); if (xg > 0 && xg < xMax) A.push(lab(HX.sx(xg) - 2, HX.sy(t, xg) - 3, phi + ' %', 'hxPhi')); });
+  { const t = 26, xg = hxXs(t); A.push(lab(HX.sx(xg) - 6, HX.sy(t, xg) - 4, 'φ = 100 %', 'hxPhi hxR')); }
+  A.push(lab(right - 6, 250, 'h [kJ/kg]', 'hxAx hxR'));
+  return `<svg id="hxSvg" viewBox="0 0 1000 1400" xmlns="http://www.w3.org/2000/svg">` +
+    `<style>.hxT{font:600 15px system-ui;fill:#2b3a4a}.hxD{font:500 12px system-ui;fill:#7a8a99}.hxAx{font:700 15px system-ui;fill:#33414f}.hxH{font:600 12px system-ui;fill:#8295a4}.hxPhi{font:600 14px system-ui;fill:#1d5b96}.hxR{text-anchor:end}.hxC{text-anchor:middle}</style>` +
+    `<rect x="0" y="0" width="1000" height="1400" fill="#fff"/>` + A.join('') +
+    `<g id="hxDraw"></g><g id="hxCursor" style="display:none"><circle r="5.5" fill="none" stroke="#111" stroke-width="1.6"/><line x1="-10" y1="0" x2="10" y2="0" stroke="#111" stroke-width="0.8"/><line x1="0" y1="-10" x2="0" y2="10" stroke="#111" stroke-width="0.8"/></g></svg>`;
+}
+function hxHtml(){
+  return '<div class="hx-wrap">' +
+    '<div class="hx-controls"><span class="lbl">Zeichnen:</span><div class="hx-swatches" id="hxSw"></div>' +
+    '<input type="color" id="hxColor" value="#e11d48" title="Eigene Farbe" style="width:30px;height:30px;border:none;background:none;cursor:pointer;padding:0">' +
+    '<button class="hx-btn" id="hxUndo">↶ Zurück</button><button class="hx-btn" id="hxClear">🗑 Leeren</button>' +
+    '<button class="hx-btn" id="hxPrint">🖨 Drucken (A4 hoch)</button></div>' +
+    '<div class="hx-stage" id="hxStage">' + hxSvg() +
+    '<div class="hx-readout" id="hxRead"><div class="ttl">Luftzustand</div><div id="hxReadBody">Maus über das Diagramm bewegen …</div></div></div>' +
+    '<div class="hx-hint">Mit gedrückter Maustaste zeichnen (z. B. Zustandsänderung). Farbe oben wählen · ρ in kg/m³ · „Drucken" gibt ein leeres/eingezeichnetes Diagramm im A4-Hochformat aus.</div></div>';
+}
+let hxLines = [], hxCur = null, hxColor = '#e11d48';
+function hxRenderDraw(){ const g = document.getElementById('hxDraw'); if (!g) return; g.innerHTML = hxLines.map(l => `<polyline points="${l.pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${l.color}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`).join(''); }
+function hxInit(){
+  const svg = document.getElementById('hxSvg'); if (!svg) return;
+  hxLines = []; hxCur = null;
+  const readBody = document.getElementById('hxReadBody'), cursor = document.getElementById('hxCursor');
+  const cols = ['#e11d48','#2563eb','#16a34a','#f59e0b','#7c3aed','#111827'], sw = document.getElementById('hxSw');
+  sw.innerHTML = cols.map((c, i) => `<span class="hx-sw${i === 0 ? ' on' : ''}" data-c="${c}" style="background:${c}"></span>`).join('');
+  sw.querySelectorAll('.hx-sw').forEach(el => el.onclick = () => { hxColor = el.dataset.c; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); el.classList.add('on'); document.getElementById('hxColor').value = hxColor; });
+  document.getElementById('hxColor').oninput = e => { hxColor = e.target.value; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); };
+  const pt = ev => { const r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal; return [(ev.clientX - r.left) / r.width * vb.width, (ev.clientY - r.top) / r.height * vb.height]; };
+  let drawing = false;
+  svg.addEventListener('pointerdown', ev => { ev.preventDefault(); drawing = true; hxCur = { color: hxColor, pts: [pt(ev)] }; hxLines.push(hxCur); try { svg.setPointerCapture(ev.pointerId); } catch (e) {} });
+  svg.addEventListener('pointermove', ev => {
+    const p = pt(ev), s = HX.inv(p[0], p[1]);
+    if (s.x >= -1 && s.x <= HX.xMax + 2 && s.t >= HX.tMin - 3 && s.t <= HX.tMax + 3){
+      const xg = Math.max(0, s.x), st = hxState(s.t, xg);
+      cursor.style.display = ''; cursor.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`);
+      readBody.innerHTML = `ϑ = <b>${s.t.toFixed(1)}</b> °C<br>x = <b>${xg.toFixed(1)}</b> g/kg<br>φ = <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.9 ? ' <span style="color:#fca5a5">(Nebel)</span>' : ''}<br>h = <b>${st.h.toFixed(1)}</b> kJ/kg<br>ρ = <b>${st.rho.toFixed(3)}</b> kg/m³<br>p<sub>D</sub> = <b>${st.pd.toFixed(1)}</b> mbar`;
+    } else cursor.style.display = 'none';
+    if (drawing && hxCur){ hxCur.pts.push(p); hxRenderDraw(); }
+  });
+  const end = ev => { drawing = false; hxCur = null; try { svg.releasePointerCapture(ev.pointerId); } catch (e) {} };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointerleave', () => { cursor.style.display = 'none'; });
+  document.getElementById('hxUndo').onclick = () => { hxLines.pop(); hxRenderDraw(); };
+  document.getElementById('hxClear').onclick = () => { hxLines = []; hxRenderDraw(); };
+  document.getElementById('hxPrint').onclick = () => { document.body.classList.add('print-hx'); window.print(); };
+}
+window.addEventListener('afterprint', () => document.body.classList.remove('print-hx'));
 
 /* ================= Bauteilvorlagen (Modul D): Daten ================= */
 const BAUTEIL_DATA = [
   { cat:'Auslässe', id:'diffusionsgitter', name:'Diffusionsgitter',
     desc:'Deckenauslass mit gleichmässiger Luftverteilung in alle Richtungen (Coanda-Effekt). Standard für Büro und Komfortlüftung.',
-    formel:'K_v = V̇/√Δp · Betriebspunkt: Δp = 5–15 Pa', norm:'SIA 382/1',
+    formel:'K_v = frac{V̇}{√Δp} · Betriebspunkt Δp = 5–15 Pa', norm:'SIA 382/1',
+    legende:[['K_v','Durchfluss-Kennwert [m³/h bei 1 Pa]'],['V̇','Volumenstrom [m³/h]'],['Δp','Druckverlust am Auslass [Pa]']],
     files:[{label:'Hinweis & Auslegung', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Hinweis.pdf'},
            {label:'Übung Dimensionierung', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Kapitel_4_Übung_Diffusionsgitter Dimensionierung.pdf'}] },
   { cat:'Auslässe', id:'draller', name:'Deckendraller',
@@ -1389,28 +1616,30 @@ const BAUTEIL_DATA = [
            {label:'Auslegung', path:'../03_Auslegungen/Auslässe/Queller/Queller_Auslegung.pdf'}] },
   { cat:'Auslässe', id:'tellerventil', name:'Tellerventil',
     desc:'Einfachster Raumdurchlass. Axiale Einstellung des Tellers regelt Volumenstrom. ZUL konvex, ABL konkav mit Gitter.',
-    formel:'K_v = V̇/√Δp · Betrieb bei Δp = 5–15 Pa', norm:'SIA 382/1',
+    formel:'K_v = frac{V̇}{√Δp} · Betrieb bei Δp = 5–15 Pa (K_v = Durchfluss-Kennwert)', norm:'SIA 382/1',
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Auslässe/Tellerventil/Tellerventil_Erklaerung.pdf'}] },
   { cat:'Auslässe', id:'schlitzauslass', name:'Schlitzauslass / Linearauslass',
     desc:'Linienförmige Luftverteilung für Fassaden, Brüstungskanäle und Decken. Diskret und optisch integrierbar.',
-    formel:'v_0 = 1.5–4.0 m/s · Wurfweite L = C·h_0·(v_0/v_end)^(1/n)', norm:'SIA 382/1, EN 13141',
+    formel:'Austrittsgeschw. v_0 = 1.5–4.0 m/s · Wurfweite & Schallpegel aus dem Hersteller-Diagramm (Trox/Hesco)', norm:'SIA 382/1, EN 13141',
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Auslässe/Schlitzauslass/Schlitzauslass_Erklaerung.pdf'}] },
   { cat:'Auslässe', id:'weitwurfdüse', name:'Weitwurfdüse / Druckdüse',
     desc:'Erzeugt Luftstrahlen mit 5–30 m Reichweite. Einsatz in Sporthallen, Industrie, Messehallen.',
-    formel:'v_0 = 4–12 m/s · Wurfweite L = K·d_0·√(V̇/A_0)/v_end', norm:'SIA 382/1, VDI 3803',
+    formel:'Austrittsgeschw. v_0 = 5–15 m/s · Reichweite 5–30 m · Wurfweite aus dem Hersteller-Diagramm', norm:'SIA 382/1, VDI 3803',
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Auslässe/Weitwurfdüse/Weitwurfdüse_Erklaerung.pdf'}] },
   { cat:'Luftbehandlung', id:'lufterhitzer', name:'Lufterhitzer (Heizregister)',
     desc:'Erwärmt den Luftstrom auf Zulufttemperatur. Heizmittel: Warmwasser, elektrisch oder Dampf.',
-    formel:'Q̇ = ṁ_L·c_p·ΔT [kW] · KVS = V̇_W/√Δp', norm:'SIA 382/1',
+    formel:'Q̇ = frac{V̇·ρ·c_L·ΔT}{3600} [kW] (= Heizleistung) · wasserseitig KVS = frac{V̇_W}{√Δp}', norm:'SIA 382/1',
+    legende:[['Q̇','Heizleistung [kW]'],['V̇','Luft-Volumenstrom [m³/h]'],['ρ','Dichte Luft [kg/m³]'],['c_L','Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],['ΔT','Luft-Temperaturhub [K]'],['KVS','Ventilkennwert [m³/h]'],['V̇_W','Wasser-Volumenstrom [m³/h]']],
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Lufterhitzer/Lufterhitzer_Erklaerung.pdf'}] },
   { cat:'Luftbehandlung', id:'luftkühler', name:'Luftkühler (Kühlregister)',
     desc:'Kühlt und ggf. entfeuchtet den Luftstrom. Taupunkt-Unterschreitung → Kondensatbildung → Siphon nötig.',
-    formel:'Q̇_sens = V̇·ρ·c_p·ΔT · Q̇_lat = ṁ_W·r', norm:'SIA 382/1',
+    formel:'gesamt Q̇ = frac{V̇·ρ·Δh}{3600} [kW] · nur sensibel Q̇ = frac{V̇·ρ·c_L·ΔT}{3600}', norm:'SIA 382/1',
+    legende:[['Q̇','Kühlleistung [kW]'],['V̇','Volumenstrom [m³/h]'],['ρ','Dichte Luft [kg/m³]'],['Δh','Enthalpiedifferenz Luft, sensibel + latent [kJ/kg]'],['c_L','Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],['ΔT','Temperaturhub [K]']],
     files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftkühler.docx'},
            {label:'Formeln', path:'../04_Lerndokus/Luftkühler Formeln.docx'}] },
   { cat:'Luftbehandlung', id:'befeuchter-dampf', name:'Dampfbefeuchter',
     desc:'Befeuchtet mit reinem Dampf. Temperatur bleibt konstant, x steigt. Hygienisch einwandfrei.',
-    formel:'ṁ_W = V̇·ρ·Δx [kg/s] · Q̇_el = ṁ_W · 2500 kJ/kg', norm:'SIA 382/1, SWKI VA104',
+    formel:'ṁ_W = V̇·ρ·Δx [g/h] · Heizleistung Q̇ = ṁ_W · r (r = 2256 kJ/kg)', norm:'SIA 382/1, SWKI VA104',
     files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'}] },
   { cat:'Luftbehandlung', id:'befeuchter-adiabat', name:'Adiabatischer Befeuchter',
     desc:'Befeuchtet durch Wasserverdunstung. h ≈ konst., Temperatur sinkt, x steigt. Energieeffizient.',
@@ -1449,7 +1678,8 @@ const BAUTEIL_DATA = [
            {label:'TROX VARYCONTROL Codeliste', path:'../03_Auslegungen/Volumenstromregler/TROX-HESCO_VARYCONTROL-Codeliste_01-2024.pdf'}] },
   { cat:'Regelung / MSR', id:'kvs', name:'KVS-Regelventil',
     desc:'Regelt Wasservolumenstrom zu Heiz-/Kühlregistern. KVS = Durchfluss bei Δp = 1 bar.',
-    formel:'KVS = V̇_W/√Δp · Ventilautorität P_v = Δp_v/Δp_System ≥ 0.3', norm:'EN 60534, SIA 382/1',
+    formel:'KVS = frac{V̇_W}{√Δp} · Ventilautorität P_v = frac{Δp_v}{Δp_System} ≥ 0.3', norm:'EN 60534, SIA 382/1',
+    legende:[['KVS','Durchfluss bei Δp = 1 bar [m³/h]'],['V̇_W','Wasser-Volumenstrom [m³/h]'],['Δp','Druckverlust am Ventil [bar]'],['P_v','Ventilautorität [–]']],
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/KVS-Regelventil/KVS_Regelventil_Erklaerung.pdf'}] },
   { cat:'Regelung / MSR', id:'regelklappe', name:'Regelklappe / Absperrklappe',
     desc:'Absperrklappe: Auf/Zu. Regelklappe: 0–100% stufenlos. Leckrate nach EN 1751 Klasse 1–3.',
@@ -1469,7 +1699,8 @@ const BAUTEIL_DATA = [
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Axialventilator/Axialventilator_Erklaerung.pdf'}] },
   { cat:'Sonstiges', id:'wsg', name:'Wetterschutzgitter & Rückschlagklappe',
     desc:'AUL ≤2 m/s, FOL ≤4 m/s. Mindestabstand AUL↔FOL: 5 m horizontal, 2 m vertikal (SIA 382/1).',
-    formel:'A_roh = V̇/(v_frei·f_frei) · f_frei = 0.5–0.7', norm:'SIA 382/1',
+    formel:'A_roh = frac{V̇}{3600 · v_frei · f_frei} · f_frei = 0.5–0.7', norm:'SIA 382/1',
+    legende:[['A_roh','Brutto-Gitterfläche [m²]'],['V̇','Volumenstrom [m³/h]'],['v_frei','Geschw. freier Querschnitt — AUL ≤ 2, FOL ≤ 4 m/s'],['f_frei','freier Querschnittsanteil 0.5–0.7']],
     files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Wetterschutzgitter_RSK/WSG_RSK_Erklaerung.pdf'}] },
 ];
 let CUR_BAUTEIL = '';
@@ -1489,7 +1720,11 @@ function renderBauteil(){
     `<div class="badges" style="margin:18px 0 12px"><span class="badge cat">🧩 ${esc(b.cat)}</span><span class="badge p-norm">${esc(b.norm)}</span></div>` +
     `<h3 style="font-size:1.05rem;margin:0 0 8px">${esc(b.name)}</h3>` +
     `<p style="color:var(--mut);font-size:.92rem;line-height:1.55;margin:0 0 12px">${esc(b.desc)}</p>` +
-    `<div class="bauteil-formel"><span class="bsp-k">Auslegung</span> <span class="key">${esc(b.formel)}</span></div>` +
+    `<div class="bauteil-formel"><span class="bsp-k">Auslegung</span> <span class="key">${fmtFormula(b.formel)}</span></div>` +
+    (b.legende && b.legende.length
+      ? `<div class="legende" style="margin-top:-6px;margin-bottom:16px"><div class="leg-h">Legende</div>` +
+        b.legende.map(p => `<div class="leg-row"><span class="leg-s">${fmtFormula(p[0])}</span><span class="leg-d">${esc(p[1])}</span></div>`).join('') + `</div>`
+      : '') +
     `<div class="filebtns">${files}</div>` +
     `<div class="ph-note">${esc(fileNote)}</div>`;
 }
