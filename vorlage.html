@@ -1535,6 +1535,8 @@ const HX = {
 function hxPs(t){ return 611.2 * Math.exp(17.62 * t / (243.12 + t)); }          // Sättigungsdruck über Wasser [Pa]
 function hxXs(t){ const ps = hxPs(t); return 1000 * 0.622 * ps / (HX.p - ps); } // Sättigungs-Wassergehalt [g/kg]
 function hxXphi(t, phi){ const pv = phi / 100 * hxPs(t); return 1000 * 0.622 * pv / (HX.p - pv); }
+function hxDew(xg){ const xs = xg / 1000, pd = HX.p * xs / (0.622 + xs); if (pd <= 0) return -60; const L = Math.log(pd / 611.2); return 243.12 * L / (17.62 - L); }        // Taupunkt [°C]
+function hxWet(t, xg){ const h0 = 1.006 * t + (xg / 1000) * (2501 + 1.86 * t); let lo = -30, hi = t; for (let i = 0; i < 48; i++){ const m = (lo + hi) / 2, xs = hxXs(m) / 1000, hm = 1.006 * m + xs * (2501 + 1.86 * m); if (hm < h0) lo = m; else hi = m; } return (lo + hi) / 2; }   // Feuchtkugel [°C] (h≈konst bis Sättigung)
 function hxState(t, xg){
   const xs = xg / 1000, ps = hxPs(t), pd = HX.p * xs / (0.622 + xs);
   const phi = ps > 0 ? Math.min(100, pd / ps * 100) : 0;
@@ -1597,18 +1599,26 @@ function hxHtml(){
       '<button class="hx-btn hx-mode" data-m="polylinie">⋁ Polylinie</button>' +
       '<button class="hx-btn hx-mode" data-m="punkt">⊕ Punkt</button>' +
       '<button class="hx-btn hx-mode" data-m="text">T Text</button>' +
+      '<span class="lbl" style="margin-left:8px">Prozess:</span>' +
+      '<button class="hx-btn hx-mode" data-m="heizen" title="Heizen/Kühlen sensibel – x bleibt konstant">↕ Heizen/Kühlen</button>' +
+      '<button class="hx-btn hx-mode" data-m="dampf" title="Dampfbefeuchtung – ϑ bleibt ~konstant">→ Dampf-Bef.</button>' +
+      '<button class="hx-btn hx-mode" data-m="adiabat" title="Adiabate Befeuchtung – h bleibt konstant">↘ Adiab. Bef.</button>' +
+      '<button class="hx-btn hx-mode" data-m="kuehlen" title="Kühlen + Entfeuchten – bis auf die Sättigungslinie">↓ Kühl.+Entf.</button>' +
       '<span class="lbl" style="margin-left:8px">Farbe:</span><div class="hx-swatches" id="hxSw"></div>' +
       '<input type="color" id="hxColor" value="#e11d48" title="Eigene Farbe" style="width:30px;height:30px;border:none;background:none;cursor:pointer;padding:0">' +
       '<select class="hx-size" id="hxSize" title="Textgrösse"><option value="11">Text S</option><option value="15" selected>Text M</option><option value="21">Text L</option><option value="28">Text XL</option></select>' +
+      '<span class="lbl" style="margin-left:8px">V̇</span><input type="number" id="hxFlow" value="1000" min="0" step="100" title="Volumenstrom für Leistungsberechnung" style="width:64px;padding:4px 6px;border-radius:6px;border:1px solid var(--bd,#cbd5e1)"><span class="lbl">m³/h</span>' +
+      '<button class="hx-btn" id="hxComfort" title="Behaglichkeitsfeld ein-/ausblenden (≈20–26 °C / 30–65 % rF)">▭ Behaglichkeit</button>' +
       '<button class="hx-btn" id="hxUndo">↶ Zurück</button><button class="hx-btn" id="hxClear">🗑 Leeren</button>' +
       '<button class="hx-btn" id="hxPrint">🖨 Drucken (A4 hoch)</button>' +
     '</div>' +
     '<div class="hx-live" id="hxLive"><span class="ttl">Mauszeiger ≈</span> <span id="hxLiveBody">über das Diagramm bewegen …</span></div>' +
+    '<div class="hx-live" id="hxEval" style="display:none;border-left:3px solid #0ea5e9"></div>' +
     '<div class="hx-stage" id="hxStage">' +
       '<div class="hx-title" id="hxTitle" contenteditable="true" data-ph="Titel eingeben (erscheint im Druck) …"></div>' +
       '<div class="hx-diag" id="hxDiag">' +
         '<img class="hx-img" src="hx-diagram.svg" alt="h,x-Diagramm für feuchte Luft">' +
-        '<svg class="hx-overlay" id="hxOv" viewBox="28 38 527 610" xmlns="http://www.w3.org/2000/svg"><g id="hxDraw"></g><g id="hxTextG"></g><g id="hxCursor" style="display:none"><circle r="4" fill="none" stroke="#c0392b" stroke-width="1.2"/><line x1="-7" y1="0" x2="7" y2="0" stroke="#c0392b" stroke-width="0.8"/><line x1="0" y1="-7" x2="0" y2="7" stroke="#c0392b" stroke-width="0.8"/></g></svg>' +
+        '<svg class="hx-overlay" id="hxOv" viewBox="28 38 527 610" xmlns="http://www.w3.org/2000/svg"><g id="hxComfortG"></g><g id="hxDraw"></g><g id="hxTextG"></g><g id="hxCursor" style="display:none"><circle r="4" fill="none" stroke="#c0392b" stroke-width="1.2"/><line x1="-7" y1="0" x2="7" y2="0" stroke="#c0392b" stroke-width="0.8"/><line x1="0" y1="-7" x2="0" y2="7" stroke="#c0392b" stroke-width="0.8"/></g></svg>' +
         '<div class="hx-points" id="hxPoints"></div>' +
       '</div>' +
     '</div>' +
@@ -1633,9 +1643,9 @@ function hxRenderDraw(){
 function hxRenderPoints(){
   const c = document.getElementById('hxPoints'); if (!c) return;
   c.innerHTML = hxPoints.map((p, i) => {
-    const st = hxState(p.t, Math.max(0, p.x));
+    const px = Math.max(0, p.x), st = hxState(p.t, px), tdp = hxDew(px), twb = hxWet(p.t, px);
     const fx = ((p.sx - HXVB.x) / HXVB.w * 100).toFixed(2), fy = ((p.sy - HXVB.y) / HXVB.h * 100).toFixed(2);
-    return `<div class="hx-pt" style="left:${fx}%;top:${fy}%"><span class="nm" data-i="${i}">${esc(p.name)}</span><span class="del" data-i="${i}">✕</span><br>ϑ ${p.t.toFixed(1)} °C · x ${Math.max(0, p.x).toFixed(1)} g/kg<br>φ ${st.phi.toFixed(0)} % · h ${st.h.toFixed(1)} · ρ ${st.rho.toFixed(2)}</div>`;
+    return `<div class="hx-pt" style="left:${fx}%;top:${fy}%"><span class="nm" data-i="${i}">${esc(p.name)}</span><span class="del" data-i="${i}">✕</span><br>ϑ ${p.t.toFixed(1)} °C · x ${px.toFixed(1)} g/kg<br>φ ${st.phi.toFixed(0)} % · h ${st.h.toFixed(1)} · ρ ${st.rho.toFixed(2)}<br>Taup ${tdp.toFixed(1)} °C · Feuchtk ${twb.toFixed(1)} °C</div>`;
   }).join('');
   c.querySelectorAll('.del').forEach(d => d.onclick = () => { hxPoints.splice(+d.dataset.i, 1); hxRenderPoints(); hxRenderDraw(); });
   c.querySelectorAll('.nm').forEach(n => n.onclick = () => { const i = +n.dataset.i, nm = prompt('Name des Zustands:', hxPoints[i].name); if (nm != null){ hxPoints[i].name = nm; hxRenderPoints(); } });
@@ -1649,6 +1659,47 @@ function hxInit(){
   const xgOf = sx => (sx - X0) / AX;
   // Mollier: Isothermen fächern auf (Steigung ∝ t). t aus (svgX,svgY) exakt invertiert statt konstantem Shear.
   const tOf  = (sx, sy) => { const u = sx - X0; return ((FLIP - sy) - TY0 + QFAN * u * THORIZ) / (TB + QFAN * u); };
+  // Vorwärts-Abbildung (t,x) → Overlay-Koordinaten, für Prozess-Snap, Auswertung und Behaglichkeitsfeld
+  const sxOf = x => X0 + AX * x;
+  const syOf = (t, x) => FLIP - (TY0 + TB * t + QFAN * (t - THORIZ) * AX * x);
+  const hOf  = (t, x) => 1.006 * t + (x / 1000) * (2501 + 1.86 * t);
+  const hxSnap = (a, b) => {                       // schnappt den Endpunkt auf die korrekte Prozesslinie
+    const t1 = tOf(a[0], a[1]), x1 = Math.max(0, xgOf(a[0]));
+    if (hxMode === 'heizen') return [a[0], b[1]];                                                  // x = konst (senkrecht)
+    if (hxMode === 'dampf'){ const x2 = Math.max(0, xgOf(b[0])); return [sxOf(x2), syOf(t1, x2)]; } // ϑ = konst
+    if (hxMode === 'adiabat'){ const h1 = hOf(t1, x1), x2 = Math.max(0, xgOf(b[0])), xs2 = x2 / 1000; const t2 = (h1 - xs2 * 2501) / (1.006 + xs2 * 1.86); return [sxOf(x2), syOf(t2, x2)]; } // h = konst
+    if (hxMode === 'kuehlen'){ const t2 = Math.max(-20, Math.min(tOf(b[0], b[1]), t1)), x2 = hxXs(t2); return [sxOf(x2), syOf(t2, x2)]; } // auf Sättigung (ADP)
+    return b;
+  };
+  let hxSeg = null;
+  const hxEval = (a, b) => {                        // Auswertung der Zustandsänderung a→b
+    const t1 = tOf(a[0], a[1]), x1 = Math.max(0, xgOf(a[0])), t2 = tOf(b[0], b[1]), x2 = Math.max(0, xgOf(b[0]));
+    const s1 = hxState(t1, x1), s2 = hxState(t2, x2);
+    const dT = t2 - t1, dx = x2 - x1, dh = s2.h - s1.h, rom = (s1.rho + s2.rho) / 2;
+    const V = parseFloat(document.getElementById('hxFlow').value) || 0;
+    const Q = V * rom * dh / 3600, mw = V * rom * dx / 1000;
+    let typ;
+    if (Math.abs(dx) < 0.1) typ = dT >= 0 ? 'Heizen (sensibel)' : 'Kühlen (sensibel)';
+    else if (dx > 0) typ = Math.abs(dh) < 0.6 ? 'Adiabate Befeuchtung' : (Math.abs(dT) < 0.6 ? 'Dampfbefeuchtung' : 'Befeuchtung');
+    else typ = 'Kühlen + Entfeuchten';
+    hxSeg = [a, b];
+    const el = document.getElementById('hxEval'); el.style.display = '';
+    el.innerHTML = `<span class="ttl">${typ}</span> &nbsp; Δϑ <b>${dT.toFixed(1)}</b> K &nbsp; Δx <b>${dx.toFixed(1)}</b> g/kg &nbsp; Δh <b>${dh.toFixed(1)}</b> kJ/kg &nbsp;·&nbsp; V̇ ${V} m³/h → Q̇ <b>${Q.toFixed(2)}</b> kW &nbsp; ${dx >= 0 ? 'Befeuchtung' : 'Kondensat'} <b>${Math.abs(mw).toFixed(2)}</b> kg/h`;
+  };
+  let comfortOn = false;
+  const hxComfortDraw = () => {
+    const g = document.getElementById('hxComfortG'); if (!g) return;
+    if (!comfortOn){ g.innerHTML = ''; return; }
+    const P = [], N = 14;
+    for (let i = 0; i <= N; i++){ const t = 20 + 6 * i / N, x = hxXphi(t, 30); P.push([sxOf(x), syOf(t, x)]); }
+    for (let i = 0; i <= N; i++){ const phi = 30 + 35 * i / N, x = hxXphi(26, phi); P.push([sxOf(x), syOf(26, x)]); }
+    for (let i = 0; i <= N; i++){ const t = 26 - 6 * i / N, x = hxXphi(t, 65); P.push([sxOf(x), syOf(t, x)]); }
+    for (let i = 0; i <= N; i++){ const phi = 65 - 35 * i / N, x = hxXphi(20, phi); P.push([sxOf(x), syOf(20, x)]); }
+    const cx = sxOf(hxXphi(23, 47)), cy = syOf(23, hxXphi(23, 47));
+    g.innerHTML = `<polygon points="${P.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="rgba(56,189,248,0.15)" stroke="#0ea5e9" stroke-width="1" stroke-dasharray="4 3"/><text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" fill="#0e7490" font-size="9" font-weight="700" text-anchor="middle">Behaglich</text>`;
+  };
+  document.getElementById('hxComfort').onclick = function(){ comfortOn = !comfortOn; this.style.background = comfortOn ? '#0ea5e9' : ''; this.style.color = comfortOn ? '#fff' : ''; hxComfortDraw(); };
+  document.getElementById('hxFlow').oninput = () => { if (hxSeg) hxEval(hxSeg[0], hxSeg[1]); };
   const cols = ['#e11d48','#2563eb','#16a34a','#f59e0b','#7c3aed','#111827'], sw = document.getElementById('hxSw');
   sw.innerHTML = cols.map((c, i) => `<span class="hx-sw${i === 0 ? ' on' : ''}" data-c="${c}" style="background:${c}"></span>`).join('');
   sw.querySelectorAll('.hx-sw').forEach(el => el.onclick = () => { hxColor = el.dataset.c; sw.querySelectorAll('.hx-sw').forEach(s => s.classList.remove('on')); el.classList.add('on'); document.getElementById('hxColor').value = hxColor; });
@@ -1658,7 +1709,7 @@ function hxInit(){
   let drawing = false, start = null;
   ov.addEventListener('pointerdown', ev => {
     ev.preventDefault(); const p = pt(ev);
-    if (hxMode === 'punkt'){ const t = tOf(p[0], p[1]), x = xgOf(p[0]); const name = prompt('Name des Zustands (z. B. „Zustand nach WRG"):', 'Zustand ' + (hxPoints.length + 1)); if (name == null) return; hxPoints.push({ sx: p[0], sy: p[1], t, x, name }); hxRenderDraw(); hxRenderPoints(); return; }
+    if (hxMode === 'punkt'){ const t = tOf(p[0], p[1]), x = xgOf(p[0]); const name = prompt('Name des Zustands (z. B. „Zustand nach WRG"):', 'Zustand ' + (hxPoints.length + 1)); if (name == null) return; hxPoints.push({ sx: p[0], sy: p[1], t, x, name }); if (hxPoints.length >= 2){ const a = hxPoints[hxPoints.length - 2], b = hxPoints[hxPoints.length - 1]; hxEval([a.sx, a.sy], [b.sx, b.sy]); } hxRenderDraw(); hxRenderPoints(); return; }
     if (hxMode === 'text'){ const txt = prompt('Text eingeben:', ''); if (txt == null || txt.trim() === '') return; hxTexts.push({ sx: p[0], sy: p[1], text: txt, color: hxColor, size: +document.getElementById('hxSize').value }); hxRenderTexts(); return; }
     if (hxMode === 'polylinie'){ if (!hxPoly) hxPoly = { color: hxColor, pts: [p] }; else hxPoly.pts.push(p); hxPrev = p; hxRenderDraw(); return; }
     drawing = true; start = p; hxCur = { color: hxColor, pts: [p] }; hxLines.push(hxCur); try { ov.setPointerCapture(ev.pointerId); } catch (e) {}
@@ -1666,18 +1717,18 @@ function hxInit(){
   ov.addEventListener('pointermove', ev => {
     const p = pt(ev), t = tOf(p[0], p[1]), xg = xgOf(p[0]);
     if (xg >= -1 && xg <= 20 && t >= -23 && t <= 53){
-      const x = Math.max(0, xg), st = hxState(t, x);
+      const x = Math.max(0, xg), st = hxState(t, x), tdp = hxDew(x), twb = hxWet(t, x);
       cursor.style.display = ''; cursor.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`);
-      live.innerHTML = `ϑ <b>${t.toFixed(1)}</b> °C &nbsp; x <b>${x.toFixed(1)}</b> g/kg &nbsp; φ <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.5 ? ' (Nebel)' : ''} &nbsp; h <b>${st.h.toFixed(1)}</b> kJ/kg &nbsp; ρ <b>${st.rho.toFixed(3)}</b> kg/m³`;
+      live.innerHTML = `ϑ <b>${t.toFixed(1)}</b> °C &nbsp; x <b>${x.toFixed(1)}</b> g/kg &nbsp; φ <b>${st.phi.toFixed(0)}</b> %${st.phi >= 99.5 ? ' (Nebel)' : ''} &nbsp; Taup. <b>${tdp.toFixed(1)}</b> °C &nbsp; Feuchtk. <b>${twb.toFixed(1)}</b> °C &nbsp; h <b>${st.h.toFixed(1)}</b> kJ/kg &nbsp; ρ <b>${st.rho.toFixed(3)}</b> kg/m³`;
     } else cursor.style.display = 'none';
     if (hxMode === 'polylinie' && hxPoly){ hxPrev = p; hxRenderDraw(); }
-    if (drawing && hxCur){ if (hxMode === 'gerade') hxCur.pts = [start, p]; else hxCur.pts.push(p); hxRenderDraw(); }
+    if (drawing && hxCur){ if (hxMode === 'gerade') hxCur.pts = [start, p]; else if (hxMode === 'heizen' || hxMode === 'dampf' || hxMode === 'adiabat' || hxMode === 'kuehlen') hxCur.pts = [start, hxSnap(start, p)]; else hxCur.pts.push(p); hxRenderDraw(); }
   });
-  ov.addEventListener('pointerup', ev => { drawing = false; hxCur = null; try { ov.releasePointerCapture(ev.pointerId); } catch (e) {} });
+  ov.addEventListener('pointerup', ev => { if (drawing && hxCur && hxCur.pts.length >= 2){ const ps = hxCur.pts; hxEval(ps[0], ps[ps.length - 1]); } drawing = false; hxCur = null; try { ov.releasePointerCapture(ev.pointerId); } catch (e) {} });
   ov.addEventListener('dblclick', () => { if (hxPoly){ hxPoly.pts = hxPoly.pts.filter((p, i, a) => i === 0 || Math.hypot(p[0] - a[i-1][0], p[1] - a[i-1][1]) > 1); if (hxPoly.pts.length >= 2) hxLines.push(hxPoly); hxPoly = null; hxPrev = null; hxRenderDraw(); } });
   ov.addEventListener('pointerleave', () => { cursor.style.display = 'none'; });
   document.getElementById('hxUndo').onclick = () => { if (hxPoly) hxPoly = null; else hxLines.pop(); hxPrev = null; hxRenderDraw(); };
-  document.getElementById('hxClear').onclick = () => { hxLines = []; hxPoly = null; hxPrev = null; hxPoints = []; hxTexts = []; const tt = document.getElementById('hxTitle'); if (tt) tt.textContent = ''; hxRenderDraw(); hxRenderPoints(); hxRenderTexts(); };
+  document.getElementById('hxClear').onclick = () => { hxLines = []; hxPoly = null; hxPrev = null; hxPoints = []; hxTexts = []; hxSeg = null; const ev = document.getElementById('hxEval'); if (ev){ ev.style.display = 'none'; ev.innerHTML = ''; } const tt = document.getElementById('hxTitle'); if (tt) tt.textContent = ''; hxRenderDraw(); hxRenderPoints(); hxRenderTexts(); };
   document.getElementById('hxPrint').onclick = () => { document.body.classList.add('print-hx'); window.print(); };
 }
 window.addEventListener('afterprint', () => document.body.classList.remove('print-hx'));
