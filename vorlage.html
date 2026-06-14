@@ -447,6 +447,79 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   .kan-note{font-size:.83rem;line-height:1.7;padding:13px 15px}
 }
 
+/* ---------- Lüftungs-Rechner ---------- */
+.calc-wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+.calc-main,.calc-panel{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid var(--glass-line);border-top:1px solid var(--glass-top);border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
+.calc-main{padding:16px}
+.calc-side{display:flex;flex-direction:column;gap:14px}
+.calc-disp{position:relative;background:rgba(0,0,0,.34);border:1px solid var(--glass-line);border-radius:14px;padding:14px 16px;margin-bottom:14px;overflow:hidden}
+.calc-expr{min-height:1.3em;text-align:right;color:var(--mut);font-size:1rem;font-variant-numeric:tabular-nums;word-break:break-all;font-family:"Cambria Math",Cambria,Georgia,serif;letter-spacing:.01em}
+.calc-res{display:flex;align-items:flex-end;justify-content:flex-end;gap:10px;margin-top:6px}
+.calc-res .val{font-size:2rem;font-weight:800;color:#5ecbfa;font-variant-numeric:tabular-nums;line-height:1.05;word-break:break-all;text-shadow:0 0 18px rgba(56,189,248,.25);cursor:pointer}
+.calc-res.err .val{color:var(--no);font-size:1.15rem;text-shadow:none;cursor:default}
+.calc-copy{flex:0 0 auto;border:1px solid var(--glass-line);background:rgba(255,255,255,.06);color:var(--acc);border-radius:9px;padding:6px 11px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.calc-copy:hover{background:rgba(56,189,248,.16)}
+.calc-copy.ok{background:var(--ok);border-color:var(--ok);color:#05230f}
+.calc-pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.calc-key{display:flex;align-items:center;justify-content:center;height:52px;border-radius:13px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);color:var(--txt);font-size:1.18rem;font-weight:600;user-select:none;cursor:pointer;transition:background .12s,transform .08s,box-shadow .15s,filter .12s}
+.calc-key:hover{background:rgba(255,255,255,.1);border-color:var(--glass-top)}
+.calc-key:active{transform:translateY(1px) scale(.97)}
+.calc-key.fn{color:var(--mut);font-size:1.02rem}
+.calc-key.sci{color:#b3c0ff;background:rgba(99,102,241,.13);border-color:rgba(99,102,241,.3);font-size:1.05rem}
+.calc-key.op{color:#082f49;background:linear-gradient(180deg,#5ecbfa,#0ea5e9);border-color:#0ea5e9;font-weight:800;box-shadow:0 2px 10px rgba(14,165,233,.32)}
+.calc-key.op:hover{filter:brightness(1.08)}
+.calc-key.eq{background:linear-gradient(180deg,#34d399,#10b981);border-color:#10b981;color:#04231a;font-weight:800;box-shadow:0 2px 12px rgba(16,185,129,.4)}
+.calc-key.del{color:var(--warn)}
+.calc-key.clr{color:var(--no)}
+.calc-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.calc-chip{font-size:.82rem;padding:6px 11px;border-radius:99px;border:1px solid var(--glass-line);background:rgba(56,189,248,.08);color:#9fd8f3;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer}
+.calc-chip:hover{background:rgba(56,189,248,.18);color:#cdeefb;border-color:var(--acc)}
+.calc-chip b{color:var(--mut2);font-weight:600;margin-right:4px;font-size:.82em;font-style:italic}
+.calc-mem{display:flex;align-items:center;gap:7px;margin-top:13px;flex-wrap:wrap}
+.calc-mem .lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut2)}
+.calc-slot{font-size:.82rem;padding:6px 11px;border-radius:10px;border:1px dashed var(--line2);background:rgba(255,255,255,.03);color:var(--mut);font-variant-numeric:tabular-nums;min-width:40px;text-align:center;cursor:pointer;transition:all .15s}
+.calc-slot:hover{border-color:var(--acc);color:var(--txt)}
+.calc-slot.set{border-style:solid;border-color:var(--acc);background:rgba(56,189,248,.1);color:#9fd8f3;font-weight:600}
+.calc-panel{padding:14px 16px}
+.calc-panel>h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--acc);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.calc-panel>h3 .act{margin-left:auto;font-size:.74rem;color:var(--mut2);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500}
+.calc-panel>h3 .act:hover{color:var(--no)}
+.calc-tape{display:flex;flex-direction:column;gap:7px;max-height:226px;overflow:auto}
+.calc-tape .empty{color:var(--mut2);font-size:.85rem;padding:6px 2px}
+.tape-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:10px;background:rgba(15,23,42,.5);border:1px solid var(--line);cursor:pointer;transition:border-color .15s,background .15s}
+.tape-row:hover{border-color:var(--acc);background:rgba(56,189,248,.07)}
+.tape-row .te{color:var(--mut);font-size:.82rem;font-family:"Cambria Math",Cambria,Georgia,serif;word-break:break-all}
+.tape-row .tr{color:#5ecbfa;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.calc-seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
+.calc-seg button{font-size:.8rem;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mut)}
+.calc-seg button.on{background:rgba(56,189,248,.16);border-color:var(--acc);color:var(--acc);font-weight:600}
+.cv-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:9px;align-items:end}
+.cv-grid .arrow{color:var(--mut2);padding-bottom:9px}
+.calc-in{display:flex;flex-direction:column;gap:4px;min-width:0}
+.calc-in label{font-size:.72rem;color:var(--mut2)}
+.calc-in input,.calc-in select{font:inherit;font-size:.95rem;padding:9px 11px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(0,0,0,.28);color:var(--txt);width:100%}
+.calc-in input:focus,.calc-in select:focus{border-color:var(--acc);outline:none;box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+.fm-vars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 12px}
+.fm-out{background:rgba(15,23,42,.55);border:1px solid var(--line);border-left:3px solid var(--ok);border-radius:12px;padding:12px 14px;min-height:46px}
+.fm-expr{color:var(--mut);font-size:.88rem;font-family:"Cambria Math",Cambria,Georgia,serif;line-height:1.5;word-break:break-word}
+.fm-expr b{color:#86efac;font-weight:700}
+.fm-res{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px}
+.fm-res .v{font-size:1.4rem;font-weight:800;color:#86efac;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fm-note{color:var(--mut2);font-size:.78rem;margin-top:8px;line-height:1.5}
+.fm-btns{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+.fm-btns button{font-size:.8rem;padding:7px 12px}
+.calc-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ok);color:#04231a;font-weight:700;padding:10px 18px;border-radius:99px;box-shadow:0 8px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:50;font-size:.88rem;max-width:80vw;text-align:center}
+.calc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:880px){.calc-wrap{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .calc-main{padding:13px}
+  .calc-key{height:54px;font-size:1.22rem;border-radius:14px}
+  .calc-res .val{font-size:1.7rem}
+  .fm-vars{grid-template-columns:1fr}
+  .cv-grid{grid-template-columns:1fr;gap:11px}
+  .cv-grid .arrow{display:none}
+}
+
 /* ---------- Druck: nur das Anlagenschema, dunkle Linien auf Weiss ---------- */
 @media print{
   body.print-schema{background:#fff}
@@ -502,6 +575,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <a href="#bauteile" id="tabBau">Bauteilvorlagen</a>
     <a href="#hxdia" id="tabHx">h,x-Diagramm</a>
     <a href="#kanal" id="tabKan">Kanalschieber</a>
+    <a href="#rechner" id="tabRech">Rechner</a>
   </nav>
 </header>
 
@@ -603,6 +677,56 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   </div>
 </main>
 
+<!-- ================= Lüftungs-Rechner ================= -->
+<main id="view-rech">
+  <div class="card" style="padding:24px 28px">
+    <h2 class="sec" style="font-size:1.2rem">🧮 Lüftungs-Rechner</h2>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Wissenschaftlicher Rechner mit Lüftungs-Konstanten, Einheiten-Umrechner und <b>Formel-Modus</b> (Formel wählen → Werte einsetzen → Ergebnis). Tippen oder Tastatur — jedes Ergebnis ist <b>antippbar → kopiert</b>.</p>
+    <div class="calc-wrap">
+      <div class="calc-main">
+        <div class="calc-disp">
+          <div class="calc-expr" id="calcExpr">0</div>
+          <div class="calc-res" id="calcResWrap">
+            <button class="calc-copy" id="calcCopy" title="Ergebnis in die Zwischenablage">⧉ kopieren</button>
+            <span class="val" id="calcRes" title="Antippen zum Kopieren">0</span>
+          </div>
+        </div>
+        <div class="calc-pad" id="calcPad"></div>
+        <div class="calc-chips" id="calcChips"></div>
+        <div class="calc-mem">
+          <span class="lbl">Speicher</span>
+          <span class="calc-slot" data-slot="0">A</span>
+          <span class="calc-slot" data-slot="1">B</span>
+          <span class="calc-slot" data-slot="2">C</span>
+          <span class="act" id="calcMemClear" style="margin-left:auto;font-size:.74rem;color:var(--mut2);cursor:pointer">löschen</span>
+        </div>
+      </div>
+      <div class="calc-side">
+        <div class="calc-panel">
+          <h3>🧾 Verlauf <span class="act" id="tapeClear">leeren</span></h3>
+          <div class="calc-tape" id="calcTape"><div class="empty">Noch nichts gerechnet. Mit „=" wird das Ergebnis hier abgelegt — Zeile antippen kopiert sie.</div></div>
+        </div>
+        <div class="calc-panel">
+          <h3>📐 Formel-Modus</h3>
+          <select class="bigselect" id="fmSelect" style="width:100%;margin-bottom:11px"></select>
+          <div class="fm-vars" id="fmVars"></div>
+          <div class="fm-out" id="fmOut"></div>
+        </div>
+        <div class="calc-panel">
+          <h3>🔁 Einheiten-Umrechner</h3>
+          <div class="calc-seg" id="cvSeg"></div>
+          <div class="cv-grid">
+            <div class="calc-in"><label>Wert</label><input type="number" id="cvIn" value="1" step="any"><select id="cvFrom"></select></div>
+            <span class="arrow">→</span>
+            <div class="calc-in"><label>Ergebnis</label><input type="text" id="cvOut" readonly value=""><select id="cvTo"></select></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:9px"><button class="calc-copy" id="cvCopy">⧉ Ergebnis kopieren</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
 <footer>
   Prüfungsvorlage · Manoa Verner · GPL22c · 2026
 </footer>
@@ -617,11 +741,13 @@ function vShow(which){
   $('view-bau').classList.toggle('show', which === 'bau');
   $('view-hx').classList.toggle('show', which === 'hx');
   $('view-kan').classList.toggle('show', which === 'kan');
+  $('view-rech').classList.toggle('show', which === 'rech');
   $('tabGeb').classList.toggle('active', which === 'geb');
   $('tabFor').classList.toggle('active', which === 'for');
   $('tabBau').classList.toggle('active', which === 'bau');
   $('tabHx').classList.toggle('active', which === 'hx');
   $('tabKan').classList.toggle('active', which === 'kan');
+  $('tabRech').classList.toggle('active', which === 'rech');
   const _a = document.querySelector('.tabs a.active'); if (_a && _a.scrollIntoView) _a.scrollIntoView({ block: 'nearest', inline: 'center' });
 }
 $('tabGeb').onclick = e => { e.preventDefault(); vShow('geb'); history.replaceState(null, '', '#gebaeude'); };
@@ -629,6 +755,7 @@ $('tabFor').onclick = e => { e.preventDefault(); vShow('for'); history.replaceSt
 $('tabBau').onclick = e => { e.preventDefault(); vShow('bau'); history.replaceState(null, '', '#bauteile'); };
 $('tabHx').onclick = e => { e.preventDefault(); vShow('hx'); history.replaceState(null, '', '#hxdia'); window.scrollTo(0, 0); };
 $('tabKan').onclick = e => { e.preventDefault(); vShow('kan'); history.replaceState(null, '', '#kanal'); window.scrollTo(0, 0); };
+$('tabRech').onclick = e => { e.preventDefault(); vShow('rech'); history.replaceState(null, '', '#rechner'); window.scrollTo(0, 0); };
 
 /* ================= Gebäudetypen Vorlage: Daten (Modul A) ================= */
 const BT_CATS = {
@@ -2114,10 +2241,293 @@ function renderBauteil(){
   calc();
 })();
 
-/* Deep-Link: vorlage.html#formeln / #bauteile / #hxdia / #kanal */
+/* ===== Lüftungs-Rechner ===== */
+(function(){
+  if (!$('calcPad')) return;
+  /* ---- sicherer Ausdrucks-Parser (kein eval) ---- */
+  function calcEval(str){
+    const s = str.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/,/g,'.').replace(/\s+/g,'');
+    if (s==='') throw new Error('leer');
+    const T=[]; let i=0;
+    while(i<s.length){
+      const c=s[i];
+      if((c>='0'&&c<='9')||c==='.'){ let j=i+1; while(j<s.length&&((s[j]>='0'&&s[j]<='9')||s[j]==='.'))j++; T.push({t:'n',v:parseFloat(s.slice(i,j))}); i=j; }
+      else if(c==='π'){ T.push({t:'n',v:Math.PI}); i++; }
+      else if('+-*/^()'.indexOf(c)>=0){ T.push({t:c}); i++; }
+      else if(c==='√'){ T.push({t:'r'}); i++; }
+      else if(c==='²'){ T.push({t:'q'}); i++; }
+      else if(c==='%'){ T.push({t:'p'}); i++; }
+      else throw new Error('Zeichen '+c);
+    }
+    let p=0; const pk=()=>T[p], nx=()=>T[p++];
+    function E(){ let v=Tm(); while(pk()&&(pk().t==='+'||pk().t==='-')){ const o=nx().t; const r=Tm(); v=o==='+'?v+r:v-r; } return v; }
+    function Tm(){ let v=U(); while(pk()&&(pk().t==='*'||pk().t==='/')){ const o=nx().t; const r=U(); if(o==='/'&&r===0) throw new Error('÷0'); v=o==='*'?v*r:v/r; } return v; }
+    function U(){ if(pk()&&pk().t==='-'){ nx(); return -U(); } if(pk()&&pk().t==='r'){ nx(); const r=U(); if(r<0) throw new Error('√<0'); return Math.sqrt(r); } return Pw(); }
+    function Pw(){ let v=Po(); if(pk()&&pk().t==='^'){ nx(); const e=U(); v=Math.pow(v,e); } return v; }
+    function Po(){ let v=Pr(); while(pk()&&(pk().t==='q'||pk().t==='p')){ const t=nx().t; v=t==='q'?v*v:v/100; } return v; }
+    function Pr(){ const k=pk(); if(!k) throw new Error('Ende'); if(k.t==='n'){ nx(); return k.v; } if(k.t==='('){ nx(); const v=E(); if(!pk()||pk().t!==')') throw new Error('Klammer'); nx(); return v; } throw new Error('unerwartet'); }
+    const res=E(); if(p<T.length) throw new Error('Rest'); if(!isFinite(res)) throw new Error('unendlich'); return res;
+  }
+  /* ---- Formatierung ---- */
+  function fmtNum(n){
+    if(!isFinite(n)) return n>0?'∞':'−∞';
+    const neg=n<0; n=Math.abs(n); let s;
+    if(n!==0 && (n<1e-4 || n>=1e12)) s=n.toExponential(4);
+    else s=(Math.round(n*1e6)/1e6).toString();
+    if(s.indexOf('e')<0){ const q=s.split('.'); q[0]=q[0].replace(/\B(?=(\d{3})+(?!\d))/g,"'"); s=q.join('.'); }
+    return (neg?'−':'')+s;
+  }
+  function rawNum(n){ return String(Math.round(n*1e9)/1e9); }
+  function esc(s){ return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  /* ---- Zustand ---- */
+  let expr='', justEval=false, lastValid=0;
+  const mem=[null,null,null], tape=[];
+  const exprEl=$('calcExpr'), resEl=$('calcRes'), resWrap=$('calcResWrap');
+  function render(){
+    exprEl.textContent = expr || '0';
+    if(expr.trim()===''){ resWrap.classList.remove('err'); resEl.textContent='0'; lastValid=0; return; }
+    try{ const r=calcEval(expr); resWrap.classList.remove('err'); resEl.textContent=fmtNum(r); lastValid=r; }
+    catch(e){ resWrap.classList.add('err'); resEl.textContent='…'; lastValid=null; }
+  }
+  function commit(){
+    if(expr.trim()==='') return;
+    let r; try{ r=calcEval(expr); }catch(e){ resWrap.classList.add('err'); resEl.textContent='Fehler'; return; }
+    pushTape(expr, r); lastValid=r; justEval=true;
+    exprEl.textContent=expr; resWrap.classList.remove('err'); resEl.textContent=fmtNum(r);
+  }
+  /* ---- Tastenlogik ---- */
+  const OPCH='+−×÷^';
+  function press(l){
+    if(l==='C'){ expr=''; justEval=false; return render(); }
+    if(l==='⌫'){ justEval=false; expr=expr.slice(0,-1); return render(); }
+    if(l==='='){ return commit(); }
+    let tok=l; if(l==='x²') tok='²'; if(l==='xʸ') tok='^';
+    const isNum='0123456789'.indexOf(l)>=0, isDot=l==='.', isOp=OPCH.indexOf(tok)>=0;
+    if(justEval){
+      if(isNum||isDot||l==='('||l==='π'||l==='√'){ expr=''; }
+      else { expr = lastValid!=null ? rawNum(lastValid) : ''; }
+      justEval=false;
+    }
+    const last=expr.slice(-1);
+    if(isOp){
+      if(expr===''){ if(tok==='−'){ expr='−'; return render(); } return; }
+      if(OPCH.indexOf(last)>=0) expr=expr.slice(0,-1)+tok; else expr+=tok;
+      return render();
+    }
+    if(l===')'){
+      const op=(expr.match(/\(/g)||[]).length, cl=(expr.match(/\)/g)||[]).length;
+      if(op<=cl) return; if(last===''||OPCH.indexOf(last)>=0||last==='(') return;
+      expr+=')'; return render();
+    }
+    if(tok==='²'||l==='%'){
+      if(last===''||OPCH.indexOf(last)>=0||last==='(') return;
+      expr+=tok; return render();
+    }
+    if(isDot){
+      const seg=(expr.match(/[0-9.]*$/)||[''])[0];
+      if(seg.indexOf('.')>=0) return;
+      if(seg===''){ if(/[)π²%]/.test(last)) expr+='×'; expr+='0'; }
+      expr+='.'; return render();
+    }
+    /* Wert: Ziffer, π, √, ( */
+    if(/[0-9)π²%]/.test(last) && !(isNum && /[0-9.]/.test(last))) expr+='×';
+    expr += (l==='√'?'√':l==='π'?'π':l==='('?'(':l);
+    render();
+  }
+  function insertValue(s){
+    if(justEval){ expr=''; justEval=false; }
+    const last=expr.slice(-1);
+    if(/[0-9)π²%]/.test(last)) expr+='×';
+    expr+=s; render();
+  }
+  /* ---- Tastenfeld ---- */
+  const KEYS=[['C','clr'],['⌫','del'],['(','fn'],[')','fn'],['÷','op'],
+              ['7','num'],['8','num'],['9','num'],['√','sci'],['×','op'],
+              ['4','num'],['5','num'],['6','num'],['x²','sci'],['−','op'],
+              ['1','num'],['2','num'],['3','num'],['xʸ','sci'],['+','op'],
+              ['0','num'],['.','num'],['π','sci'],['%','sci'],['=','eq']];
+  const pad=$('calcPad');
+  KEYS.forEach(([lab,cls])=>{ const b=document.createElement('div'); b.className='calc-key '+cls; b.textContent=lab; b.addEventListener('click',()=>press(lab)); pad.appendChild(b); });
+  /* ---- Konstanten ---- */
+  const CONSTS=[['ρ','1.20'],['ρ','1.15'],['cₚ','1.006'],['c_W','4.187'],['','3600'],['π','π'],['g','9.81'],['r','2500']];
+  const chipBox=$('calcChips');
+  CONSTS.forEach(([nm,val])=>{ const c=document.createElement('button'); c.className='calc-chip'; c.innerHTML=(nm?'<b>'+esc(nm)+'</b>':'')+esc(val); c.addEventListener('click',()=>insertValue(val)); chipBox.appendChild(c); });
+  /* ---- Speicher ---- */
+  const slots=[].slice.call(document.querySelectorAll('#view-rech .calc-slot'));
+  function refreshMem(){ slots.forEach((el,i)=>{ const b='ABC'[i]; if(mem[i]==null){ el.textContent=b; el.classList.remove('set'); } else { el.textContent=b+'='+fmtNum(mem[i]); el.classList.add('set'); } }); }
+  slots.forEach((el,i)=>el.addEventListener('click',()=>{ if(mem[i]==null){ if(lastValid!=null){ mem[i]=lastValid; refreshMem(); toast('Gespeichert in '+'ABC'[i]); } } else insertValue(rawNum(mem[i])); }));
+  $('calcMemClear').addEventListener('click',()=>{ mem[0]=mem[1]=mem[2]=null; refreshMem(); });
+  /* ---- Verlauf ---- */
+  function pushTape(e,r){ tape.unshift({e:String(e),r:r}); if(tape.length>40) tape.pop(); renderTape(); }
+  function renderTape(){
+    const el=$('calcTape');
+    if(!tape.length){ el.innerHTML='<div class="empty">Noch nichts gerechnet. Mit „=" wird das Ergebnis hier abgelegt — Zeile antippen kopiert sie.</div>'; return; }
+    el.innerHTML=tape.map((t,i)=>'<div class="tape-row" data-i="'+i+'" title="Antippen zum Kopieren"><span class="te">'+esc(t.e)+' =</span><span class="tr">'+fmtNum(t.r)+'</span></div>').join('');
+  }
+  $('tapeClear').addEventListener('click',()=>{ tape.length=0; renderTape(); });
+  $('calcTape').addEventListener('click',e=>{ const row=e.target.closest('.tape-row'); if(!row) return; copy(rawNum(tape[+row.dataset.i].r)); });
+  /* ---- Kopieren + Toast ---- */
+  let toastT=null;
+  function toast(msg){ let el=$('calcToast'); if(!el){ el=document.createElement('div'); el.id='calcToast'; el.className='calc-toast'; document.body.appendChild(el); } el.textContent=msg; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),1500); }
+  function fallbackCopy(text,cb){ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); cb&&cb(); }
+  function copy(text){ const done=()=>toast('Kopiert: '+text); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done)); } else fallbackCopy(text,done); }
+  $('calcCopy').addEventListener('click',()=>{ if(lastValid!=null) copy(rawNum(lastValid)); });
+  resEl.addEventListener('click',()=>{ if(lastValid!=null) copy(rawNum(lastValid)); });
+  /* ---- Einheiten-Umrechner ---- */
+  const UNITS={
+    'Volumenstrom':{u:['m³/h','l/s','m³/s','l/h'], f:{'m³/h':1,'l/s':3.6,'m³/s':3600,'l/h':0.001}},
+    'Druck':{u:['Pa','kPa','mbar','bar','mmWS'], f:{'Pa':1,'kPa':1000,'mbar':100,'bar':100000,'mmWS':9.80665}},
+    'Leistung':{u:['W','kW','MW','kcal/h'], f:{'W':1,'kW':1000,'MW':1e6,'kcal/h':1.163}},
+    'Geschwindigkeit':{u:['m/s','km/h','m/min'], f:{'m/s':1,'km/h':1/3.6,'m/min':1/60}},
+    'Temperatur':{u:['°C','K','°F'], temp:true}
+  };
+  function convert(cat,from,to,val){
+    if(UNITS[cat].temp){ let c; if(from==='°C')c=val; else if(from==='K')c=val-273.15; else c=(val-32)*5/9; if(to==='°C')return c; if(to==='K')return c+273.15; return c*9/5+32; }
+    const f=UNITS[cat].f; return val*f[from]/f[to];
+  }
+  let cvCat=Object.keys(UNITS)[0], cvLast=null;
+  const cvSeg=$('cvSeg');
+  Object.keys(UNITS).forEach(c=>{ const b=document.createElement('button'); b.textContent=c; if(c===cvCat) b.className='on'; b.addEventListener('click',()=>{ cvCat=c; [].forEach.call(cvSeg.children,x=>x.classList.toggle('on',x.textContent===c)); fillUnits(); }); cvSeg.appendChild(b); });
+  function fillUnits(){ const us=UNITS[cvCat].u; const opt=us.map(u=>'<option>'+u+'</option>').join(''); $('cvFrom').innerHTML=opt; $('cvTo').innerHTML=opt; $('cvTo').selectedIndex=Math.min(1,us.length-1); cvCompute(); }
+  function cvCompute(){ const val=parseFloat($('cvIn').value); if(!isFinite(val)){ $('cvOut').value=''; cvLast=null; return; } const r=convert(cvCat,$('cvFrom').value,$('cvTo').value,val); cvLast=r; $('cvOut').value=fmtNum(r); }
+  ['cvIn','cvFrom','cvTo'].forEach(id=>$(id).addEventListener('input',cvCompute));
+  $('cvCopy').addEventListener('click',()=>{ if(cvLast!=null) copy(rawNum(cvLast)); });
+  fillUnits();
+  /* ---- Formel-Modus ---- */
+  const FM=[
+    {g:'Leistung',n:'Heiz-/Kühlleistung (sensibel)',u:'kW',
+      vars:[{s:'V̇',l:'Volumenstrom',u:'m³/h',d:4000},{s:'ρ',l:'Dichte',u:'kg/m³',d:1.2},{s:'cₚ',l:'Wärmekapazität',u:'kJ/kg·K',d:1.006},{s:'Δϑ',l:'Temp.-Differenz',u:'K',d:12}],
+      c:v=>v['V̇']*v['ρ']*v['cₚ']*v['Δϑ']/3600,
+      e:(v,r)=>'Q̇ = '+v['V̇']+'·'+v['ρ']+'·'+v['cₚ']+'·'+v['Δϑ']+' / 3600 = <b>'+r+' kW</b>',
+      note:'Q̇ = V̇·ρ·cₚ·Δϑ / 3600 — sensible Luftleistung (Heizen/Kühlen).'},
+    {g:'Leistung',n:'Volumenstrom aus Leistung',u:'m³/h',
+      vars:[{s:'Q̇',l:'Leistung',u:'kW',d:15},{s:'ρ',l:'Dichte',u:'kg/m³',d:1.2},{s:'cₚ',l:'Wärmekapazität',u:'kJ/kg·K',d:1.006},{s:'Δϑ',l:'Temp.-Differenz',u:'K',d:8}],
+      c:v=>v['Q̇']*3600/(v['ρ']*v['cₚ']*v['Δϑ']),
+      e:(v,r)=>'V̇ = '+v['Q̇']+'·3600 / ('+v['ρ']+'·'+v['cₚ']+'·'+v['Δϑ']+') = <b>'+r+' m³/h</b>',
+      note:'Nach V̇ umgestellt: V̇ = Q̇·3600 / (ρ·cₚ·Δϑ).'},
+    {g:'Leistung',n:'el. Ventilatorleistung',u:'W',
+      vars:[{s:'V̇',l:'Volumenstrom',u:'m³/h',d:4000},{s:'Δp',l:'Totaldruck',u:'Pa',d:600},{s:'η',l:'Wirkungsgrad',u:'–',d:0.65}],
+      c:v=>v['V̇']*v['Δp']/(3600*v['η']),
+      e:(v,r)=>'P = '+v['V̇']+'·'+v['Δp']+' / (3600·'+v['η']+') = <b>'+r+' W</b>',
+      note:'P = V̇·Δp / (3600·η). η = Gesamtwirkungsgrad (Ventilator·Motor·FU).'},
+    {g:'Luftmenge',n:'Aussenluft über CO₂',u:'m³/h·Pers',
+      vars:[{s:'V̇CO₂',l:'CO₂-Abgabe',u:'l/h',d:20},{s:'cᵢ',l:'CO₂ innen',u:'ppm',d:1000},{s:'cₐ',l:'CO₂ aussen',u:'ppm',d:400}],
+      c:v=>v['V̇CO₂']*1000/(v['cᵢ']-v['cₐ']),
+      e:(v,r)=>'V̇ = '+v['V̇CO₂']+'·1000 / ('+v['cᵢ']+'−'+v['cₐ']+') = <b>'+r+' m³/h</b>',
+      note:'V̇ = V̇CO₂ / (cᵢ−cₐ); ppm = ml/m³, darum ·1000 für l/h → m³/h.'},
+    {g:'Luftmenge',n:'Luftwechselzahl n',u:'1/h',
+      vars:[{s:'V̇',l:'Volumenstrom',u:'m³/h',d:600},{s:'V_R',l:'Raumvolumen',u:'m³',d:150}],
+      c:v=>v['V̇']/v['V_R'],
+      e:(v,r)=>'n = '+v['V̇']+' / '+v['V_R']+' = <b>'+r+' 1/h</b>',
+      note:'n = V̇ / V_Raum — wie oft die Raumluft pro Stunde getauscht wird.'},
+    {g:'Luftmenge',n:'Volumenstrom aus Luftwechsel',u:'m³/h',
+      vars:[{s:'n',l:'Luftwechselzahl',u:'1/h',d:3},{s:'V_R',l:'Raumvolumen',u:'m³',d:150}],
+      c:v=>v['n']*v['V_R'],
+      e:(v,r)=>'V̇ = '+v['n']+' · '+v['V_R']+' = <b>'+r+' m³/h</b>',
+      note:'V̇ = n · V_Raum.'},
+    {g:'Kanal & Druck',n:'Rohrdurchmesser Ø',u:'mm',
+      vars:[{s:'V̇',l:'Volumenstrom',u:'m³/h',d:3000},{s:'v',l:'Geschwindigkeit',u:'m/s',d:5}],
+      c:v=>Math.sqrt(4*(v['V̇']/3600/v['v'])/Math.PI)*1000,
+      e:(v,r)=>'A = V̇/(3600·v); Ø = √(4A/π) = <b>'+r+' mm</b>',
+      note:'A = V̇/(3600·v), Ø = √(4·A/π). Danach auf nächste Norm aufrunden.'},
+    {g:'Kanal & Druck',n:'Geschwindigkeit im Rohr',u:'m/s',
+      vars:[{s:'V̇',l:'Volumenstrom',u:'m³/h',d:3000},{s:'Ø',l:'Durchmesser',u:'mm',d:355}],
+      c:v=>(v['V̇']/3600)/(Math.PI/4*Math.pow(v['Ø']/1000,2)),
+      e:(v,r)=>'v = (V̇/3600) / (π/4·Ø²) = <b>'+r+' m/s</b>',
+      note:'v = V̇ / (3600·A), A = π/4·Ø².'},
+    {g:'Kanal & Druck',n:'Dynamischer Druck',u:'Pa',
+      vars:[{s:'ρ',l:'Dichte',u:'kg/m³',d:1.2},{s:'w',l:'Geschwindigkeit',u:'m/s',d:4}],
+      c:v=>v['ρ']/2*v['w']*v['w'],
+      e:(v,r)=>'p_dyn = '+v['ρ']+'/2 · '+v['w']+'² = <b>'+r+' Pa</b>',
+      note:'p_dyn = ρ/2 · w².'},
+    {g:'Kanal & Druck',n:'Druckverlust Strang',u:'Pa',
+      vars:[{s:'R',l:'Reibung (Tabelle)',u:'Pa/m',d:0.8},{s:'L',l:'Länge',u:'m',d:20},{s:'Σζ',l:'Einzelwiderstände',u:'–',d:1.2},{s:'ρ',l:'Dichte',u:'kg/m³',d:1.2},{s:'w',l:'Geschwindigkeit',u:'m/s',d:4}],
+      c:v=>v['R']*v['L']+v['Σζ']*v['ρ']/2*v['w']*v['w'],
+      e:(v,r)=>'Δp = '+v['R']+'·'+v['L']+' + '+v['Σζ']+'·'+v['ρ']+'/2·'+v['w']+'² = <b>'+r+' Pa</b>',
+      note:'Δp = R·L + Σζ·(ρ/2·w²) — Reibung plus Einzelwiderstände.'},
+    {g:'WRG',n:'Zulufttemperatur nach WRG',u:'°C',
+      vars:[{s:'ϑAUL',l:'Aussenluft',u:'°C',d:-5},{s:'ϑABL',l:'Abluft',u:'°C',d:22},{s:'φ',l:'Rückwärmzahl',u:'–',d:0.8}],
+      c:v=>v['ϑAUL']+v['φ']*(v['ϑABL']-v['ϑAUL']),
+      e:(v,r)=>'ϑZUL = '+v['ϑAUL']+' + '+v['φ']+'·('+v['ϑABL']+'−('+v['ϑAUL']+')) = <b>'+r+' °C</b>',
+      note:'ϑZUL = ϑAUL + φ·(ϑABL−ϑAUL).'},
+    {g:'WRG',n:'Rückwärmzahl φ',u:'–',
+      vars:[{s:'ϑZUL',l:'Zuluft n. WRG',u:'°C',d:16.6},{s:'ϑAUL',l:'Aussenluft',u:'°C',d:-5},{s:'ϑABL',l:'Abluft',u:'°C',d:22}],
+      c:v=>(v['ϑZUL']-v['ϑAUL'])/(v['ϑABL']-v['ϑAUL']),
+      e:(v,r)=>'φ = ('+v['ϑZUL']+'−('+v['ϑAUL']+')) / ('+v['ϑABL']+'−('+v['ϑAUL']+')) = <b>'+r+'</b>',
+      note:'φ = (ϑZUL−ϑAUL)/(ϑABL−ϑAUL) — Temperatur-Rückwärmzahl (0…1).'},
+    {g:'Wasser',n:'Wassermenge Register',u:'kg/h',
+      vars:[{s:'Q̇',l:'Leistung',u:'kW',d:10},{s:'c_W',l:'Wärmekap. Wasser',u:'kJ/kg·K',d:4.187},{s:'Δϑ',l:'Spreizung VL−RL',u:'K',d:10}],
+      c:v=>v['Q̇']*3600/(v['c_W']*v['Δϑ']),
+      e:(v,r)=>'ṁ = '+v['Q̇']+'·3600 / ('+v['c_W']+'·'+v['Δϑ']+') = <b>'+r+' kg/h</b>',
+      note:'ṁ_W = Q̇·3600 / (c_W·Δϑ). 1 kg/h ≈ 1 l/h Wasser.'},
+    {g:'Feuchte',n:'Enthalpie feuchte Luft',u:'kJ/kg',
+      vars:[{s:'ϑ',l:'Temperatur',u:'°C',d:20},{s:'x',l:'Wassergehalt',u:'g/kg',d:8}],
+      c:v=>1.006*v['ϑ']+v['x']/1000*(2500+1.86*v['ϑ']),
+      e:(v,r)=>'h = 1.006·'+v['ϑ']+' + '+v['x']+'/1000·(2500+1.86·'+v['ϑ']+') = <b>'+r+' kJ/kg</b>',
+      note:'h = 1.006·ϑ + x·(2500+1.86·ϑ), x in kg/kg.'},
+    {g:'Schall',n:'Pegeladdition (2 Quellen)',u:'dB',
+      vars:[{s:'L₁',l:'Pegel 1',u:'dB',d:60},{s:'L₂',l:'Pegel 2',u:'dB',d:60}],
+      c:v=>10*Math.log(Math.pow(10,v['L₁']/10)+Math.pow(10,v['L₂']/10))/Math.LN10,
+      e:(v,r)=>'L = 10·log(10^('+v['L₁']+'/10) + 10^('+v['L₂']+'/10)) = <b>'+r+' dB</b>',
+      note:'Energetische Addition. 2× gleicher Pegel = +3 dB.'},
+    {g:'Siphon',n:'Siphonhöhe (Unterdruck)',u:'mm',
+      vars:[{s:'Δp',l:'statischer Unterdruck',u:'Pa',d:300}],
+      c:v=>v['Δp']/(1000*9.81)*1000*1.5,
+      e:(v,r)=>'h = '+v['Δp']+'/(1000·9.81)·1000·1.5 = <b>'+r+' mm</b>',
+      note:'h = Δp/(ρ_W·g)·1000 · 1.5 (50 % Reserve).'}
+  ];
+  const fmSel=$('fmSelect'); let fmCur=0, fmLast=null;
+  (function(){ const groups=[]; FM.forEach(f=>{ if(groups.indexOf(f.g)<0) groups.push(f.g); });
+    groups.forEach(g=>{ const og=document.createElement('optgroup'); og.label=g; FM.forEach((f,idx)=>{ if(f.g===g){ const o=document.createElement('option'); o.value=idx; o.textContent=f.n; og.appendChild(o); } }); fmSel.appendChild(og); }); })();
+  fmSel.addEventListener('change',()=>{ fmCur=+fmSel.value; renderFmVars(); });
+  function renderFmVars(){
+    const f=FM[fmCur];
+    $('fmVars').innerHTML=f.vars.map((v,i)=>'<div class="calc-in"><label>'+esc(v.s)+' · '+esc(v.l)+' ['+esc(v.u)+']</label><input type="number" step="any" data-i="'+i+'" value="'+v.d+'"></div>').join('');
+    [].forEach.call($('fmVars').querySelectorAll('input'),inp=>inp.addEventListener('input',fmCompute));
+    fmCompute();
+  }
+  function fmCompute(){
+    const f=FM[fmCur], vals={}; let ok=true;
+    [].forEach.call($('fmVars').querySelectorAll('input'),inp=>{ const x=parseFloat(inp.value); if(!isFinite(x)) ok=false; vals[f.vars[+inp.dataset.i].s]=x; });
+    const out=$('fmOut');
+    if(!ok){ out.innerHTML='<span style="color:var(--mut2);font-size:.85rem">Bitte alle Felder ausfüllen.</span>'; fmLast=null; return; }
+    let r; try{ r=f.c(vals); }catch(e){ r=NaN; }
+    if(!isFinite(r)){ out.innerHTML='<span style="color:var(--no);font-size:.85rem">Nicht berechenbar (z. B. Division durch 0).</span>'; fmLast=null; return; }
+    fmLast=r;
+    out.innerHTML='<div class="fm-expr">'+f.e(vals,fmtNum(r))+'</div><div class="fm-res"><span style="color:var(--mut);font-size:.84rem">'+esc(f.n)+'</span><span class="v">'+fmtNum(r)+' '+esc(f.u)+'</span></div>'+(f.note?'<div class="fm-note">'+f.note+'</div>':'')+'<div class="fm-btns"><button id="fmCopy" class="primary">⧉ kopieren</button><button id="fmToCalc">→ Rechner</button><button id="fmToTape">→ Verlauf</button></div>';
+  }
+  $('fmOut').addEventListener('click',e=>{ const id=e.target.id;
+    if(id==='fmCopy'&&fmLast!=null) copy(rawNum(fmLast));
+    else if(id==='fmToCalc'&&fmLast!=null){ insertValue(rawNum(fmLast)); toast('Ins Rechenfeld übernommen'); }
+    else if(id==='fmToTape'&&fmLast!=null){ pushTape(FM[fmCur].n, fmLast); toast('Im Verlauf abgelegt'); }
+  });
+  fmSel.value='0'; renderFmVars();
+  /* ---- Tastatur ---- */
+  document.addEventListener('keydown',e=>{
+    if(!$('view-rech').classList.contains('show')) return;
+    const tag=(e.target.tagName||'').toLowerCase(); if(tag==='input'||tag==='select'||tag==='textarea') return;
+    const k=e.key; let handled=true;
+    if(/^[0-9]$/.test(k)) press(k);
+    else if(k==='.'||k===',') press('.');
+    else if(k==='+') press('+'); else if(k==='-') press('−');
+    else if(k==='*') press('×'); else if(k==='/') press('÷');
+    else if(k==='^') press('xʸ'); else if(k==='(') press('('); else if(k===')') press(')');
+    else if(k==='%') press('%');
+    else if(k==='Enter'||k==='=') press('=');
+    else if(k==='Backspace') press('⌫');
+    else if(k==='Escape') press('C');
+    else handled=false;
+    if(handled) e.preventDefault();
+  });
+  /* ---- Init ---- */
+  refreshMem(); renderTape(); render();
+})();
+
+/* Deep-Link: vorlage.html#formeln / #bauteile / #hxdia / #kanal / #rechner */
 if (location.hash === '#formeln') vShow('for');
 else if (location.hash === '#bauteile') vShow('bau');
 else if (location.hash === '#hxdia') vShow('hx');
 else if (location.hash === '#kanal') vShow('kan');
+else if (location.hash === '#rechner') vShow('rech');
 </script>
 </body></html>
