@@ -113,6 +113,11 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .fb-info{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.35);color:#bae6fd}
 .sol-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 .steps{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.leg-box{margin-top:12px;padding:11px 14px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.24);border-radius:12px;font-size:.86rem;line-height:1.7}
+.leg-box .lh{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--acc);font-weight:700;margin-bottom:5px}
+.leg-box b{color:#fbbf24;font-weight:700}
+.formel-card{margin-top:12px;padding:12px 15px;background:rgba(56,189,248,.09);border:1px solid var(--acc);border-radius:12px;font-size:.95rem;line-height:1.5}
+.formel-card .lh{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--acc);font-weight:700;margin-bottom:5px}
 .step{display:flex;gap:12px;background:rgba(15,23,42,.55);border:1px solid var(--line);border-radius:12px;padding:12px 14px;opacity:0;transform:translateY(6px);animation:stepIn .3s forwards}
 @keyframes stepIn{to{opacity:1;transform:none}}
 .step .n{flex:0 0 26px;height:26px;border-radius:50%;background:rgba(56,189,248,.14);border:1px solid var(--acc);color:var(--acc);font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
@@ -271,11 +276,12 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
       </div>
       <div class="feedback" id="feedback"></div>
       <div class="sol-actions">
+        <button id="btnFormel">🧮 Formel</button>
         <button id="btnHint">💡 Hinweis</button>
         <button id="btnNext">Nächste Aufgabe →</button>
       </div>
       <div class="steps" id="steps"></div>
-      <div class="kbd-hint"><kbd>⏎</kbd> prüfen / weiter &nbsp;·&nbsp; <kbd>H</kbd> Hinweis-Stufe &nbsp;·&nbsp; <kbd>N</kbd> nächste Aufgabe</div>
+      <div class="kbd-hint"><kbd>F</kbd> Formel &nbsp;·&nbsp; <kbd>⏎</kbd> prüfen / weiter &nbsp;·&nbsp; <kbd>H</kbd> Hinweis-Stufe &nbsp;·&nbsp; <kbd>N</kbd> nächste Aufgabe</div>
     </article>
   </section>
 </main>
@@ -779,29 +785,37 @@ const GENS = {
 
   luft_co2(rng){
     const Pn = R.int(rng, 8, 120);
-    const q = R.pick(rng, [15, 18, 20]);     // l/h pro Person
-    const ci = R.pick(rng, [1000, 1200, 1400]), ca = R.pick(rng, [400, 450]);
-    const sol = Pn * q * 1000 / (ci - ca);   // m3/h
+    const q = R.pick(rng, [15, 18, 20]);       // l/h pro Person
+    const G = Pn * q * 1000;                    // cm³/h gesamt (1 l = 1000 cm³)
+    const Cmax = R.pick(rng, [1000, 1200, 1400]), Ce = R.pick(rng, [400, 450]);
+    const sol = G / (Cmax - Ce);                // m3/h
     return {
       cat: 'luft', title: 'Luftmenge über CO₂-Bilanz',
-      text: `In einem Sitzungszimmer halten sich ${fmt(Pn)} Personen auf; jede gibt ${q} l/h CO₂ ab. Die CO₂-Konzentration im Raum darf ${fmt(ci)} ppm nicht übersteigen, die Aussenluft enthält ${fmt(ca)} ppm. Welcher Aussenluftvolumenstrom ist erforderlich?`,
+      text: `In einem Sitzungszimmer halten sich ${fmt(Pn)} Personen auf; jede gibt ${q} l/h CO₂ ab. Die CO₂-Konzentration im Raum darf ${fmt(Cmax)} ppm nicht übersteigen, die Aussenluft enthält ${fmt(Ce)} ppm. Welcher Aussenluftvolumenstrom ist erforderlich?`,
       given: [
         { k: 'Personen', v: fmt(Pn), u: 'Pers.' },
-        { k: 'CO₂-Abgabe', v: String(q), u: 'l/(h·Pers.)' },
-        { k: 'Grenzwert innen cᵢ', v: fmt(ci), u: 'ppm' },
-        { k: 'Aussenluft cₐ', v: fmt(ca), u: 'ppm' }
+        { k: 'CO₂-Ausstoss/Person', v: String(q), u: 'l/(h·Pers.)' },
+        { k: 'max. Konzentration innen C_max', v: fmt(Cmax), u: 'ppm = cm³/m³' },
+        { k: 'Konzentration aussen C_e', v: fmt(Ce), u: 'ppm = cm³/m³' }
       ],
-      ask: 'Aussenluftvolumenstrom V̇', unit: 'm³/h', sol, round: 0, tol: { rel: 0.02, abs: 1 },
+      ask: 'Aussenluftvolumenstrom q_v', unit: 'm³/h', sol, round: 0, tol: { rel: 0.02, abs: 1 },
+      formel: 'q_v = G / (C_max − C_e)',
       steps: [
-        { t: 'Formel', d: `V̇ = q̇_CO₂ / (cᵢ − cₐ). Schadstofflast in m³/h, Konzentrationen als Volumenanteil (1 ppm = 10⁻⁶ = 1 ml/m³).` },
-        { t: 'CO₂-Last', d: `q̇ = ${fmt(Pn)} · ${q} l/h = ${fmt(Pn * q)} l/h = ${(Pn * q / 1000).toFixed(2)} m³/h.` },
-        { t: 'Konzentrationsdifferenz', d: `Δc = ${fmt(ci)} − ${fmt(ca)} = ${fmt(ci - ca)} ppm = ${((ci - ca) / 1e6).toExponential(1)} m³ CO₂ / m³ Luft.` },
-        { t: 'Resultat', d: `V̇ = ${(Pn * q / 1000).toFixed(2)} / ${((ci - ca) / 1e6).toExponential(1)} = <b>${fmt(sol)} m³/h</b> (≈ ${fmt(sol / Pn, 1)} m³/h pro Person – plausibel).` }
+        { t: 'Formel', d: `q_v = G / (C_max − C_e). G in cm³/h, C in cm³/m³ (= ppm) → ergibt direkt m³/h.` },
+        { t: 'Schadstoffrate G', d: `G = ${fmt(Pn)} Pers. · ${q} l/h = ${fmt(Pn * q)} l/h = ${fmt(G)} cm³/h (1 l = 1000 cm³).` },
+        { t: 'Konzentrationsdifferenz', d: `C_max − C_e = ${fmt(Cmax)} − ${fmt(Ce)} = ${fmt(Cmax - Ce)} cm³/m³.` },
+        { t: 'Resultat', d: `q_v = ${fmt(G)} / ${fmt(Cmax - Ce)} = <b>${fmt(sol)} m³/h</b> (≈ ${fmt(sol / Pn, 1)} m³/h pro Person).` }
+      ],
+      legende: [
+        ['q_v', 'Aussenluftvolumenstrom [m³/h]'],
+        ['G', 'Schadstoffemissionsrate / CO₂-Ausstoss [cm³/h]'],
+        ['C_max', 'max. Konzentration innen [cm³/m³ = ppm]'],
+        ['C_e', 'Konzentration Aussenluft [cm³/m³ = ppm]']
       ],
       traps: [
-        { v: sol / 1000, hint: 'Die CO₂-Abgabe ist in l/h – in m³/h umrechnen (÷1000), ppm = 10⁻⁶.' },
-        { v: sol * 1000, hint: 'Faktor 1000: prüfe l ↔ m³ und ppm (= 10⁻⁶, nicht 10⁻³).' },
-        { v: Pn * q * 1000 / ci, hint: 'Mit der DIFFERENZ rechnen: die Aussenluft bringt schon ' + fmt(ca) + ' ppm mit → Δc = cᵢ − cₐ.' }
+        { v: G / Cmax, hint: 'Mit der DIFFERENZ rechnen: die Aussenluft bringt schon ' + fmt(Ce) + ' ppm mit → C_max − C_e.' },
+        { v: sol / 1000, hint: 'G in cm³/h einsetzen: 18 l/h = 18\'000 cm³/h (×1000), dann cm³/h ÷ cm³/m³ = m³/h.' },
+        { v: sol * 1000, hint: 'Grössenordnung: cm³/h ÷ cm³/m³ ergibt direkt m³/h – kein zusätzlicher ×1000.' }
       ]
     };
   },
@@ -1713,18 +1727,29 @@ function renderSteps(){
     d.innerHTML = `<div class="n">${isResult ? '✓' : i + 1}</div><div class="body"><div class="t">${s.t}</div>${s.d}</div>`;
     box.appendChild(d);
   });
+  if (st >= 1){
+    const legHtml = (t.legende && t.legende.length)
+      ? t.legende.map(l => `<b>${l[0]}</b> = ${l[1]}`).join(' &nbsp;·&nbsp; ')
+      : (t.given || []).filter(g => g.k).map(g => `<b>${g.k}</b>${g.u ? ' [' + g.u + ']' : ''}`).join(' &nbsp;·&nbsp; ');
+    if (legHtml){ const lb = el('div', 'leg-box'); lb.innerHTML = '<div class="lh">Legende</div>' + legHtml; box.appendChild(lb); }
+  }
 }
+function hintLabel(){
+  $('btnHint').textContent = P.hintStage >= 3 ? '💡 Lösungsweg sichtbar' : P.hintStage === 2 ? '💡 Endresultat zeigen (H)' : P.hintStage >= 1 ? '💡 Zwischenschritte (H)' : '💡 Hinweis';
+  $('btnHint').disabled = P.hintStage >= 3;
+}
+function showFormel(){ if (P.hintStage < 1) P.hintStage = 1; renderSteps(); hintLabel(); }
 function doHint(){
   if (P.hintStage >= 3) return;
   P.hintStage++;
   if (P.hintStage >= 3 && !P.solved) countFirstAttempt(false); // Lösung angeschaut = zählt als falsch
   renderSteps();
-  $('btnHint').textContent = P.hintStage >= 3 ? '💡 Lösungsweg sichtbar' : P.hintStage === 2 ? '💡 Endresultat zeigen (H)' : '💡 Zwischenschritte (H)';
-  $('btnHint').disabled = P.hintStage >= 3;
+  hintLabel();
 }
 
 $('btnCheck').onclick = doCheck;
 $('btnHint').onclick = doHint;
+$('btnFormel').onclick = showFormel;
 $('btnNext').onclick = () => newTask();
 $('onlyWrong').onchange = newTask;
 
@@ -2227,6 +2252,8 @@ document.addEventListener('keydown', e => {
       if (P.solved) newTask(); else doCheck();
     } else if (e.key === 'h' || e.key === 'H'){
       e.preventDefault(); doHint();
+    } else if (e.key === 'f' || e.key === 'F'){
+      e.preventDefault(); showFormel();
     } else if (e.key === 'n' || e.key === 'N'){
       e.preventDefault(); newTask();
     } else if (!inInput && /^[\d.,-]$/.test(e.key)){
