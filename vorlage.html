@@ -134,9 +134,10 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .hx-diag{position:relative}
 .hx-fsbar{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .hx-taphint{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:12px;background:rgba(11,18,32,.30);color:#fff;font-weight:700;font-size:.95rem;pointer-events:none;text-shadow:0 1px 5px rgba(0,0,0,.7)}
-.hx-title{font-size:1.06rem;font-weight:700;color:var(--txt);text-align:center;padding:8px 12px;min-height:1.3em;outline:none;border-bottom:1px solid var(--glass-line)}
+.hx-title{font-size:1.06rem;font-weight:700;color:#111;text-align:center;padding:8px 12px;min-height:1.3em;outline:none;border-bottom:1px solid var(--glass-line)}
 .hx-title:empty:before{content:attr(data-ph);color:var(--mut2);font-weight:500;font-size:.92rem}
 .hx-title:focus{background:rgba(56,189,248,.06)}
+.hx-pdate{display:none}
 .hx-size{font:inherit;font-size:.83rem;padding:7px 8px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(0,0,0,.25);color:var(--txt);cursor:pointer}
 .beispiel{margin-top:18px;background:rgba(56,189,248,.1);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(56,189,248,.4);border-top:1px solid rgba(125,211,252,.55);border-radius:14px;padding:13px 16px;font-size:.9rem;line-height:1.55;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .bsp-k{display:inline-block;color:var(--acc);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:8px}
@@ -547,8 +548,9 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   body.print-schema h2.sec,body.print-schema #view-geb p{color:#000}
   body.print-schema .legend{color:#000}
   /* h,x-Diagramm: nur das Diagramm, A4 hoch */
-  body.print-hx{background:#fff}
+  body.print-hx{background:#fff;page:hxp}
   body.print-hx *{visibility:hidden !important}
+  body.print-hx .hx-pdate{display:block !important;visibility:visible !important;position:absolute;left:5mm;top:3mm;color:#111;font-size:11px;font-weight:600;font-family:system-ui,sans-serif;z-index:6}
   body.print-hx #hxStage,body.print-hx #hxStage *{visibility:visible !important}
   body.print-hx #hxStage{position:fixed;left:0;top:0;width:100%;border:none !important;box-shadow:none !important;border-radius:0 !important}
   body.print-hx #hxCursor{display:none !important}
@@ -559,6 +561,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   body.print-hx .hx-title:empty{display:none !important}
 }
 @page{size:A4 portrait;margin:9mm}
+@page hxp{size:A4 portrait;margin:0}
 </style></head><body>
 
 <!-- Liquid Glass + Aurora: Hintergrund-Schichten (Foto → Overlay → Blobs) -->
@@ -735,7 +738,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 </main>
 
 <footer>
-  Prüfungsvorlage · Manoa Verner · GPL22c · 2026
+  Vorlage GPL · Manoa Verner / Thierry Wehrli · 2026
 </footer>
 
 <script>
@@ -1868,6 +1871,7 @@ function hxHtml(){
     '<div class="hx-live" id="hxLive"><span class="ttl">Mauszeiger ≈</span> <span id="hxLiveBody">über das Diagramm bewegen …</span></div>' +
     '<div class="hx-live" id="hxEval" style="display:none;border-left:3px solid #0ea5e9"></div>' +
     '<div class="hx-stage" id="hxStage">' +
+      '<div class="hx-pdate" id="hxPDate"></div>' +
       '<div class="hx-title" id="hxTitle" contenteditable="true" data-ph="Titel eingeben (erscheint im Druck) …"></div>' +
       '<div class="hx-diag" id="hxDiag">' +
         '<img class="hx-img" src="hx-diagram.svg" alt="h,x-Diagramm für feuchte Luft">' +
@@ -2011,7 +2015,11 @@ function hxInit(){
   ov.addEventListener('pointerleave', () => { cursor.style.display = 'none'; });
   document.getElementById('hxUndo').onclick = () => { if (hxPoly) hxPoly = null; else hxLines.pop(); hxPrev = null; hxRenderDraw(); };
   document.getElementById('hxClear').onclick = () => { hxLines = []; hxPoly = null; hxPrev = null; hxPoints = []; hxTexts = []; hxSeg = null; const ev = document.getElementById('hxEval'); if (ev){ ev.style.display = 'none'; ev.innerHTML = ''; } const tt = document.getElementById('hxTitle'); if (tt) tt.textContent = ''; hxRenderDraw(); hxRenderPoints(); hxRenderTexts(); };
-  document.getElementById('hxPrint').onclick = () => { document.body.classList.add('print-hx'); window.print(); };
+  document.getElementById('hxPrint').onclick = () => {
+    const d = new Date(), pd = document.getElementById('hxPDate');
+    if (pd) pd.textContent = ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear();
+    document.body.classList.add('print-hx'); window.print();
+  };
 }
 window.addEventListener('afterprint', () => document.body.classList.remove('print-hx'));
 
