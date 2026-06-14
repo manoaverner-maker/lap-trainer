@@ -131,6 +131,7 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .hx-pt .nm{font-weight:700;color:#5ecbfa;cursor:text}
 .hx-pt .del{cursor:pointer;color:var(--mut2);margin-left:6px;font-weight:700}
 .hx-pt .del:hover{color:#fca5a5}
+.hx-pt-mini{display:none}
 .hx-diag{position:relative}
 .hx-fsbar{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .hx-taphint{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:12px;background:rgba(11,18,32,.30);color:#fff;font-weight:700;font-size:.95rem;pointer-events:none;text-shadow:0 1px 5px rgba(0,0,0,.7)}
@@ -576,9 +577,11 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   body.print-hx .hx-pdscale{display:block !important;flex:0 0 auto}
   body.print-hx .hx-diag{flex:0 0 auto}
   body.print-hx #hxCursor{display:none !important}
-  body.print-hx .hx-pt{background:#fff !important;color:#111 !important;box-shadow:none !important;border:1px solid #999 !important;border-left:3px solid #0a8a6a !important}
+  body.print-hx .hx-pt{background:rgba(255,255,255,.8) !important;color:#111 !important;box-shadow:none !important;border:1px solid #bbb !important;border-left:3px solid #0a8a6a !important;font-size:7.5px !important;line-height:1.25 !important;padding:2px 4px !important;border-radius:5px !important}
   body.print-hx .hx-pt .nm{color:#0a6a52 !important}
   body.print-hx .hx-pt .del{display:none !important}
+  body.print-hx .hx-pt-full{display:none !important}
+  body.print-hx .hx-pt-mini{display:block !important;font-variant-numeric:tabular-nums}
   body.print-hx .hx-pfoot{display:flex !important;align-items:center;justify-content:center;position:fixed;left:0;right:0;bottom:0;height:9mm;background:#236b6a;color:#eaf6f5;font-size:9px;letter-spacing:.05em;font-family:system-ui,sans-serif;z-index:7}
 }
 @page{size:A4 portrait;margin:9mm}
@@ -1563,6 +1566,107 @@ const FORMEL_DATA = [
     ]
   },
   {
+    id: 'lufterhitzer', name: 'Lufterhitzer (Heizregister)',
+    intro: 'Erwärmt die Luft sensibel (cL·Δt). Formelzeichen & Einheiten exakt nach Formel-Arbeitsbuch Kap. 3.4.',
+    norm: 'SIA 382/1 · Arbeitsbuch 3.4 / 20.5',
+    items: [
+      { sym: 'Q̇ = frac{V̇ · ρ_L · c_L · Δt}{3600}', val: '[kW]', note: 'Lufterhitzerleistung — V̇ in m³/h, c_L = 1.006 kJ/(kg·K)' },
+      { sym: 'V̇ = frac{Q̇ · 3600}{ρ_L · c_L · Δt}', val: '[m³/h]', note: 'nach Volumenstrom umgestellt' },
+      { sym: 'Δt = frac{Q̇ · 3600}{V̇ · ρ_L · c_L}', val: '[K]', note: 'Luft-Temperaturhub (ϑ_ZUL − ϑ_EIN)' },
+      { sym: 'ṁ_LE = frac{Q̇}{Δt_W · c_W}', val: '[kg/s]', note: 'Wassermenge Register — Δt_W = t_VL − t_RL (Erhitzer!), c_W = 4.187 kJ/(kg·K)' },
+    ],
+    beispiel: 'V̇ = 4000 m³/h, ρ_L = 1.2, Δt = 25 K → Q̇ = (4000·1.2·1.006·25)/3600 = 33.5 kW · Wasser 70/50 °C (Δt_W = 20 K): ṁ_LE = 33.5/(20·4.187) = 0.40 kg/s ≈ 1440 kg/h',
+    legende: [
+      ['Q̇', 'Lufterhitzerleistung [kW]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['ρ_L', 'Dichte Luft [kg/m³]'],
+      ['c_L', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
+      ['c_W', 'Wärmekapazität Wasser (4.187) [kJ/(kg·K)]'],
+      ['Δt', 'Temperatur Luft [K]'],
+      ['Δt_W', 'Temperatur Wasser (t_VL − t_RL) [K]'],
+      ['ṁ_LE', 'Wassermenge [kg/s]'],
+    ]
+  },
+  {
+    id: 'luftkuehler', name: 'Luftkühler (Kühlregister)',
+    intro: 'Kühlt und – unter dem Taupunkt – entfeuchtet die Luft. Gesamtleistung über die Enthalpie Δh (nicht cL·Δt)! Formelzeichen & Einheiten exakt nach Formel-Arbeitsbuch Kap. 3.8 / 3.9.',
+    norm: 'SIA 382/1 · Arbeitsbuch 3.8 / 3.9 / 20.6',
+    items: [
+      { sym: 'Q̇ = frac{V̇ · ρ_L · Δh}{3600}', val: '[kW]', note: 'Luftkühlerleistung GESAMT (sensibel + latent) → mit Enthalpiedifferenz Δh!' },
+      { sym: 'V̇ = frac{Q̇ · 3600}{ρ_L · c_L · Δt}', val: '[m³/h]', note: 'Volumenstrom (sensibel, ohne Entfeuchtung)' },
+      { sym: 'Δt = frac{Q̇ · 3600}{V̇ · ρ_L · c_L}', val: '[K]', note: 'Luft-Temperaturhub (sensibel)' },
+      { sym: 'ṁ_LE = frac{Q̇}{Δt_W · c_W}', val: '[kg/s]', note: 'Wassermenge (Kaltwasser) — Δt_W = t_RL − t_VL (Kühler!)' },
+      { sym: 'ṁ_K = frac{V̇ · ρ_L · Δx}{1000}', val: '[kg/h]', note: 'Kondenswassermenge bei Entfeuchtung (Δx in g/kg)' },
+      { sym: 't_WM = frac{t_WE + t_WA}{2}', val: '[°C]', note: 'Mittlere Wassertemperatur' },
+      { sym: 't_O ≈ t_WM + 1', val: '[°C]', note: 'Mittlere Oberflächentemperatur Kühler — Wasserausscheidung, sobald t_O < t_TP (Taupunkt)!' },
+    ],
+    tables: [
+      { title: 'Wasserausscheidung (Kondensat) – wann?', src: 'Arbeitsbuch 3.8',
+        head: ['Bedingung', 'Folge'],
+        rows: [
+          ['t_O > t_TP', 'nur Kühlen, x bleibt konstant (x₂ = x₁)'],
+          ['t_O < t_TP', 'Kühlen + Entfeuchten → Kondensat fällt aus → Siphon nötig'],
+        ] },
+    ],
+    beispiel: 'Kaltwasser 6/12 °C → t_WM = (6+12)/2 = 9 °C, t_O ≈ 10 °C. Liegt t_O unter dem Taupunkt der Luft → Kondensat (Siphon!). · Gesamtleistung Q̇ = V̇·ρ_L·Δh/3600 mit Δh = h_EIN − h_AUS.',
+    legende: [
+      ['Q̇', 'Luftkühlerleistung [kW]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['ρ_L', 'Dichte Luft [kg/m³]'],
+      ['c_L', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
+      ['c_W', 'Wärmekapazität Wasser (4.187) [kJ/(kg·K)]'],
+      ['Δt', 'Temperatur Luft [K]'],
+      ['Δh', 'Spez. Enthalpiedifferenz Luft [kJ/kg]'],
+      ['Δx', 'Wasserdampfdifferenz [g/kg]'],
+      ['Δt_W', 'Temperatur Wasser (t_RL − t_VL) [K]'],
+      ['ṁ_LE', 'Wassermenge [kg/s]'],
+      ['ṁ_K', 'Kondenswassermenge [kg/h]'],
+      ['t_WE', 'Wassertemperatur Eintritt (Vorlauf) [°C]'],
+      ['t_WA', 'Wassertemperatur Austritt (Rücklauf) [°C]'],
+      ['t_WM', 'Mittlere Wassertemperatur [°C]'],
+      ['t_O', 'Mittlere Oberflächentemperatur Kühler [°C]'],
+      ['t_TP', 'Taupunkttemperatur Luft [°C]'],
+    ]
+  },
+  {
+    id: 'befeuchter', name: 'Befeuchter (Dampf & adiabat)',
+    intro: 'Erhöht den Wasserdampfgehalt x. Dampf = isotherm (ϑ ≈ konst.), adiabatisch = isenthalp (h ≈ konst., ϑ sinkt). Formelzeichen & Einheiten exakt nach Formel-Arbeitsbuch Kap. 3.11–3.13.',
+    norm: 'SIA 382/1 · SWKI VA104 · Arbeitsbuch 3.11–3.13',
+    items: [
+      { sym: 'Q̇ = frac{V̇ · ρ_L · Δh}{3600}', val: '[kW]', note: 'Befeuchterleistung (Enthalpie-Zunahme der Luft)' },
+      { sym: 'V̇ = frac{Q̇ · 3600}{ρ_L · c_L · Δt}', val: '[m³/h]', note: 'Volumenstrom (sensibel umgestellt)' },
+      { sym: 'Δt = frac{Q̇ · 3600}{V̇ · ρ_L · c_L}', val: '[K]', note: 'Temperaturänderung der Luft' },
+      { sym: 'ṁ_W = frac{V̇ · ρ_L · Δx}{1000}', val: '[kg/h]', note: 'Befeuchterwassermenge (Δx in g/kg)' },
+      { sym: 'η = frac{x_2 − x_1}{x_S − x_1}', val: '[%]', note: 'Befeuchtungswirkungsgrad (Sättigungsgrad) — v.a. adiabatisch' },
+      { sym: 'Dampf (isotherm)', val: 'ϑ ≈ konst. · x ↑', note: 'Dampfbefeuchter: Wasser als Dampf zugeführt, Temperatur bleibt ~gleich' },
+      { sym: 'Adiabatisch (isenthalp)', val: 'h ≈ konst. · ϑ ↓ · x ↑', note: 'Verdunsten/Zerstäuben: Verdunstungskälte kühlt die Luft ab' },
+    ],
+    tables: [
+      { title: 'Befeuchtungsarten', src: 'Arbeitsbuch 3.11',
+        head: ['Art', 'Prinzip', 'Prozess'],
+        rows: [
+          ['Verdampfen', 'Wasser unter Wärmezufuhr verdampft', 'Dampf (isotherm)'],
+          ['Verdunsten', 'Wasser auf grosse Oberfläche → verdunstet', 'adiabatisch'],
+          ['Zerstäuben', 'Wasser mechanisch in feinste Tropfen zerteilt', 'adiabatisch'],
+        ] },
+    ],
+    beispiel: 'V̇ = 3000 m³/h, ρ_L = 1.2, Δx = 4 g/kg → ṁ_W = (3000·1.2·4)/1000 = 14.4 kg/h. · Wirkungsgrad: x_1 = 4, x_2 = 7, x_S = 9 g/kg → η = (7−4)/(9−4) = 60 %',
+    legende: [
+      ['Q̇', 'Luftbefeuchterleistung [kW]'],
+      ['V̇', 'Volumenstrom [m³/h]'],
+      ['ρ_L', 'Dichte Luft [kg/m³]'],
+      ['c_L', 'Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],
+      ['Δt', 'Temperatur Luft [K]'],
+      ['Δh', 'Spez. Enthalpiedifferenz Luft [kJ/kg]'],
+      ['Δx', 'Wasserdampfdifferenz [g/kg]'],
+      ['ṁ_W', 'Wassermenge [kg/h]'],
+      ['η', 'Befeuchtungswirkungsgrad [%]'],
+      ['x_1', 'Wasserdampfgehalt EIN [g/kg]'],
+      ['x_2', 'Wasserdampfgehalt AUS [g/kg]'],
+      ['x_S', 'Wasserdampfgehalt Sättigung [g/kg]'],
+    ]
+  },
+  {
     id: 'druck', name: 'Druckverlust',
     intro: 'Systemwiderstand im Kanalnetz — massgebend für Ventilatorwahl. In der Praxis liest man den Reibungsverlust Δp/m aus der Druckverlust-Tabelle bzw. dem Rohrreibungsdiagramm (λ aus Moody-Diagramm) ab und ζ aus der Zeta-Wert-Tabelle; die Formeln zeigen die Physik dahinter (Darcy-Weisbach).',
     norm: 'SIA 382/1',
@@ -1927,7 +2031,7 @@ function hxRenderPoints(){
   c.innerHTML = hxPoints.map((p, i) => {
     const px = Math.max(0, p.x), st = hxState(p.t, px), tdp = hxDew(px), twb = hxWet(p.t, px);
     const fx = ((p.sx - HXVB.x) / HXVB.w * 100).toFixed(2), fy = ((p.sy - HXVB.y) / HXVB.h * 100).toFixed(2);
-    return `<div class="hx-pt" style="left:${fx}%;top:${fy}%"><span class="nm" data-i="${i}">${esc(p.name)}</span><span class="del" data-i="${i}">✕</span><br>ϑ ${p.t.toFixed(1)} °C · x ${px.toFixed(1)} g/kg<br>φ ${st.phi.toFixed(0)} % · h ${st.h.toFixed(1)} · ρ ${st.rho.toFixed(2)}<br>Taup ${tdp.toFixed(1)} °C · Feuchtk ${twb.toFixed(1)} °C</div>`;
+    return `<div class="hx-pt" style="left:${fx}%;top:${fy}%"><span class="nm" data-i="${i}">${esc(p.name)}</span><span class="del" data-i="${i}">✕</span><span class="hx-pt-full"><br>ϑ ${p.t.toFixed(1)} °C · x ${px.toFixed(1)} g/kg<br>φ ${st.phi.toFixed(0)} % · h ${st.h.toFixed(1)} · ρ ${st.rho.toFixed(2)}<br>Taup ${tdp.toFixed(1)} °C · Feuchtk ${twb.toFixed(1)} °C</span><span class="hx-pt-mini">ϑ ${p.t.toFixed(1)} °C · φ ${st.phi.toFixed(0)} %</span></div>`;
   }).join('');
   c.querySelectorAll('.del').forEach(d => d.onclick = () => { hxPoints.splice(+d.dataset.i, 1); hxRenderPoints(); hxRenderDraw(); });
   c.querySelectorAll('.nm').forEach(n => n.onclick = () => { const i = +n.dataset.i, nm = prompt('Name des Zustands:', hxPoints[i].name); if (nm != null){ hxPoints[i].name = nm; hxRenderPoints(); } });
@@ -2066,18 +2170,21 @@ const BAUTEIL_DATA = [
     legende:[['K_v','Durchfluss-Kennwert [m³/h bei 1 Pa]'],['V̇','Volumenstrom [m³/h]'],['Δp','Druckverlust am Auslass [Pa]']],
     files:[{label:'Hinweis & Auslegung', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Hinweis.pdf'},
            {label:'Übung Dimensionierung', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Kapitel_4_Übung_Diffusionsgitter Dimensionierung.pdf'},
-           {label:'Auslegung Gitter (Trox)', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Auslegung Gitter Trox.pdf'}] },
+           {label:'Auslegung Gitter (Trox)', path:'../03_Auslegungen/Auslässe/Diffusionsgitter/Auslegung Gitter Trox.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 28.1', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Auslässe', id:'draller', name:'Deckendraller',
     desc:'Drallauslass mit rotierender Luftführung. Hohe Induktion, grosse Wurfweite, gut für hohe Räume.',
     formel:'Ausblasgeschwindigkeit 2–5 m/s · Induktionszahl je nach Typ', norm:'SIA 382/1',
     files:[{label:'Hinweis & Auslegung', path:'../03_Auslegungen/Auslässe/Draller/Hinweis.pdf'},
            {label:'Übung Deckendraller', path:'../03_Auslegungen/Auslässe/Draller/Kapitel_8_Übung_Deckendraller.pdf'},
-           {label:'Auslegung Durrer', path:'../03_Auslegungen/Auslässe/Draller/Auslegung Durrer.pdf'}] },
+           {label:'Auslegung Durrer', path:'../03_Auslegungen/Auslässe/Draller/Auslegung Durrer.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 28.3', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Auslässe', id:'queller', name:'Quelldurchlass',
     desc:'Bodennaher Auslass mit sehr geringer Ausblasgeschwindigkeit. Luftqualität im Aufenthaltsbereich optimal.',
     formel:'v_Auslass = 0.1–0.3 m/s · ΔT = 2–4 K unter Raumtemperatur', norm:'SIA 382/1, VDI 3804',
     files:[{label:'Hinweis', path:'../03_Auslegungen/Auslässe/Queller/Hinweis.pdf'},
-           {label:'Auslegung', path:'../03_Auslegungen/Auslässe/Queller/Queller_Auslegung.pdf'}] },
+           {label:'Auslegung', path:'../03_Auslegungen/Auslässe/Queller/Queller_Auslegung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 28.5', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Auslässe', id:'tellerventil', name:'Tellerventil',
     desc:'Einfachster Raumdurchlass. Axiale Einstellung des Tellers regelt Volumenstrom. ZUL konvex, ABL konkav mit Gitter.',
     formel:'K_v = frac{V̇}{√Δp} · Betrieb bei Δp = 5–15 Pa (K_v = Durchfluss-Kennwert)', norm:'SIA 382/1',
@@ -2094,78 +2201,95 @@ const BAUTEIL_DATA = [
     desc:'Erwärmt den Luftstrom auf Zulufttemperatur. Heizmittel: Warmwasser, elektrisch oder Dampf.',
     formel:'Q̇ = frac{V̇·ρ·c_L·ΔT}{3600} [kW] (= Heizleistung) · wasserseitig KVS = frac{V̇_W}{√Δp}', norm:'SIA 382/1',
     legende:[['Q̇','Heizleistung [kW]'],['V̇','Luft-Volumenstrom [m³/h]'],['ρ','Dichte Luft [kg/m³]'],['c_L','Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],['ΔT','Luft-Temperaturhub [K]'],['KVS','Ventilkennwert [m³/h]'],['V̇_W','Wasser-Volumenstrom [m³/h]']],
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Lufterhitzer/Lufterhitzer_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Lufterhitzer/Lufterhitzer_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 3.4 / 20.5', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Luftbehandlung', id:'luftkühler', name:'Luftkühler (Kühlregister)',
     desc:'Kühlt und ggf. entfeuchtet den Luftstrom. Taupunkt-Unterschreitung → Kondensatbildung → Siphon nötig.',
     formel:'gesamt Q̇ = frac{V̇·ρ·Δh}{3600} [kW] · nur sensibel Q̇ = frac{V̇·ρ·c_L·ΔT}{3600}', norm:'SIA 382/1',
     legende:[['Q̇','Kühlleistung [kW]'],['V̇','Volumenstrom [m³/h]'],['ρ','Dichte Luft [kg/m³]'],['Δh','Enthalpiedifferenz Luft, sensibel + latent [kJ/kg]'],['c_L','Wärmekapazität Luft (1.006) [kJ/(kg·K)]'],['ΔT','Temperaturhub [K]']],
     files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftkühler.docx'},
-           {label:'Formeln', path:'../04_Lerndokus/Luftkühler Formeln.docx'}] },
+           {label:'Formeln', path:'../04_Lerndokus/Luftkühler Formeln.docx'},
+           {label:'Formel-Arbeitsbuch · Kap. 3.8–3.9 / 20.6', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Luftbehandlung', id:'befeuchter-dampf', name:'Dampfbefeuchter',
     desc:'Befeuchtet mit reinem Dampf. Temperatur bleibt konstant, x steigt. Hygienisch einwandfrei.',
-    formel:'ṁ_W = V̇·ρ·Δx [g/h] · Dampfheizleistung P = ṁ_W·r/3600 [kW] (ṁ_W in kg/h, r ≈ 2500 kJ/kg)', norm:'SIA 382/1, SWKI VA104',
-    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'}] },
+    formel:'ṁ_W = frac{V̇·ρ_L·Δx}{1000} [kg/h] · Dampfleistung P = frac{ṁ_W·r}{3600} [kW] (Δx in g/kg, r ≈ 2500 kJ/kg)', norm:'SIA 382/1, SWKI VA104',
+    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'},
+           {label:'Formel-Arbeitsbuch · Kap. 3.11–3.13 / 22', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Luftbehandlung', id:'befeuchter-adiabat', name:'Adiabatischer Befeuchter',
     desc:'Befeuchtet durch Wasserverdunstung. h ≈ konst., Temperatur sinkt, x steigt. Energieeffizient.',
-    formel:'h_ein ≈ h_aus · ΔT ≈ −Δx · 2500/c_p', norm:'SIA 382/1, SWKI VA104',
-    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'}] },
+    formel:'h_ein ≈ h_aus (isenthalp) · η = frac{x_2 − x_1}{x_S − x_1} [%]', norm:'SIA 382/1, SWKI VA104',
+    files:[{label:'Lerndokumentation', path:'../04_Lerndokus/Luftbefeuchter.docx'},
+           {label:'Formel-Arbeitsbuch · Kap. 3.13 / 22', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'WRG', id:'wrg-rotation', name:'Rotationswärmetauscher',
     desc:'Rotierendes Rad überträgt Wärme (und Feuchte) von Abluft auf Zuluft. φ = 75–85%. Nicht für Küche/Labor.',
     formel:'φ = (ϑ_ZUL−ϑ_AUL)/(ϑ_ABL−ϑ_AUL) · Δp = 80–150 Pa je Seite', norm:'SWKI VA300-01, SIA 382/1',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Rotationswärmetauscher/WRG_Rotation_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Rotationswärmetauscher/WRG_Rotation_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 19.9', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'WRG', id:'wrg-platte', name:'Plattenwärmetauscher',
     desc:'Hermetisch getrennte Ströme. Kein Feuchtetransfer (ausser Membrantyp). Auch für Küche/Labor geeignet.',
     formel:'φ_Kreuzstrom = 50–65% · φ_Gegenstrom = 70–85%', norm:'EN 308, SIA 382/1',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Plattenwärmetauscher/WRG_Platte_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Plattenwärmetauscher/WRG_Platte_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 19.7', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'WRG', id:'wrg-umlauf', name:'Umlaufsystem (Flüssigkeits-WRG)',
     desc:'Zwei Batterien über Pumpe mit Glykol verbunden. Einziges System für räumlich getrennte Anlagen.',
     formel:'φ = 40–60% · Glykol 30–40% für Frostschutz bis −15°C', norm:'SIA 382/1',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Umlaufsystem/WRG_Umlauf_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/WRG/Umlaufsystem/WRG_Umlauf_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 19.8', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Filter', id:'taschenfilter', name:'Taschenfilter (ePM1/F7)',
     desc:'Standard-Feinstaubfilter. ePM1 ≥60% oder ≥80%. Wechsel nach Differenzdruck-Anzeige.',
     formel:'Δp_neu = 80–120 Pa · Wechsel bei Δp_max = 200–250 Pa', norm:'EN ISO 16890, SIA 382/1',
     files:[{label:'SVWL Filterauswahl-Tool', path:'../03_Auslegungen/SVWL-Tool Filter/140_Werkzeug_Filterauswahl_V1.1_D.pdf'},
-           {label:'Wegleitung Filterbestimmung', path:'../03_Auslegungen/SVWL-Tool Filter/Wegleitung__Filterbestimmung_V2.1_.pdf'}] },
+           {label:'Wegleitung Filterbestimmung', path:'../03_Auslegungen/SVWL-Tool Filter/Wegleitung__Filterbestimmung_V2.1_.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 27', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Filter', id:'hepa', name:'HEPA-Filter (H13/H14)',
     desc:'Schwebstofffilter für OP, Reinraum, Pharma. H13 ≥99.95%, H14 ≥99.995%. Vorfilter F7 zwingend!',
     formel:'Δp_neu = 250–400 Pa · Wechsel bei 600–800 Pa', norm:'EN 1822',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/HEPA-Filter/HEPA_Filter_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/HEPA-Filter/HEPA_Filter_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 27', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Regelung / MSR', id:'bsk', name:'Brandschutzklappe (BSK)',
     desc:'Schliesst bei Brandfall selbsttätig (Schmelzlot 72°C). Unterbricht Brandausbreitung im Kanalnetz.',
     formel:'Schmelzlot 72°C (Standard) / 95°C (Küche) · BSK in jeder feuerw. Wand/Decke', norm:'EN 15650, VKF 25-15',
     files:[{label:'BSK Info', path:'../03_Auslegungen/Brandschutzklappe/Brandschutzklappe.pdf'},
-           {label:'Steuerung BSK', path:'../03_Auslegungen/Brandschutzklappe/Steuerung Brandschutzklappen.pdf'}] },
+           {label:'Steuerung BSK', path:'../03_Auslegungen/Brandschutzklappe/Steuerung Brandschutzklappen.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 14.11', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Regelung / MSR', id:'vav', name:'Variabler Volumenstromregler (VAV)',
     desc:'Regelt Volumenstrom bedarfsabhängig 0–100%. Drucksensor + Klappe + Stellantrieb integriert.',
     formel:'V̇_min/V̇_max = 0.2–1.0 · Mindest-Δp Kanal = 80–150 Pa', norm:'SIA 382/1, EN 1751',
     files:[{label:'VAV Erklärungsblatt', path:'../03_Auslegungen/Volumenstromregler/VAV_VariablerVolumenstromregler_Erklaerung.pdf'},
-           {label:'TROX VARYCONTROL Codeliste', path:'../03_Auslegungen/Volumenstromregler/TROX-HESCO_VARYCONTROL-Codeliste_01-2024.pdf'}] },
+           {label:'TROX VARYCONTROL Codeliste', path:'../03_Auslegungen/Volumenstromregler/TROX-HESCO_VARYCONTROL-Codeliste_01-2024.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 24', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Regelung / MSR', id:'kvs', name:'KVS-Regelventil',
     desc:'Regelt Wasservolumenstrom zu Heiz-/Kühlregistern. KVS = Durchfluss bei Δp = 1 bar.',
     formel:'KVS = frac{V̇_W}{√Δp} · Ventilautorität P_v = frac{Δp_v}{Δp_System} ≥ 0.3', norm:'EN 60534, SIA 382/1',
     legende:[['KVS','Durchfluss bei Δp = 1 bar [m³/h]'],['V̇_W','Wasser-Volumenstrom [m³/h]'],['Δp','Druckverlust am Ventil [bar]'],['P_v','Ventilautorität [–]']],
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/KVS-Regelventil/KVS_Regelventil_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/KVS-Regelventil/KVS_Regelventil_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 16 / 17', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Regelung / MSR', id:'regelklappe', name:'Regelklappe / Absperrklappe',
     desc:'Absperrklappe: Auf/Zu. Regelklappe: 0–100% stufenlos. Leckrate nach EN 1751 Klasse 1–3.',
     formel:'Δp = ζ·ρ/2·v² · ζ_100% offen = 0.1–0.5', norm:'EN 1751, SIA 382/1',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/Regelklappe/Regelklappe_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/Regelklappe/Regelklappe_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 31', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Regelung / MSR', id:'sensoren', name:'Sensoren (CO₂, Feuchte, Temperatur)',
     desc:'CO₂: NDIR-Prinzip 400–2000 ppm. Feuchte: kapazitiv. Temp: PT100/PT1000. CO₂ gut <800 ppm.',
     formel:'CO₂ Sollwert: 1000 ppm (SIA Stufe II) · Kalibrierung alle 1–2 Jahre', norm:'SIA 382/1',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/Sensoren/Sensoren_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Regelung/Sensoren/Sensoren_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 16', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Ventilatoren', id:'radial', name:'Radialventilator',
     desc:'Standard in RLT-Zentralen. Rückwärtsgekrümmte Schaufeln: η = 75–85%. Stabile Kennlinie.',
     formel:'P = V̇·Δp_t/η · SFP ≤ 1250 W·s/m³ · V̇∝n, Δp∝n², P∝n³', norm:'EN ISO 5801, SIA 382/1',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Radialventilator/Radialventilator_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Radialventilator/Radialventilator_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 6.12', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Ventilatoren', id:'axial', name:'Axialventilator',
     desc:'Grosser Volumenstrom bei niedrigem Druck. Entrauchung F400 (400°C/2h), Tiefgaragen.',
     formel:'Δp = 50–500 Pa · η = 55–75% · F400 nach EN 12101-3', norm:'EN ISO 5801, SIA 182',
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Axialventilator/Axialventilator_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Ventilatoren/Axialventilator/Axialventilator_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 6.11', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
   { cat:'Sonstiges', id:'wsg', name:'Wetterschutzgitter & Rückschlagklappe',
     desc:'AUL ≤2 m/s, FOL ≤4 m/s. Mindestabstand AUL↔FOL: 5 m horizontal, 2 m vertikal (SIA 382/1).',
     formel:'A_roh = frac{V̇}{3600 · v_frei · f_frei} · f_frei = 0.5–0.7', norm:'SIA 382/1',
     legende:[['A_roh','Brutto-Gitterfläche [m²]'],['V̇','Volumenstrom [m³/h]'],['v_frei','Geschw. freier Querschnitt — AUL ≤ 2, FOL ≤ 4 m/s'],['f_frei','freier Querschnittsanteil 0.5–0.7']],
-    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Wetterschutzgitter_RSK/WSG_RSK_Erklaerung.pdf'}] },
+    files:[{label:'Erklärungsblatt', path:'../03_Auslegungen/Wetterschutzgitter_RSK/WSG_RSK_Erklaerung.pdf'},
+           {label:'Formel-Arbeitsbuch · Kap. 29', path:'../04_Lerndokus/Doku/Formel-Arbeitsbuch_Manoa_Verner.pdf', ab:true}] },
 ];
 let CUR_BAUTEIL = '';
 function renderBauteil(){
@@ -2174,8 +2298,11 @@ function renderBauteil(){
   if (!b){ box.innerHTML = '<div class="empty">Wähle oben ein Bauteil, um Beschreibung, Auslegungsformel, Norm und Vorlagen zu sehen.</div>'; return; }
   const files = b.files.map(f => {
     // offline (file://) → direkt aus dem Ordner; online → ins Repo gespiegelte Kopie unter vorlagen/
+    // Arbeitsbuch (ab:true): nur offline verlinkt (Umfang + fremde Inhalte) → online Hinweis statt Link
+    if (f.ab && !BT_IS_FILE)
+      return `<span class="filebtn" style="opacity:.55;cursor:default" title="Im Offline-Ordner 04_Lerndokus\\Doku verfügbar">📘 ${esc(f.label)} <span class="ext">offline</span></span>`;
     const href = BT_IS_FILE ? encodeURI(f.path) : encodeURI('vorlagen/' + f.path.replace(/^\.\.\//, ''));
-    return `<a class="filebtn" href="${href}" target="_blank" rel="noopener">📄 ${esc(f.label)} <span class="ext">↗</span></a>`;
+    return `<a class="filebtn" href="${href}" target="_blank" rel="noopener">${f.ab ? '📘' : '📄'} ${esc(f.label)} <span class="ext">↗</span></a>`;
   }).join('');
   const fileNote = BT_IS_FILE
     ? 'Dateien öffnen direkt aus den Ordnern 03_Auslegungen / 04_Lerndokus.'
@@ -2453,9 +2580,10 @@ function renderBauteil(){
   resEl.addEventListener('click',()=>{ if(lastValid!=null) copy(rawNum(lastValid)); });
   /* ---- Einheiten-Umrechner ---- */
   const UNITS={
-    'Volumenstrom':{u:['m³/h','l/s','m³/s','l/h'], f:{'m³/h':1,'l/s':3.6,'m³/s':3600,'l/h':0.001}},
-    'Druck':{u:['Pa','kPa','mbar','bar','mmWS'], f:{'Pa':1,'kPa':1000,'mbar':100,'bar':100000,'mmWS':9.80665}},
-    'Leistung':{u:['W','kW','MW','kcal/h'], f:{'W':1,'kW':1000,'MW':1e6,'kcal/h':1.163}},
+    'Volumenstrom':{u:['m³/h','l/s','m³/s','l/h','dm³/h','cm³/h'], f:{'m³/h':1,'l/s':3.6,'m³/s':3600,'l/h':0.001,'dm³/h':0.001,'cm³/h':0.000001}},
+    'Druck':{u:['Pa','hPa','kPa','mbar','bar','mmWS','mmHg','atm','psi'], f:{'Pa':1,'hPa':100,'kPa':1000,'mbar':100,'bar':100000,'mmWS':9.80665,'mmHg':133.322,'atm':101325,'psi':6894.757}},
+    'Leistung':{u:['W','kW','MW','kJ/h','kcal/h'], f:{'W':1,'kW':1000,'MW':1e6,'kJ/h':1000/3600,'kcal/h':1.163}},
+    'Energie':{u:['J','kJ','MJ','Wh','kWh','kcal'], f:{'J':0.001,'kJ':1,'MJ':1000,'Wh':3.6,'kWh':3600,'kcal':4.187}},
     'Geschwindigkeit':{u:['m/s','km/h','m/min'], f:{'m/s':1,'km/h':1/3.6,'m/min':1/60}},
     'Temperatur':{u:['°C','K','°F'], temp:true}
   };
@@ -2662,7 +2790,22 @@ function renderBauteil(){
       vars:[{s:'P₁',l:'Leistung alt',u:'kW',d:3},{s:'n₁',l:'Drehzahl alt',u:'1/min',d:1000},{s:'n₂',l:'Drehzahl neu',u:'1/min',d:800}],
       c:v=>v['P₁']*Math.pow(v['n₂']/v['n₁'],3),
       e:(v,r)=>'P₂ = '+v['P₁']+'·('+v['n₂']+'/'+v['n₁']+')³ = <b>'+r+' kW</b>',
-      note:'P ∝ n³ — grosses Energiesparpotenzial!'}
+      note:'P ∝ n³ — grosses Energiesparpotenzial!'},
+    {g:'Wasser',n:'Oberflächentemperatur Kühler',u:'°C',
+      vars:[{s:'t_WE',l:'Wasser Eintritt (VL)',u:'°C',d:6},{s:'t_WA',l:'Wasser Austritt (RL)',u:'°C',d:12}],
+      c:v=>(v['t_WE']+v['t_WA'])/2+1,
+      e:(v,r)=>'t_WM = ('+v['t_WE']+'+'+v['t_WA']+')/2 → t_O = t_WM + 1 = <b>'+r+' °C</b>',
+      note:'Mittlere Oberflächentemperatur Kühler: t_WM = (t_WE+t_WA)/2, dann t_O ≈ t_WM + 1. Liegt t_O unter dem Luft-Taupunkt → Kondensat (Siphon!).'},
+    {g:'Leistung',n:'Kühler-/Befeuchterleistung (Enthalpie)',u:'kW',
+      vars:[{s:'V̇',l:'Volumenstrom',u:'m³/h',d:4000},{s:'ρ',l:'Dichte',u:'kg/m³',d:1.2},{s:'Δh',l:'Enthalpiedifferenz',u:'kJ/kg',d:12}],
+      c:v=>v['V̇']*v['ρ']*v['Δh']/3600,
+      e:(v,r)=>'Q̇ = '+v['V̇']+'·'+v['ρ']+'·'+v['Δh']+' / 3600 = <b>'+r+' kW</b>',
+      note:'Q̇ = V̇·ρ·Δh/3600 — Gesamtleistung Luftkühler/Befeuchter über die Enthalpie (sensibel + latent).'},
+    {g:'Feuchte',n:'Befeuchtungswirkungsgrad η',u:'%',
+      vars:[{s:'x1',l:'Wassergehalt EIN',u:'g/kg',d:4},{s:'x2',l:'Wassergehalt AUS',u:'g/kg',d:7},{s:'xS',l:'Wassergehalt Sättigung',u:'g/kg',d:9}],
+      c:v=>(v['x2']-v['x1'])/(v['xS']-v['x1'])*100,
+      e:(v,r)=>'η = ('+v['x2']+'−'+v['x1']+')/('+v['xS']+'−'+v['x1']+') = <b>'+r+' %</b>',
+      note:'η = (x2−x1)/(xS−x1) — Sättigungsgrad der Befeuchtung (v.a. adiabatisch).'}
   ];
   const fmSel=$('fmSelect'); let fmCur=0, fmLast=null;
   (function(){ const groups=[]; FM.forEach(f=>{ if(groups.indexOf(f.g)<0) groups.push(f.g); });
