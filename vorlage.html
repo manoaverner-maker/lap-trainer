@@ -365,6 +365,17 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   .card:not(.swap-out):hover{transform:none}
 }
 
+/* ---------- Reduced Motion (Barrierefreiheit) ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+  .blob{animation:none !important}
+}
+/* ---------- Rechner: feine Mikro-Animationen ---------- */
+@keyframes calcBump{0%{transform:scale(1)}35%{transform:scale(1.05)}100%{transform:scale(1)}}
+.calc-res.bump .val{animation:calcBump .28s cubic-bezier(.22,.9,.3,1)}
+@keyframes fmIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.fm-out.fmin{animation:fmIn .25s ease}
+
 /* ---------- Mobile-Layout (nur Phone ≤640px; Desktop bleibt unverändert) ---------- */
 @media(max-width:640px){
   body{padding:0 10px 22px}
@@ -2336,6 +2347,7 @@ function renderBauteil(){
     let r; try{ r=calcEval(expr); }catch(e){ resWrap.classList.add('err'); resEl.textContent='Fehler'; return; }
     pushTape(expr, r); lastValid=r; justEval=true;
     exprEl.textContent=expr; resWrap.classList.remove('err'); resEl.textContent=fmtNum(r);
+    resWrap.classList.remove('bump'); void resWrap.offsetWidth; resWrap.classList.add('bump');
   }
   /* ---- Tastenlogik ---- */
   const OPCH='+−×÷^';
@@ -2655,7 +2667,7 @@ function renderBauteil(){
   const fmSel=$('fmSelect'); let fmCur=0, fmLast=null;
   (function(){ const groups=[]; FM.forEach(f=>{ if(groups.indexOf(f.g)<0) groups.push(f.g); });
     groups.forEach(g=>{ const og=document.createElement('optgroup'); og.label=g; FM.forEach((f,idx)=>{ if(f.g===g){ const o=document.createElement('option'); o.value=idx; o.textContent=f.n; og.appendChild(o); } }); fmSel.appendChild(og); }); })();
-  fmSel.addEventListener('change',()=>{ fmCur=+fmSel.value; renderFmVars(); });
+  fmSel.addEventListener('change',()=>{ fmCur=+fmSel.value; renderFmVars(); const fo=$('fmOut'); fo.classList.remove('fmin'); void fo.offsetWidth; fo.classList.add('fmin'); });
   function renderFmVars(){
     const f=FM[fmCur];
     $('fmVars').innerHTML=f.vars.map((v,i)=>'<div class="calc-in"><label>'+esc(v.s)+' · '+esc(v.l)+' ['+esc(v.u)+']</label><input type="number" step="any" data-i="'+i+'" value="'+v.d+'"></div>').join('');

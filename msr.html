@@ -131,6 +131,11 @@ footer{margin-top:auto;padding-top:24px;color:var(--mut2);font-size:.74rem;text-
   .blob{animation:none}
   .card:hover{transform:none}
 }
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+  .blob{animation:none !important}
+  .cfx{display:none !important}
+}
 </style></head><body>
 
 <!-- Liquid Glass + Aurora: Hintergrund-Schichten (Foto → Overlay → Blobs) -->
