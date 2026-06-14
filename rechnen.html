@@ -387,9 +387,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
     <article class="card" id="hxPanel">
       <div class="badges"><span class="badge cat">h,x-Diagramm</span><span class="badge" id="hxSubBadge"></span><span class="badge" id="hxPBadge"></span></div>
       <div class="task-text" id="hxText" style="font-size:1.02rem"></div>
-      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px">
-        <span style="color:var(--mut);font-size:.85rem">Luftdruck:</span>
-        <div class="ptoggle"><button id="hxP1013">1013 mbar</button><button id="hxP955">955 mbar</button></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px;color:var(--mut);font-size:.85rem">
+        <span>Luftdruck:</span><b style="color:var(--txt)">950 mbar</b><span>· Zürich (wie h,x-Diagramm)</span>
       </div>
       <div class="feedback" id="hxFb"></div>
       <div class="sol-actions">
@@ -499,7 +498,7 @@ const PHYS = {
   tDew(x, P){ const pd = P * x / (622 + x); const l = Math.log(pd / 6.112); return 243.12 * l / (17.62 - l); }
 };
 function hxState(t, phi, P){ const x = PHYS.xFromTPhi(t, phi, P); return { t, phi, x, h: PHYS.hFromTx(t, x) }; }
-const RHO = { 1013: 1.20, 955: 1.13 }; // kg/m3, Rechenwert wie Schule/Diagramm (~20 degC)
+const P_ZH = 950, RHO_ZH = 1.15; // Zürich / 7air-h,x-Diagramm: p = 950 mbar, Rechendichte 1.15 kg/m³ (alle Aufgaben)
 
 /* ---------- Zufall (deterministisch je Seed) ---------- */
 function makeRng(seed){ let s = seed >>> 0; return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -552,7 +551,7 @@ const SUBNAME = {
 const ROOMS = ['Bürogebäude', 'Schulhaus', 'Turnhalle', 'Mehrzwecksaal', 'Restaurant', 'Verwaltungsgebäude'];
 
 function pressureGiven(P){
-  return { k: 'Luftdruck p', v: fmt(P), u: P === 955 ? 'mbar (540 m ü.M.)' : 'mbar', warn: P !== 1013 };
+  return { k: 'Luftdruck p', v: fmt(P), u: 'mbar (Zürich · h,x-Diagramm)', warn: false };
 }
 
 /* ---------- Generatoren ---------- */
@@ -560,7 +559,7 @@ const GENS = {
 
   /* === K1: h,x === */
   hx_erhitzer(rng){
-    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const P = P_ZH, rho = RHO_ZH;
     const V = R.step(rng, 1500, 12000, 500);
     const t1 = R.int(rng, -12, 6), phi1 = R.step(rng, 60, 90, 5), t2 = R.int(rng, 18, 24);
     const s1 = hxState(t1, phi1, P);
@@ -579,7 +578,7 @@ const GENS = {
       ],
       ask: 'Heizleistung Q̇', unit: 'kW', sol, round: 1, tol: { rel: 0.02, abs: 0.05 },
       steps: [
-        { t: 'Formel', d: `Q̇ = ṁ · Δh / 3600 [kW] mit ṁ = V̇ · ρ [kg/h]. Erwärmen = senkrecht nach oben im h,x-Diagramm (x bleibt konstant). Schnell-Kontrolle: Faustformel Q̇ ≈ V̇ · 0.34 · ΔT (nur bei 1013 mbar!).` },
+        { t: 'Formel', d: `Q̇ = ṁ · Δh / 3600 [kW] mit ṁ = V̇ · ρ [kg/h]. Erwärmen = senkrecht nach oben im h,x-Diagramm (x bleibt konstant). Schnell-Kontrolle: Faustformel Q̇ ≈ V̇ · 0.34 · ΔT (gilt für ρ = 1.20 / Meereshöhe; in Zürich ρ = 1.15 → leicht zu hoch).` },
         { t: 'Zustand 1 ablesen', d: `Bei ${fmt(t1)} °C / ${fmt(phi1)} % r.F. und p = ${fmt(P)} mbar: x = ${s1.x.toFixed(2)} g/kg, h₁ = ${s1.h.toFixed(1)} kJ/kg.` },
         { t: 'Zustand 2 ablesen', d: `Erwärmen auf ${fmt(t2)} °C bei gleichem x = ${s1.x.toFixed(2)} g/kg: h₂ = ${h2.toFixed(1)} kJ/kg → Δh = ${dh.toFixed(1)} kJ/kg.` },
         { t: 'Massenstrom', d: `ṁ = ${fmt(V)} m³/h · ${rho.toFixed(2)} kg/m³ = ${fmt(m)} kg/h.` },
@@ -588,14 +587,14 @@ const GENS = {
       traps: [
         { v: m * dh, hint: 'Division durch 3600 vergessen: ṁ·Δh ergibt kJ/h – erst ÷3600 macht daraus kW.' },
         { v: V * dh / 3600, hint: 'Du hast mit dem Volumenstrom statt dem Massenstrom gerechnet – zuerst ṁ = V̇·ρ bilden.' },
-        { v: V * 0.34 * (t2 - t1) / 1000, hint: `Faustformel 0.34 gilt nur bei 1013 mbar. Hier ist p = ${fmt(P)} mbar (ρ ≈ ${rho.toFixed(2)}) – exakt über Δh rechnen.` },
+        { v: V * 0.34 * (t2 - t1) / 1000, hint: `Faustformel 0.34 gilt für ρ = 1.20 (Meereshöhe). Hier Zürich: p = ${fmt(P)} mbar, ρ = ${rho.toFixed(2)} – exakt über Δh rechnen.` },
         { v: m * dh / 3600 * 1000, hint: 'Das wäre die Leistung in Watt – gefragt ist kW.' }
       ]
     };
   },
 
   hx_kuehler(rng){
-    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const P = P_ZH, rho = RHO_ZH;
     const V = R.step(rng, 2000, 10000, 500);
     let t1, phi1, t2, phi2, s1, x2, tries = 0;
     do {
@@ -658,7 +657,7 @@ const GENS = {
   },
 
   hx_dampf(rng){
-    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const P = P_ZH, rho = RHO_ZH;
     const V = R.step(rng, 2000, 10000, 500);
     const t = R.int(rng, 20, 23), phi1 = R.step(rng, 10, 35, 5), phi2 = R.step(rng, 40, 60, 5);
     const x1 = PHYS.xFromTPhi(t, phi1, P), x2 = PHYS.xFromTPhi(t, phi2, P);
@@ -689,7 +688,7 @@ const GENS = {
   },
 
   hx_misch(rng){
-    const P = R.pick(rng, [1013, 955]);
+    const P = P_ZH;
     let ta, pa, tu, pu, ratio, ra, ru, sa, su, xm, hm, tm, tries = 0;
     do {
       ta = R.int(rng, -10, 8); pa = R.step(rng, 60, 90, 5);
@@ -803,7 +802,7 @@ const GENS = {
   },
 
   luft_feuchte(rng){
-    const P = R.pick(rng, [1013, 955]), rho = RHO[P];
+    const P = P_ZH, rho = RHO_ZH;
     const W = R.step(rng, 4, 24, 0.5);       // kg/h Wasserdampf
     const xr = R.step(rng, 9, 12, 0.5);
     const dx = R.step(rng, 1.5, 3, 0.5);
@@ -825,12 +824,12 @@ const GENS = {
         { t: 'Formel', d: `Feuchtebilanz: Ẇ = ṁ · Δx / 1000 → V̇ = Ẇ · 1000 / (ρ · Δx). Δx = xᵣ − xᴢ (Luft nimmt vom Eintritt bis zum Austritt Δx auf).` },
         { t: 'Δx bestimmen', d: `Δx = ${xr.toFixed(1)} − ${xz.toFixed(1)} = ${dx.toFixed(1)} g/kg.` },
         { t: 'Einsetzen', d: `V̇ = ${W.toFixed(1)} kg/h · 1000 / (${rho.toFixed(2)} kg/m³ · ${dx.toFixed(1)} g/kg)` },
-        { t: 'Resultat', d: `<b>V̇ = ${fmt(sol)} m³/h</b>. Bei p = ${fmt(P)} mbar gilt ρ = ${rho.toFixed(2)} kg/m³ ${P === 955 ? '(Höhenlage beachten!)' : ''}.` }
+        { t: 'Resultat', d: `<b>V̇ = ${fmt(sol)} m³/h</b>. Bei p = ${fmt(P)} mbar (Zürich) gilt ρ = ${rho.toFixed(2)} kg/m³.` }
       ],
       traps: [
         { v: sol / 1000, hint: 'Ẇ ist in kg/h, Δx in g/kg – der Faktor 1000 fehlt.' },
         { v: W * 1000 / dx, hint: 'Dichte ρ vergessen: V̇ = Ẇ·1000/(ρ·Δx).' },
-        { v: W * 1000 / (RHO[P === 1013 ? 955 : 1013] * dx), hint: `Dichte zum Luftdruck prüfen: bei ${fmt(P)} mbar ist ρ = ${rho.toFixed(2)} kg/m³.` }
+        { v: W * 1000 / (1.20 * dx), hint: `Falsche Dichte: in Zürich gilt ρ = 1.15 kg/m³, nicht 1.20 (Meereshöhe).` }
       ]
     };
   },
@@ -961,7 +960,7 @@ const GENS = {
         ]
       };
     }
-    const v = R.step(rng, 3, 8, 0.5), rho = R.pick(rng, [1.15, 1.2]);
+    const v = R.step(rng, 3, 8, 0.5), rho = RHO_ZH;
     const pst = R.step(rng, 40, 160, 5);
     const pdyn = rho / 2 * v * v;
     const sol = pst + pdyn;
@@ -1137,7 +1136,7 @@ const GENS = {
 
   wrg_q(rng){
     const V = R.step(rng, 2000, 12000, 500);
-    const rho = 1.20, c = 1.006;
+    const rho = RHO_ZH, c = 1.006;
     const ta = R.int(rng, -12, 2), tb = R.int(rng, 20, 24);
     const phi = R.step(rng, 0.6, 0.85, 0.05);
     const tw = ta + phi * (tb - ta);
@@ -1156,13 +1155,13 @@ const GENS = {
         { k: 'Abluft', v: fmt(tb), u: '°C' },
         { k: 'Rückwärmzahl Φ', v: String(Math.round(phi * 100)), u: '%' },
         { k: 'Zuluft-Soll', v: fmt(tz), u: '°C' },
-        { k: 'ρ / c', v: '1.20 / 1.006', u: 'kg/m³ / kJ/(kg·K)' }
+        { k: 'ρ / c', v: '1.15 / 1.006', u: 'kg/m³ / kJ/(kg·K)' }
       ],
       ask: askNE ? 'Leistung Nacherwärmer Q̇' : 'WRG-Leistung Q̇', unit: 'kW', sol, round: 1, tol: { rel: 0.02, abs: 0.05 },
       steps: [
         { t: 'Formel', d: `Zuerst Temperatur nach WRG: t₂₂ = t₂₁ + Φ·(t₁₁ − t₂₁). Dann Q̇ = ṁ · c · Δt / 3600 [kW] mit dem jeweiligen Δt.` },
         { t: 'Temperatur nach WRG', d: `t₂₂ = ${fmt(ta)} + ${phi.toFixed(2)}·(${fmt(tb)} − (${fmt(ta)})) = ${tw.toFixed(1)} °C.` },
-        { t: 'Massenstrom', d: `ṁ = ${fmt(V)} · 1.20 = ${fmt(m)} kg/h.` },
+        { t: 'Massenstrom', d: `ṁ = ${fmt(V)} · 1.15 = ${fmt(m)} kg/h.` },
         { t: 'Resultat', d: askNE
           ? `Q̇_NE = ${fmt(m)} · 1.006 · (${fmt(tz)} − ${tw.toFixed(1)}) / 3600 = <b>${fmt(sol, 1)} kW</b> – nur noch das Stück nach der WRG!`
           : `Q̇_WRG = ${fmt(m)} · 1.006 · (${tw.toFixed(1)} − (${fmt(ta)})) / 3600 = <b>${fmt(sol, 1)} kW</b> gratis zurückgewonnen.` }
@@ -1245,7 +1244,7 @@ const GENS = {
   },
 
   kanal_dp(rng){
-    const rho = R.pick(rng, [1.15, 1.20]);
+    const rho = RHO_ZH;
     const NU = 1.5e-5;
     const d = R.pick(rng, [200, 250, 315, 400, 500, 630, 800]); // mm
     const v = R.step(rng, 3, 7, 0.5);
@@ -1351,7 +1350,7 @@ const DSUBNAME = {
 const DTOL = { dt: 1.0, dx: 0.5 };   // ±1 K, ±0.5 g/kg
 const DGENS = {
   hxd_punkt(rng){
-    const P = R.pick(rng, [1013, 955]);
+    const P = P_ZH;
     let t, phi, x, tries = 0;
     do { t = R.int(rng, 2, 32); phi = R.step(rng, 20, 90, 5); x = PHYS.xFromTPhi(t, phi, P); }
     while (x > 15.2 && ++tries < 60);
@@ -1359,7 +1358,7 @@ const DGENS = {
       text: `Setze den Zustandspunkt <b>${t} °C / ${phi} % r.F.</b> ins Diagramm (klicken, dann bei Bedarf ziehen).` };
   },
   hxd_erwaermen(rng){
-    const P = R.pick(rng, [1013, 955]);
+    const P = P_ZH;
     let t1, phi1, x1, tries = 0;
     do { t1 = R.int(rng, -10, 14); phi1 = R.step(rng, 40, 90, 5); x1 = PHYS.xFromTPhi(t1, phi1, P); }
     while (x1 > 14.0 && ++tries < 60);
@@ -1368,7 +1367,7 @@ const DGENS = {
       text: `Der Startzustand <b>${t1} °C / ${phi1} %</b> ist eingezeichnet. Zeichne die <b>Erwärmung auf ${t2} °C</b>: vom Startpunkt aus ziehen (x bleibt konstant).` };
   },
   hxd_kuehlen(rng){
-    const P = R.pick(rng, [1013, 955]);
+    const P = P_ZH;
     let t1, phi1, t2, x1, tries = 0;
     do {
       t1 = R.int(rng, 24, 32); phi1 = R.step(rng, 25, 50, 5); t2 = R.int(rng, 12, 18);
@@ -1378,7 +1377,7 @@ const DGENS = {
       text: `Der Startzustand <b>${t1} °C / ${phi1} %</b> ist eingezeichnet. Zeichne die <b>Kühlung auf ${t2} °C</b> (ohne Entfeuchtung – der Taupunkt wird nicht erreicht).` };
   },
   hxd_dampf(rng){
-    const P = R.pick(rng, [1013, 955]);
+    const P = P_ZH;
     let t, phi1, phi2, x2, tries = 0;
     do { t = R.int(rng, 19, 23); phi1 = R.step(rng, 15, 35, 5); phi2 = R.step(rng, 45, 65, 5); x2 = PHYS.xFromTPhi(t, phi2, P); }
     while (x2 > 15.0 && ++tries < 60);
@@ -1968,7 +1967,7 @@ const HXUI = (function(){
   const cv = $('hxCanvas'), ctx = cv.getContext('2d');
   const M = { l: 56, r: 14, t: 14, b: 42 };
   let W = 900, H = 580;
-  let pressure = 1013;
+  let pressure = 950;
   let task = null, t0 = 0, counted = false, solved = false, revealed = false, fails = 0;
   let cand = null, dragging = false, cross = null;
   const X0 = 0, X1 = HXD.X_MAX, Y0 = HXD.Y_MIN - 0.8, Y1 = HXD.Y_MAX + 0.8;
@@ -2105,14 +2104,7 @@ const HXUI = (function(){
       `<span>φ ≈ <b>${phi > 100 ? '&gt;100' : phi.toFixed(0)} %</b></span><span>h = <b>${h.toFixed(1)} kJ/kg</b></span>` +
       (cand ? `<span style="color:var(--acc)">Dein Punkt: <b>${cand.t.toFixed(1)} °C / ${cand.x.toFixed(2)} g/kg</b></span>` : '');
   }
-  function setPressureUI(){
-    $('hxP1013').classList.toggle('on', pressure === 1013);
-    $('hxP955').classList.toggle('on', pressure === 955);
-    const locked = task && !solved && !revealed;
-    $('hxP1013').disabled = locked; $('hxP955').disabled = locked;
-    $('hxP1013').title = locked ? 'Während der Aufgabe durch die Aufgabe vorgegeben' : '';
-    $('hxP955').title = $('hxP1013').title;
-  }
+  function setPressureUI(){ /* fester Luftdruck 950 mbar (Zürich) – kein Umschalter mehr */ }
   function newTask(){
     const due = leitDue(k => DGENS[k]);
     let fromDue = false;
@@ -2126,8 +2118,8 @@ const HXUI = (function(){
     pressure = task.P;
     cand = null; solved = false; revealed = false; counted = false; fails = 0; t0 = Date.now();
     $('hxSubBadge').textContent = (fromDue ? '📅 ' : '') + DSUBNAME[task.dsub];
-    $('hxPBadge').textContent = (task.P === 955 ? '⚠ ' : '') + fmt(task.P) + ' mbar';
-    $('hxPBadge').className = 'badge ' + (task.P === 955 ? 'p-warn' : 'p-norm');
+    $('hxPBadge').textContent = fmt(task.P) + ' mbar';
+    $('hxPBadge').className = 'badge p-norm';
     $('hxText').innerHTML = task.text;
     $('hxFb').className = 'feedback'; $('hxFb').innerHTML = '';
     setPressureUI(); draw(); readout(null);
@@ -2200,8 +2192,7 @@ const HXUI = (function(){
   cv.addEventListener('pointerup', () => { dragging = false; draw(); });
   cv.addEventListener('pointerleave', () => { if (!dragging){ cross = null; draw(); readout(cand); } });
   /* Druck-Umschalter (frei nach dem Lösen) */
-  $('hxP1013').onclick = () => { pressure = 1013; setPressureUI(); draw(); };
-  $('hxP955').onclick = () => { pressure = 955; setPressureUI(); draw(); };
+  /* Luftdruck fest 950 mbar (Zürich) – keine Umschalter mehr */
   $('hxCheck').onclick = check;
   $('hxReveal').onclick = reveal;
   $('hxNext').onclick = newTask;
