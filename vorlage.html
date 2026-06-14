@@ -460,6 +460,10 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 .calc-copy{flex:0 0 auto;border:1px solid var(--glass-line);background:rgba(255,255,255,.06);color:var(--acc);border-radius:9px;padding:6px 11px;font-size:.78rem;font-weight:600;white-space:nowrap}
 .calc-copy:hover{background:rgba(56,189,248,.16)}
 .calc-copy.ok{background:var(--ok);border-color:var(--ok);color:#05230f}
+.calc-sci{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-bottom:8px}
+.calc-skey{display:flex;align-items:center;justify-content:center;height:40px;border-radius:11px;border:1px solid rgba(99,102,241,.32);background:rgba(99,102,241,.11);color:#b9c4ff;font-size:.88rem;font-weight:600;cursor:pointer;user-select:none;transition:background .12s,transform .08s}
+.calc-skey:hover{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.5)}
+.calc-skey:active{transform:translateY(1px) scale(.96)}
 .calc-pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .calc-key{display:flex;align-items:center;justify-content:center;height:52px;border-radius:13px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);color:var(--txt);font-size:1.18rem;font-weight:600;user-select:none;cursor:pointer;transition:background .12s,transform .08s,box-shadow .15s,filter .12s}
 .calc-key:hover{background:rgba(255,255,255,.1);border-color:var(--glass-top)}
@@ -513,6 +517,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
 @media(max-width:880px){.calc-wrap{grid-template-columns:1fr}}
 @media(max-width:640px){
   .calc-main{padding:13px}
+  .calc-sci{gap:5px}
+  .calc-skey{height:44px;font-size:.8rem;border-radius:12px}
   .calc-key{height:54px;font-size:1.22rem;border-radius:14px}
   .calc-res .val{font-size:1.7rem}
   .fm-vars{grid-template-columns:1fr}
@@ -691,6 +697,7 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
             <span class="val" id="calcRes" title="Antippen zum Kopieren">0</span>
           </div>
         </div>
+        <div class="calc-sci" id="calcSci"></div>
         <div class="calc-pad" id="calcPad"></div>
         <div class="calc-chips" id="calcChips"></div>
         <div class="calc-mem">
@@ -2251,20 +2258,23 @@ function renderBauteil(){
     const T=[]; let i=0;
     while(i<s.length){
       const c=s[i];
-      if((c>='0'&&c<='9')||c==='.'){ let j=i+1; while(j<s.length&&((s[j]>='0'&&s[j]<='9')||s[j]==='.'))j++; T.push({t:'n',v:parseFloat(s.slice(i,j))}); i=j; }
+      if((c>='0'&&c<='9')||c==='.'){ let j=i+1; while(j<s.length&&((s[j]>='0'&&s[j]<='9')||s[j]==='.'))j++; if(s[j]==='E'||s[j]==='e'){ let kk=j+1; if(s[kk]==='+'||s[kk]==='-')kk++; if(kk<s.length&&s[kk]>='0'&&s[kk]<='9'){ while(kk<s.length&&s[kk]>='0'&&s[kk]<='9')kk++; j=kk; } } T.push({t:'n',v:parseFloat(s.slice(i,j))}); i=j; }
       else if(c==='π'){ T.push({t:'n',v:Math.PI}); i++; }
       else if('+-*/^()'.indexOf(c)>=0){ T.push({t:c}); i++; }
       else if(c==='√'){ T.push({t:'r'}); i++; }
       else if(c==='²'){ T.push({t:'q'}); i++; }
+      else if(c==='³'){ T.push({t:'c'}); i++; }
       else if(c==='%'){ T.push({t:'p'}); i++; }
+      else if(s.substr(i,3)==='log'){ T.push({t:'lg'}); i+=3; }
+      else if(s.substr(i,2)==='ln'){ T.push({t:'ln'}); i+=2; }
       else throw new Error('Zeichen '+c);
     }
     let p=0; const pk=()=>T[p], nx=()=>T[p++];
     function E(){ let v=Tm(); while(pk()&&(pk().t==='+'||pk().t==='-')){ const o=nx().t; const r=Tm(); v=o==='+'?v+r:v-r; } return v; }
     function Tm(){ let v=U(); while(pk()&&(pk().t==='*'||pk().t==='/')){ const o=nx().t; const r=U(); if(o==='/'&&r===0) throw new Error('÷0'); v=o==='*'?v*r:v/r; } return v; }
-    function U(){ if(pk()&&pk().t==='-'){ nx(); return -U(); } if(pk()&&pk().t==='r'){ nx(); const r=U(); if(r<0) throw new Error('√<0'); return Math.sqrt(r); } return Pw(); }
+    function U(){ if(pk()&&pk().t==='-'){ nx(); return -U(); } if(pk()&&pk().t==='r'){ nx(); const r=U(); if(r<0) throw new Error('√<0'); return Math.sqrt(r); } if(pk()&&pk().t==='lg'){ nx(); const r=U(); if(r<=0) throw new Error('log'); return Math.log(r)/Math.LN10; } if(pk()&&pk().t==='ln'){ nx(); const r=U(); if(r<=0) throw new Error('ln'); return Math.log(r); } return Pw(); }
     function Pw(){ let v=Po(); if(pk()&&pk().t==='^'){ nx(); const e=U(); v=Math.pow(v,e); } return v; }
-    function Po(){ let v=Pr(); while(pk()&&(pk().t==='q'||pk().t==='p')){ const t=nx().t; v=t==='q'?v*v:v/100; } return v; }
+    function Po(){ let v=Pr(); while(pk()&&(pk().t==='q'||pk().t==='c'||pk().t==='p')){ const t=nx().t; v=t==='q'?v*v:t==='c'?v*v*v:v/100; } return v; }
     function Pr(){ const k=pk(); if(!k) throw new Error('Ende'); if(k.t==='n'){ nx(); return k.v; } if(k.t==='('){ nx(); const v=E(); if(!pk()||pk().t!==')') throw new Error('Klammer'); nx(); return v; } throw new Error('unerwartet'); }
     const res=E(); if(p<T.length) throw new Error('Rest'); if(!isFinite(res)) throw new Error('unendlich'); return res;
   }
@@ -2301,15 +2311,36 @@ function renderBauteil(){
     if(l==='C'){ expr=''; justEval=false; return render(); }
     if(l==='⌫'){ justEval=false; expr=expr.slice(0,-1); return render(); }
     if(l==='='){ return commit(); }
-    let tok=l; if(l==='x²') tok='²'; if(l==='xʸ') tok='^';
+    if(l==='Ans'){ if(lastValid!=null) insertValue(rawNum(lastValid)); return; }
+    if(l==='±'){
+      if(justEval){ if(lastValid!=null) expr=rawNum(-lastValid); justEval=false; return render(); }
+      const m=expr.match(/([0-9.]+)$/);
+      if(m){ const i=expr.length-m[1].length;
+        if((expr[i-1]==='−'||expr[i-1]==='-') && (i-1===0||OPCH.indexOf(expr[i-2])>=0||expr[i-2]==='(')) expr=expr.slice(0,i-1)+expr.slice(i);
+        else expr=expr.slice(0,i)+'−'+m[1];
+      }
+      return render();
+    }
+    if(l==='1/x'){
+      if(justEval && lastValid!=null){ expr='1/('+rawNum(lastValid)+')'; justEval=false; return render(); }
+      if(expr.trim()==='') return; expr='1/('+expr+')'; justEval=false; return render();
+    }
+    if(l==='EXP'){
+      if(justEval){ expr=lastValid!=null?rawNum(lastValid):''; justEval=false; }
+      if(!/[0-9.]$/.test(expr)) return;
+      if(/E[-−+]?[0-9]*$/.test(expr)) return;
+      expr+='E'; return render();
+    }
+    let tok=l; if(l==='x²') tok='²'; if(l==='x³') tok='³'; if(l==='xʸ') tok='^';
     const isNum='0123456789'.indexOf(l)>=0, isDot=l==='.', isOp=OPCH.indexOf(tok)>=0;
     if(justEval){
-      if(isNum||isDot||l==='('||l==='π'||l==='√'){ expr=''; }
+      if(isNum||isDot||l==='('||l==='π'||l==='√'||l==='log'||l==='ln'){ expr=''; }
       else { expr = lastValid!=null ? rawNum(lastValid) : ''; }
       justEval=false;
     }
     const last=expr.slice(-1);
     if(isOp){
+      if((tok==='−'||tok==='+') && last==='E'){ expr+=tok; return render(); }
       if(expr===''){ if(tok==='−'){ expr='−'; return render(); } return; }
       if(OPCH.indexOf(last)>=0) expr=expr.slice(0,-1)+tok; else expr+=tok;
       return render();
@@ -2319,25 +2350,25 @@ function renderBauteil(){
       if(op<=cl) return; if(last===''||OPCH.indexOf(last)>=0||last==='(') return;
       expr+=')'; return render();
     }
-    if(tok==='²'||l==='%'){
+    if(tok==='²'||tok==='³'||l==='%'){
       if(last===''||OPCH.indexOf(last)>=0||last==='(') return;
       expr+=tok; return render();
     }
     if(isDot){
       const seg=(expr.match(/[0-9.]*$/)||[''])[0];
       if(seg.indexOf('.')>=0) return;
-      if(seg===''){ if(/[)π²%]/.test(last)) expr+='×'; expr+='0'; }
+      if(seg===''){ if(/[)π²³%]/.test(last)) expr+='×'; expr+='0'; }
       expr+='.'; return render();
     }
     /* Wert: Ziffer, π, √, ( */
-    if(/[0-9)π²%]/.test(last) && !(isNum && /[0-9.]/.test(last))) expr+='×';
+    if(/[0-9)π²³%]/.test(last) && !(isNum && /[0-9.]/.test(last))) expr+='×';
     expr += (l==='√'?'√':l==='π'?'π':l==='('?'(':l);
     render();
   }
   function insertValue(s){
     if(justEval){ expr=''; justEval=false; }
     const last=expr.slice(-1);
-    if(/[0-9)π²%]/.test(last)) expr+='×';
+    if(/[0-9)π²³%]/.test(last)) expr+='×';
     expr+=s; render();
   }
   /* ---- Tastenfeld ---- */
@@ -2348,6 +2379,9 @@ function renderBauteil(){
               ['0','num'],['.','num'],['π','sci'],['%','sci'],['=','eq']];
   const pad=$('calcPad');
   KEYS.forEach(([lab,cls])=>{ const b=document.createElement('div'); b.className='calc-key '+cls; b.textContent=lab; b.addEventListener('click',()=>press(lab)); pad.appendChild(b); });
+  const SCI=['±','1/x','x³','log','ln','EXP','Ans'];
+  const sciBox=$('calcSci');
+  SCI.forEach(lab=>{ const b=document.createElement('div'); b.className='calc-skey'; b.textContent=lab; b.addEventListener('click',()=>press(lab)); sciBox.appendChild(b); });
   /* ---- Konstanten ---- */
   const CONSTS=[['ρ','1.20'],['ρ','1.15'],['cₚ','1.006'],['c_W','4.187'],['','3600'],['π','π'],['g','9.81'],['r','2500']];
   const chipBox=$('calcChips');
