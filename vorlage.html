@@ -131,7 +131,6 @@ main.show{display:flex;animation:viewIn .4s cubic-bezier(.22,.9,.3,1)}
 .hx-pt .nm{font-weight:700;color:#5ecbfa;cursor:text}
 .hx-pt .del{cursor:pointer;color:var(--mut2);margin-left:6px;font-weight:700}
 .hx-pt .del:hover{color:#fca5a5}
-.hx-pt-mini{display:none}
 .hx-diag{position:relative}
 .hx-fsbar{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .hx-taphint{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:12px;background:rgba(11,18,32,.30);color:#fff;font-weight:700;font-size:.95rem;pointer-events:none;text-shadow:0 1px 5px rgba(0,0,0,.7)}
@@ -580,8 +579,6 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   body.print-hx .hx-pt{background:rgba(255,255,255,.8) !important;color:#111 !important;box-shadow:none !important;border:1px solid #bbb !important;border-left:3px solid #0a8a6a !important;font-size:7.5px !important;line-height:1.25 !important;padding:2px 4px !important;border-radius:5px !important}
   body.print-hx .hx-pt .nm{color:#0a6a52 !important}
   body.print-hx .hx-pt .del{display:none !important}
-  body.print-hx .hx-pt-full{display:none !important}
-  body.print-hx .hx-pt-mini{display:block !important;font-variant-numeric:tabular-nums}
   body.print-hx .hx-pfoot{display:flex !important;align-items:center;justify-content:center;position:fixed;left:0;right:0;bottom:0;height:9mm;background:#236b6a;color:#eaf6f5;font-size:9px;letter-spacing:.05em;font-family:system-ui,sans-serif;z-index:7}
 }
 @page{size:A4 portrait;margin:9mm}
@@ -2033,7 +2030,7 @@ function hxRenderPoints(){
   c.innerHTML = hxPoints.map((p, i) => {
     const px = Math.max(0, p.x), st = hxState(p.t, px), tdp = hxDew(px), twb = hxWet(p.t, px);
     const fx = ((p.sx - HXVB.x) / HXVB.w * 100).toFixed(2), fy = ((p.sy - HXVB.y) / HXVB.h * 100).toFixed(2);
-    return `<div class="hx-pt" style="left:${fx}%;top:${fy}%"><span class="nm" data-i="${i}">${esc(p.name)}</span><span class="del" data-i="${i}">✕</span><span class="hx-pt-full"><br>ϑ ${p.t.toFixed(1)} °C · x ${px.toFixed(1)} g/kg<br>φ ${st.phi.toFixed(0)} % · h ${st.h.toFixed(1)} · ρ ${st.rho.toFixed(2)}<br>Taup ${tdp.toFixed(1)} °C · Feuchtk ${twb.toFixed(1)} °C</span><span class="hx-pt-mini">ϑ ${p.t.toFixed(1)} °C · φ ${st.phi.toFixed(0)} %</span></div>`;
+    return `<div class="hx-pt" style="left:${fx}%;top:${fy}%"><span class="nm" data-i="${i}">${esc(p.name)}</span><span class="del" data-i="${i}">✕</span><br>ϑ ${p.t.toFixed(1)} °C · x ${px.toFixed(1)} g/kg<br>φ ${st.phi.toFixed(0)} % · h ${st.h.toFixed(1)} · ρ ${st.rho.toFixed(2)}<br>Taup ${tdp.toFixed(1)} °C · Feuchtk ${twb.toFixed(1)} °C</div>`;
   }).join('');
   c.querySelectorAll('.del').forEach(d => d.onclick = () => { hxPoints.splice(+d.dataset.i, 1); hxRenderPoints(); hxRenderDraw(); });
   c.querySelectorAll('.nm').forEach(n => n.onclick = () => { const i = +n.dataset.i, nm = prompt('Name des Zustands:', hxPoints[i].name); if (nm != null){ hxPoints[i].name = nm; hxRenderPoints(); } });
