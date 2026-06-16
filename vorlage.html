@@ -452,8 +452,8 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
   .kan-grid{grid-template-columns:1fr;gap:15px;margin-bottom:18px}
   .kan-row{font-size:.9rem;gap:7px}
   .kan-field input{min-height:48px;font-size:1.08rem;padding:11px 14px;border-radius:12px}
-  .kan-row #kanMode{min-height:48px!important;padding:12px 38px 12px 13px!important;font-size:1rem;flex:1;width:100%}
-  .kan-row #kanUnit{min-height:48px!important;font-size:1rem}
+  .kan-row #kanMode,.kan-row #kan2Shape,.kan-row #kan2D{min-height:48px!important;padding:12px 38px 12px 13px!important;font-size:1rem;flex:1;width:100%}
+  .kan-row #kanUnit,.kan-row #kan2Unit{min-height:48px!important;font-size:1rem}
   .kan-field i{font-size:.92rem;min-width:34px}
   .kan-out{gap:12px}
   .kan-res{padding:14px 16px;font-size:.96rem;line-height:1.62;border-radius:14px}
@@ -704,6 +704,21 @@ footer kbd{background:var(--card);border:1px solid var(--line);border-bottom-wid
         <p><b>Faustregel</b>: Dauerbetrieb → unteres Ende der Geschwindigkeitsbereiche wählen, Druckverlust tief halten. Ziel: Ventilator-Energie begrenzen (Energiestrategie 2050).</p>
       </div>
     </details>
+  </div>
+  <div class="card" style="padding:24px 28px;margin-top:18px">
+    <h2 class="sec" style="font-size:1.2rem">🔎 Mass → Werte ablesen</h2>
+    <p style="color:var(--mut);font-size:.88rem;margin:-6px 0 16px">Umgekehrt: <b>Kanalmass wählen</b> (Norm-Rundrohr oder Rechteckkanal) und Volumenstrom eingeben → liest <b>Geschwindigkeit, dyn. Druck, Reibung, Druckverlust, Reynolds</b> usw. ab.</p>
+    <div class="kan-grid">
+      <label class="kan-row"><span>Querschnittsform</span><span class="kan-field"><select class="bigselect" id="kan2Shape" style="min-height:0;padding:9px 36px 9px 12px"><option value="rund">Rundrohr (Ø)</option><option value="rechteck">Rechteckkanal (a × b)</option></select></span></label>
+      <label class="kan-row" id="kan2DRow"><span>Norm-Durchmesser Ø</span><span class="kan-field"><select class="bigselect" id="kan2D" style="min-height:0;padding:9px 36px 9px 12px"></select></span></label>
+      <label class="kan-row" id="kan2DfreeRow" style="display:none"><span>Durchmesser Ø (frei)</span><span class="kan-field"><input type="number" id="kan2Dfree" value="315" min="20" step="5"><i>mm</i></span></label>
+      <label class="kan-row" id="kan2ARow" style="display:none"><span>Kanalbreite a</span><span class="kan-field"><input type="number" id="kan2A" value="400" min="20" step="10"><i>mm</i></span></label>
+      <label class="kan-row" id="kan2BRow" style="display:none"><span>Kanalhöhe b</span><span class="kan-field"><input type="number" id="kan2B" value="200" min="20" step="10"><i>mm</i></span></label>
+      <label class="kan-row"><span>Luftvolumenstrom V̇</span><span class="kan-field"><input type="number" id="kan2V" value="1000" min="0" step="50"><select class="bigselect" id="kan2Unit" style="min-height:0;padding:8px 28px 8px 10px;width:auto;flex:0 0 auto"><option value="m3h">m³/h</option><option value="ls">l/s</option></select></span></label>
+      <label class="kan-row"><span>Leitungslänge L <small style="color:var(--mut2)">(für Δp)</small></span><span class="kan-field"><input type="number" id="kan2L" value="10" min="0" step="1"><i>m</i></span></label>
+    </div>
+    <div id="kan2Out" class="kan-out"></div>
+    <div class="kan-note"><b>Formeln:</b> A = π/4·Ø² bzw. a·b &nbsp;·&nbsp; w = V̇/(3600·A) &nbsp;·&nbsp; p<sub>dyn</sub> = ρ/2·w² &nbsp;·&nbsp; dₕ = 2·a·b/(a+b) &nbsp;·&nbsp; Re = w·dₕ/ν (turbulent ab Re ≈ 2320) &nbsp;·&nbsp; Δp = R·L. &nbsp; ρ = 1.20 kg/m³, ν = 15·10⁻⁶ m²/s.</div>
   </div>
 </main>
 
@@ -2415,6 +2430,47 @@ function renderBauteil(){
   }
   ['kanV','kanUnit','kanMode','kanVel','kanH','kanFq','kanL'].forEach(id => { const e=$(id); if (e){ e.addEventListener('input', calc); e.addEventListener('change', calc); } });
   calc();
+
+  /* ---- Reverse-Lookup: Mass → Werte ablesen ---- */
+  const th = n => (''+r0(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+  function syncShape2(){
+    const round = $('kan2Shape').value === 'rund', free = $('kan2D').value === 'frei';
+    $('kan2DRow').style.display     = round ? '' : 'none';
+    $('kan2DfreeRow').style.display = (round && free) ? '' : 'none';
+    $('kan2ARow').style.display     = round ? 'none' : '';
+    $('kan2BRow').style.display     = round ? 'none' : '';
+  }
+  function calc2(){
+    syncShape2();
+    const round = $('kan2Shape').value === 'rund';
+    const unit = $('kan2Unit').value, qin = parseFloat($('kan2V').value)||0;
+    const q = unit==='ls' ? qin*3.6 : qin;                 // → m³/h
+    const L = Math.max(0, parseFloat($('kan2L').value)||0);
+    const out = $('kan2Out');
+    let A, dh, label;
+    if (round){
+      const D = $('kan2D').value==='frei' ? (parseFloat($('kan2Dfree').value)||0) : (parseFloat($('kan2D').value)||0);
+      if (D<=0){ out.innerHTML = '<div class="kan-res">Bitte einen Durchmesser wählen.</div>'; return; }
+      A = Math.PI*(D/1000)**2/4; dh = D; label = 'Ø '+r0(D)+' mm';
+    } else {
+      const a = parseFloat($('kan2A').value)||0, b = parseFloat($('kan2B').value)||0;
+      if (a<=0 || b<=0){ out.innerHTML = '<div class="kan-res">Bitte Breite und Höhe eingeben.</div>'; return; }
+      A = a*b/1e6; dh = 2*a*b/(a+b); label = r0(a)+' × '+r0(b)+' mm';
+    }
+    if (q<=0){ out.innerHTML = '<div class="kan-res">Bitte Volumenstrom eingeben.</div>'; return; }
+    const w = (q/3600)/A, pdyn = RHO/2*w*w, R = Rfric(dh/1000, w), dp = R*L, Re = w*(dh/1000)/NU, turb = Re>2320;
+    out.innerHTML =
+      `<div class="kan-res"><span class="k">Gewähltes Mass &amp; Volumenstrom</span><b>${label}</b> &nbsp;·&nbsp; V̇ = <b>${th(q)}</b> m³/h <span style="color:var(--mut2)">(${r1(q/3.6)} l/s)</span> &nbsp;·&nbsp; A = <b>${A.toFixed(4)}</b> m²</div>`+
+      `<div class="kan-res"><span class="k">Geschwindigkeit</span>w = V̇ / (3600 · A) = <b>${r1(w)}</b> m/s</div>`+
+      ampel(w)+
+      `<div class="kan-res"><span class="k">Drücke</span>dyn. Druck p<sub>dyn</sub> = ρ/2 · w² = <b>${r1(pdyn)}</b> Pa <span style="color:var(--mut2)">(ρ = ${RHO} kg/m³)</span><br>Reibung R = <b>${r1(R)}</b> Pa/m${L>0?` &nbsp;·&nbsp; Druckverlust Δp = R · L = <b>${r1(dp)}</b> Pa <span style="color:var(--mut2)">(${r0(L)} m)</span>`:''}</div>`+
+      `<div class="kan-res"><span class="k">Strömung</span>hydraulischer Ø dₕ = <b>${r0(dh)}</b> mm &nbsp;·&nbsp; Reynolds Re = <b>${th(Re)}</b> &nbsp;→&nbsp; <b style="color:${turb?'#f59e0b':'#22c55e'}">${turb?'turbulent':'laminar'}</b> <span style="color:var(--mut2)">(Grenze Re ≈ 2320)</span></div>`;
+  }
+  if ($('kan2D')){
+    $('kan2D').innerHTML = STD.map(d=>`<option value="${d}"${d===315?' selected':''}>Ø ${d} mm</option>`).join('') + '<option value="frei">frei eingeben…</option>';
+    ['kan2Shape','kan2D','kan2Dfree','kan2A','kan2B','kan2V','kan2Unit','kan2L'].forEach(id => { const e=$(id); if (e){ e.addEventListener('input', calc2); e.addEventListener('change', calc2); } });
+    calc2();
+  }
 })();
 
 /* ===== Lüftungs-Rechner ===== */
